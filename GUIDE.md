@@ -13,9 +13,9 @@ References:
   - Label: Project Agents Guide
     Path: ./AGENTS.md
   - Label: Projects: Ref-Arch README
-    Path: ../README.md
+      Path: ../README.md
   - Label: Projects: Ref-Arch Guide
-    Path: ../GUIDE.md
+      Path: ../GUIDE.md
   - Label: Root Workspace Guide
     Path: ../../../WORKSPACE_GUIDE.md
 ---
@@ -26,12 +26,12 @@ Use this playbook to keep Fathym CLI work predictable and discoverable.
 
 ## Current Focus
 
-- Define initial command surface (project scaffolding, env bootstrap, dev
-  server helpers, deploy/publish workflows).
+- Define initial command surface (project scaffolding, env bootstrap, dev server
+  helpers, deploy/publish workflows).
 - Choose packaging/distribution approach (Deno task, npm, binary) and document
   how users install and update.
-- Identify dependencies on `@fathym/common` and other ref-arch libraries to
-  keep APIs consistent.
+- Identify dependencies on `@fathym/common` and other ref-arch libraries to keep
+  APIs consistent.
 
 ## Workflow
 
@@ -44,7 +44,7 @@ Use this playbook to keep Fathym CLI work predictable and discoverable.
 4. **Validate behavior**: add/update smoke tests or scripts for critical CLI
    flows (scaffold, run, deploy); keep usage examples current.
 5. **Communicate breaking changes**: add migration notes and notify consumers
-   (micro-apps/services) before altering command/flag behavior.
+   (micro-frameworks/services) before altering command/flag behavior.
 
 ## Verification
 

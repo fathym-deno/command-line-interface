@@ -9,11 +9,11 @@ Owners:
   - fathym
 References:
   - Label: Projects: Ref-Arch README
-    Path: ../README.md
+      Path: ../README.md
   - Label: Projects: Ref-Arch AGENTS
-    Path: ../AGENTS.md
+      Path: ../AGENTS.md
   - Label: Projects: Ref-Arch Guide
-    Path: ../GUIDE.md
+      Path: ../GUIDE.md
   - Label: Root README
     Path: ../../../README.md
   - Label: Root Agents Guide
@@ -28,11 +28,11 @@ References:
 
 # Fathym Command-Line Interface
 
-CLI for working with Fathym runtimes and micro-apps—covering scaffolding,
+CLI for working with Fathym runtimes and micro-frameworks—covering scaffolding,
 project management, local development workflows, and operational utilities.
 
-- **Goal:** deliver a reliable CLI that automates common platform tasks
-  (project setup, environment bootstrap, build/test/deploy flows).
+- **Goal:** deliver a reliable CLI that automates common platform tasks (project
+  setup, environment bootstrap, build/test/deploy flows).
 - **Outputs:** design notes, command reference, release packaging, and sample
   scripts showing usage across projects.
 - **Code location:** TBD; capture repo/branch/path once selected. This pod

@@ -13,11 +13,11 @@ References:
   - Label: Project Guide
     Path: ./GUIDE.md
   - Label: Projects: Ref-Arch README
-    Path: ../README.md
+      Path: ../README.md
   - Label: Projects: Ref-Arch AGENTS
-    Path: ../AGENTS.md
+      Path: ../AGENTS.md
   - Label: Projects: Ref-Arch Guide
-    Path: ../GUIDE.md
+      Path: ../GUIDE.md
   - Label: Root README
     Path: ../../../README.md
   - Label: Root Agents Guide
@@ -50,4 +50,4 @@ Guardrails for humans and AI collaborating on the Fathym CLI pod.
 - Declare intent before editing; summarize outcomes and next steps in the
   project README or a small log.
 - Cross-link to upstream repos/branches and to dependent pods (e.g., reference
-  architecture, micro-apps) when changes impact them.
+  architecture, micro-frameworks) when changes impact them.
