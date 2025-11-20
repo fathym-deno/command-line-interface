@@ -1,1 +1,56 @@
-# command-line-interface
+---
+FrontmatterVersion: 1
+DocumentType: Guide
+Title: Fathym Command-Line Interface
+Summary: CLI for managing Fathym runtimes, scaffolding projects, and operating local workloads.
+Created: 2025-11-20
+Updated: 2025-11-20
+Owners:
+  - fathym
+References:
+  - Label: Projects: Ref-Arch README
+    Path: ../README.md
+  - Label: Projects: Ref-Arch AGENTS
+    Path: ../AGENTS.md
+  - Label: Projects: Ref-Arch Guide
+    Path: ../GUIDE.md
+  - Label: Root README
+    Path: ../../../README.md
+  - Label: Root Agents Guide
+    Path: ../../../AGENTS.md
+  - Label: Root Workspace Guide
+    Path: ../../../WORKSPACE_GUIDE.md
+  - Label: Project Agents Guide
+    Path: ./AGENTS.md
+  - Label: Project Guide
+    Path: ./GUIDE.md
+---
+
+# Fathym Command-Line Interface
+
+CLI for working with Fathym runtimes and micro-apps—covering scaffolding,
+project management, local development workflows, and operational utilities.
+
+- **Goal:** deliver a reliable CLI that automates common platform tasks
+  (project setup, environment bootstrap, build/test/deploy flows).
+- **Outputs:** design notes, command reference, release packaging, and sample
+  scripts showing usage across projects.
+- **Code location:** TBD; capture repo/branch/path once selected. This pod
+  currently holds the charter, docs, and prompts.
+
+## Current Status
+
+- Instruction docs being established (you are here).
+- Implementation repository not linked yet—add once the target host is chosen.
+- Command inventory and packaging approach (Deno/npx/binaries) to be defined.
+
+## How to Work in This Pod
+
+1. Review the root and portfolio Instruction Documents plus this project’s
+   [`AGENTS`](./AGENTS.md) and [`GUIDE`](./GUIDE.md).
+2. Declare intent before editing; summarize outcomes and open questions in a
+   short log or in this README.
+3. Capture upstream provenance, release channels, and packaging details in
+   `UPSTREAM.md` once known.
+4. Keep links relative; reference implementation repos/branches when selected.
+5. Record prompts or scripts used when designing commands or automations.
