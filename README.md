@@ -32,13 +32,13 @@ CLI for working with Fathym runtimes and micro-frameworks—covering scaffolding
 
 - **Goal:** deliver a reliable CLI that automates common platform tasks (project setup, environment bootstrap, build/test/deploy flows).
 - **Outputs:** design notes, command reference, release packaging, and sample scripts showing usage across projects.
-- **Code location:** TBD; capture repo/branch/path once selected. This pod currently holds the charter, docs, and prompts.
+- **Code location:** `projects/ref-arch/command-line-interface/` (CLI runtime, commands/templates, tests, and runtime scripts).
 
 ## Current Status
 
-- Instruction docs being established (you are here).
-- Implementation repository not linked yet—add once the target host is chosen.
-- Command inventory and packaging approach (Deno/npx/binaries) to be defined.
+- CLI runtime, commands, and tests moved here from `@fathym/common`; schema emission and runtime scripts live in `./scripts`.
+- Depends on `@fathym/common` for core utilities and `@fathym/dfs` for file system abstractions.
+- Packaging tasks and compile/run helpers defined in `deno.jsonc`; adjust for release targets as needed.
 
 ## How to Work in This Pod
 

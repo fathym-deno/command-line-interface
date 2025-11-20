@@ -1,1 +1,2 @@
-import './sampleFunction.tests.ts';
+// import './appendStyles.tests.ts';
+import "./buildTextContent.tests.ts";

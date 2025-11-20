@@ -1,0 +1,20 @@
+{
+  "build": {
+    "CommandPath": "C:\\Fathym\\source\\github\\fathym-deno\\reference-architecture\\src\\common\\cli\\ftm-cli\\commands\\build.ts"
+  },
+  "compile": {
+    "CommandPath": "C:\\Fathym\\source\\github\\fathym-deno\\reference-architecture\\src\\common\\cli\\ftm-cli\\commands\\compile.ts"
+  },
+  "init": {
+    "CommandPath": "C:\\Fathym\\source\\github\\fathym-deno\\reference-architecture\\src\\common\\cli\\ftm-cli\\commands\\init.ts"
+  },
+  "install": {
+    "CommandPath": "C:\\Fathym\\source\\github\\fathym-deno\\reference-architecture\\src\\common\\cli\\ftm-cli\\commands\\install.ts"
+  },
+  "run": {
+    "CommandPath": "C:\\Fathym\\source\\github\\fathym-deno\\reference-architecture\\src\\common\\cli\\ftm-cli\\commands\\run.ts"
+  },
+  "test": {
+    "CommandPath": "C:\\Fathym\\source\\github\\fathym-deno\\reference-architecture\\src\\common\\cli\\ftm-cli\\commands\\test.ts"
+  }
+}
