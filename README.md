@@ -28,15 +28,11 @@ References:
 
 # Fathym Command-Line Interface
 
-CLI for working with Fathym runtimes and micro-frameworks—covering scaffolding,
-project management, local development workflows, and operational utilities.
+CLI for working with Fathym runtimes and micro-frameworks—covering scaffolding, project management, local development workflows, and operational utilities.
 
-- **Goal:** deliver a reliable CLI that automates common platform tasks (project
-  setup, environment bootstrap, build/test/deploy flows).
-- **Outputs:** design notes, command reference, release packaging, and sample
-  scripts showing usage across projects.
-- **Code location:** TBD; capture repo/branch/path once selected. This pod
-  currently holds the charter, docs, and prompts.
+- **Goal:** deliver a reliable CLI that automates common platform tasks (project setup, environment bootstrap, build/test/deploy flows).
+- **Outputs:** design notes, command reference, release packaging, and sample scripts showing usage across projects.
+- **Code location:** TBD; capture repo/branch/path once selected. This pod currently holds the charter, docs, and prompts.
 
 ## Current Status
 
@@ -46,11 +42,8 @@ project management, local development workflows, and operational utilities.
 
 ## How to Work in This Pod
 
-1. Review the root and portfolio Instruction Documents plus this project’s
-   [`AGENTS`](./AGENTS.md) and [`GUIDE`](./GUIDE.md).
-2. Declare intent before editing; summarize outcomes and open questions in a
-   short log or in this README.
-3. Capture upstream provenance, release channels, and packaging details in
-   `UPSTREAM.md` once known.
+1. Review the root and portfolio Instruction Documents plus this project’s [`AGENTS`](./AGENTS.md) and [`GUIDE`](./GUIDE.md).
+2. Declare intent before editing; summarize outcomes and open questions in a short log or in this README.
+3. Capture upstream provenance, release channels, and packaging details in `UPSTREAM.md` once known.
 4. Keep links relative; reference implementation repos/branches when selected.
 5. Record prompts or scripts used when designing commands or automations.

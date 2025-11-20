@@ -32,22 +32,13 @@ Guardrails for humans and AI collaborating on the Fathym CLI pod.
 
 ## Core Guardrails
 
-1. **Stay scoped.** Keep CLI work inside
-   `projects/ref-arch/command-line-interface/` unless coordinating with another
-   pod; link cross-pod work clearly.
-2. **Frontmatter required.** Every Markdown doc uses frontmatter and
-   document-relative references up to parent guides.
-3. **Provenance and packaging.** Capture upstream sources, distribution channel
-   (npm/deno/binary), and version pins in `UPSTREAM.md`; prefer upstream-first
-   fixes before diverging.
-4. **Command stability.** Avoid breaking CLI flags/commands silently; document
-   breaking changes and add migration notes for known consumers.
-5. **Secure defaults.** Keep auth/secrets out of docs; prefer env vars or local
-   profiles and note any required permissions explicitly.
+1. **Stay scoped.** Keep CLI work inside `projects/ref-arch/command-line-interface/` unless coordinating with another pod; link cross-pod work clearly.
+2. **Frontmatter required.** Every Markdown doc uses frontmatter and document-relative references up to parent guides.
+3. **Provenance and packaging.** Capture upstream sources, distribution channel (npm/deno/binary), and version pins in `UPSTREAM.md`; prefer upstream-first fixes before diverging.
+4. **Command stability.** Avoid breaking CLI flags/commands silently; document breaking changes and add migration notes for known consumers.
+5. **Secure defaults.** Keep auth/secrets out of docs; prefer env vars or local profiles and note any required permissions explicitly.
 
 ## Communication
 
-- Declare intent before editing; summarize outcomes and next steps in the
-  project README or a small log.
-- Cross-link to upstream repos/branches and to dependent pods (e.g., reference
-  architecture, micro-frameworks) when changes impact them.
+- Declare intent before editing; summarize outcomes and next steps in the project README or a small log.
+- Cross-link to upstream repos/branches and to dependent pods (e.g., reference architecture, micro-frameworks) when changes impact them.
