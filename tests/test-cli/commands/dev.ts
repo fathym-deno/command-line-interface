@@ -1,10 +1,10 @@
+import { z } from '../.deps.ts';
 import {
   type CommandContext,
   CommandParams,
   CommandRuntime,
   defineCommandModule,
-} from '../../../mod.ts';
-import { z } from '@fathym/common/third-party/zod';
+} from '../../../src/cli/commands/.exports.ts';
 
 export const DevFlagsSchema = z.object({
   Verbose: z.boolean().optional().describe('Enable verbose logging'),
@@ -17,8 +17,8 @@ export const DevArgsSchema = z.tuple([
 ]);
 
 export class DevCommandParams extends CommandParams<
-  z.infer<typeof DevFlagsSchema>,
-  z.infer<typeof DevArgsSchema>
+  z.infer<typeof DevArgsSchema>,
+  z.infer<typeof DevFlagsSchema>
 > {
   public get Verbose(): boolean {
     return this.Flag('Verbose') ?? false;

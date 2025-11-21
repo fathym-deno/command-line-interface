@@ -1,5 +1,5 @@
 // deno-lint-ignore-file no-explicit-any ban-types
-import type { ZodType } from '../.deps.ts';
+import type { ZodSchema } from '../.deps.ts';
 import type { IoCContainer } from '../.deps.ts';
 
 import type { CommandModule } from '../commands/CommandModule.ts';
@@ -32,8 +32,8 @@ export class CommandModuleBuilder<
   TCommands extends CommandInvokerMap = CommandInvokerMap,
   TUsed extends UsedKeys = {},
 > {
-  protected argsSchema?: ZodType<TArgs>;
-  protected flagsSchema?: ZodType<TFlags>;
+  protected argsSchema?: ZodSchema<TArgs>;
+  protected flagsSchema?: ZodSchema<TFlags>;
   protected runFn?: (
     ctx: CommandContext<TParams, TServices, TCommands>,
   ) => void | number | Promise<void | number>;
@@ -62,7 +62,7 @@ export class CommandModuleBuilder<
   ) {}
 
   public Args<NextArgs extends unknown[]>(
-    schema: ZodType<NextArgs>,
+    schema: ZodSchema<NextArgs>,
   ): RemoveUsed<
     CommandModuleBuilder<
       NextArgs,
@@ -74,12 +74,12 @@ export class CommandModuleBuilder<
     >,
     TUsed & { Args: true }
   > {
-    this.argsSchema = schema as unknown as ZodType<TArgs>;
+    this.argsSchema = schema as unknown as ZodSchema<TArgs>;
     return this as any;
   }
 
   public Flags<NextFlags extends Record<string, unknown>>(
-    schema: ZodType<NextFlags>,
+    schema: ZodSchema<NextFlags>,
   ): RemoveUsed<
     CommandModuleBuilder<
       TArgs,
@@ -91,7 +91,7 @@ export class CommandModuleBuilder<
     >,
     TUsed & { Flags: true }
   > {
-    this.flagsSchema = schema as unknown as ZodType<TFlags>;
+    this.flagsSchema = schema as unknown as ZodSchema<TFlags>;
     return this as any;
   }
 

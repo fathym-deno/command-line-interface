@@ -36,4 +36,4 @@ export {
   DFSFileHandler,
   LocalDFSFileHandler,
   type LocalDFSFileHandlerDetails,
-} from '../../../distributed-file-system/src/dfs/.exports.ts';
+} from 'jsr:@fathym/dfs@0.0.9-integration';

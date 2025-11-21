@@ -1,17 +1,17 @@
+import { z } from '../../.deps.ts';
 import {
   type CommandContext,
   CommandParams,
   CommandRuntime,
   defineCommandModule,
-} from '../../../mod.ts';
-import { z } from '@fathym/common/third-party/zod';
+} from '../../../../src/cli/commands/.exports.ts';
 
 export const FlagsSchema = z.object({});
 export const ArgsSchema = z.tuple([]);
 
 export class ConnectionCommandParams extends CommandParams<
-  z.infer<typeof FlagsSchema>,
-  z.infer<typeof ArgsSchema>
+  z.infer<typeof ArgsSchema>,
+  z.infer<typeof FlagsSchema>
 > {
   // Add getters here when flags/args grow
 }

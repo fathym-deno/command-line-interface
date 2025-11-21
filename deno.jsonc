@@ -4,13 +4,16 @@
   "exports": {
     ".": "./src/.exports.ts"
   },
+  "imports": {
+    "@fathym/common/third-party/zod": "jsr:@fathym/common@0.2.287-integration/third-party/zod"
+  },
   "license": "MIT",
   "tasks": {
     "build": "npx rimraf cov && deno task build:schema && deno task build:fmt && deno task build:lint && deno task publish:check && deno task test",
     "build:fmt": "deno fmt",
     "build:lint": "deno lint --fix",
     "build:schema": "deno run -A ./scripts/emit-cli-schemas.ts",
-    "check": "deno fmt --check && deno lint && deno check **/*.ts && deno check **/*.tsx",
+    "check": "deno fmt --check && deno lint && deno check **/*.ts",
     "cli:compile": "deno compile --allow-all --output=ftm-cli-run ./scripts/cli-runtime.ts",
     "cli:run": "deno run -A ./scripts/cli-runtime.ts",
     "deploy": "npx rimraf cov && deno task build && ftm git",
@@ -22,7 +25,6 @@
     "test": "npx rimraf cov && deno test -A ./tests/.tests.ts --coverage=cov",
     "version": "deno run -A jsr:@fathym/common@0.2.287-integration/build/version"
   },
-  "imports": {},
   "exclude": [
     "**/_eac-runtime/*",
     "!src/**/.exports.ts",

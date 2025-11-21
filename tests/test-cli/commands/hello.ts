@@ -1,14 +1,17 @@
+import { z } from '../.deps.ts';
 import {
   type CommandContext,
   CommandParams,
   CommandRuntime,
   defineCommandModule,
-} from '../../../mod.ts';
-import { z } from '@fathym/common/third-party/zod';
-import type { IoCContainer } from '../../../src/cli/.deps.ts';
+} from '../../../src/cli/commands/.exports.ts';
+import type { IoCContainer } from '../.deps.ts';
 import type { SayHello } from '../.cli.init.ts';
 
-export const HelloFlagsSchema = z.object({
+export const HelloFlagsSchema: z.ZodType<{
+  loud?: boolean;
+  'dry-run'?: boolean;
+}> = z.object({
   loud: z.boolean().optional().describe('Shout the greeting'),
   'dry-run': z
     .boolean()
@@ -16,13 +19,13 @@ export const HelloFlagsSchema = z.object({
     .describe('Show the message without printing'),
 });
 
-export const HelloArgsSchema = z.tuple([
+export const HelloArgsSchema: z.ZodType<[string | undefined]> = z.tuple([
   z.string().optional().describe('Name to greet'),
 ]);
 
 export class HelloCommandParams extends CommandParams<
-  z.infer<typeof HelloFlagsSchema>,
-  z.infer<typeof HelloArgsSchema>
+  z.infer<typeof HelloArgsSchema>,
+  z.infer<typeof HelloFlagsSchema>
 > {
   get Name(): string {
     return this.Arg(0) ?? 'world';

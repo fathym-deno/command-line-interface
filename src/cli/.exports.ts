@@ -11,6 +11,8 @@ export * from './spinners/.exports.ts';
 export * from './templates/.exports.ts';
 export * from './types/.exports.ts';
 export * from './utils/.exports.ts';
+export { IoCContainer } from './.deps.ts';
+export type { IoCServiceConstructor } from './.deps.ts';
 
 export * from './CLI.ts';
 export * from './CLICommandExecutor.ts';

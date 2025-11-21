@@ -1,6 +1,6 @@
 import { buildTextContent } from '../../src/cli/utils/buildTextContent.ts';
-import { assertEquals } from '../../test.deps.ts';
-import { assert } from '../../test.deps.ts';
+import { assertEquals } from '../test.deps.ts';
+import { assert } from '../test.deps.ts';
 
 Deno.test('Build Text Content Tests', async (t) => {
   await t.step('Only Text', async () => {

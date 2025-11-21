@@ -1,4 +1,4 @@
-import type { ZodType } from '../.deps.ts';
+import type { ZodSchema } from '../.deps.ts';
 import type { CommandRuntime } from './CommandRuntime.ts';
 import type { CommandParamConstructor, CommandParams } from './CommandParams.ts';
 
@@ -14,12 +14,12 @@ export type CommandModule<
   /**
    * Zod schema defining the expected positional arguments.
    */
-  ArgsSchema: ZodType<A>;
+  ArgsSchema: ZodSchema<A>;
 
   /**
    * Zod schema defining the named flags for the command.
    */
-  FlagsSchema: ZodType<F>;
+  FlagsSchema: ZodSchema<F>;
 
   /**
    * The executable command class with full param typing.
@@ -42,8 +42,8 @@ export function defineCommandModule<
   P extends CommandParams<A, F>,
   R extends CommandRuntime<P>,
 >(def: {
-  FlagsSchema: ZodType<F, ZodType, F>;
-  ArgsSchema: ZodType<A, ZodType, A>;
+  FlagsSchema: ZodSchema<F>;
+  ArgsSchema: ZodSchema<A>;
   Command: new () => R;
   Params: new (args: A, flags: F) => P;
 }): CommandModule<A, F, P> {

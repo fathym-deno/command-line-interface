@@ -2,5 +2,6 @@
   "Name": "Test CLI",
   "Tokens": ["test", "testing"],
   "Version": "0.0.0",
-  "Description": "A Test CLI used for tests"
+  "Description": "A Test CLI used for tests",
+  "CommandsDir": "./commands"
 }
