@@ -1,5 +1,10 @@
-import { type CommandContext, CommandParams, CommandRuntime, defineCommandModule } from "../../../mod.ts";
-import { z } from "@fathym/common/third-party/zod";
+import {
+  type CommandContext,
+  CommandParams,
+  CommandRuntime,
+  defineCommandModule,
+} from '../../../mod.ts';
+import { z } from '@fathym/common/third-party/zod';
 
 export const FlagsSchema = z.object({});
 export const ArgsSchema = z.tuple([]);
@@ -13,13 +18,13 @@ export class ConnectionCommandParams extends CommandParams<
 
 export class ConnectionCommand extends CommandRuntime<ConnectionCommandParams> {
   public override Run(ctx: CommandContext): void | number {
-    ctx.Log.Info("🔧 Scaffolding connection...");
+    ctx.Log.Info('🔧 Scaffolding connection...');
   }
 
   public override BuildMetadata() {
     return this.buildMetadataFromSchemas(
-      "Scaffold Connection",
-      "Generate a new connection file.",
+      'Scaffold Connection',
+      'Generate a new connection file.',
       ArgsSchema,
       FlagsSchema,
     );

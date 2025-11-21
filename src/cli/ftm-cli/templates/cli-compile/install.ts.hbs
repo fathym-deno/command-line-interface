@@ -1,4 +1,4 @@
-import { join } from "https://deno.land/std@0.207.0/path/mod.ts";
+import { join } from "jsr:@std/path@0.224.0";
 
 const home = Deno.env.get(Deno.build.os === "windows" ? "USERPROFILE" : "HOME")!;
 const defaultBinDir = "{{defaultBinDir}}".replace("~", home);

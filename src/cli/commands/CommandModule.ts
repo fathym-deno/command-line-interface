@@ -1,6 +1,6 @@
-import type { ZodType } from "../.deps.ts";
-import type { CommandRuntime } from "./CommandRuntime.ts";
-import type { CommandParamConstructor, CommandParams } from "./CommandParams.ts";
+import type { ZodType } from '../.deps.ts';
+import type { CommandRuntime } from './CommandRuntime.ts';
+import type { CommandParamConstructor, CommandParams } from './CommandParams.ts';
 
 /**
  * Represents a complete, executable CLI command module.

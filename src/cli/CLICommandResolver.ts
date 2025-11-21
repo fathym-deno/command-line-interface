@@ -1,8 +1,16 @@
 // deno-lint-ignore-file no-explicit-any
-import type { DFSFileHandler, ZodSchema } from "./.deps.ts";
-import type { CLIFileSystemHooks } from "./CLIFileSystemHooks.ts";
-import { type CLICommandEntry, type CLIConfig, type CLIInitFn, type CommandModuleMetadata, type CommandParamConstructor, type CommandParams, CommandRuntime } from "./.exports.ts";
-import type { TemplateLocator } from "./templates/TemplateLocator.ts";
+import type { DFSFileHandler, ZodSchema } from './.deps.ts';
+import type { CLIFileSystemHooks } from './CLIFileSystemHooks.ts';
+import {
+  type CLICommandEntry,
+  type CLIConfig,
+  type CLIInitFn,
+  type CommandModuleMetadata,
+  type CommandParamConstructor,
+  type CommandParams,
+  CommandRuntime,
+} from './.exports.ts';
+import type { TemplateLocator } from './templates/TemplateLocator.ts';
 
 export class CLICommandResolver {
   constructor(protected readonly hooks: CLIFileSystemHooks) {}
@@ -20,7 +28,7 @@ export class CLICommandResolver {
     const mod = await this.hooks.LoadCommandModule(path);
     const Cmd = mod?.Command;
 
-    if (Cmd && typeof Cmd === "function") {
+    if (Cmd && typeof Cmd === 'function') {
       return {
         Command: new Cmd(),
         Params: mod.Params,
@@ -33,7 +41,7 @@ export class CLICommandResolver {
       Command: new (class extends CommandRuntime {
         public Run() {
           throw new Error(
-            "This is a metadata-only command and cannot be executed.",
+            'This is a metadata-only command and cannot be executed.',
           );
         }
 

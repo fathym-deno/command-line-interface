@@ -2,7 +2,7 @@
   "name": "@fathym/cli",
   "version": "0.0.0",
   "exports": {
-    ".": "./mod.ts"
+    ".": "./src/.exports.ts"
   },
   "license": "MIT",
   "tasks": {
@@ -19,8 +19,8 @@
     "ftm-cli:run": "deno task cli:run ./src/cli/ftm-cli/.cli.json",
     "ftm-cli:prepare": "deno test --allow-all ./tests/intents/ftm-cli/prepare-in-path.intents.ts",
     "publish:check": "deno publish --dry-run --allow-dirty",
-    "test": "npx rimraf cov && deno test -A ./tests --coverage=cov",
-    "version": "deno run -A jsr:@fathym/common@0.2.274/build/version"
+    "test": "npx rimraf cov && deno test -A ./tests/.tests.ts --coverage=cov",
+    "version": "deno run -A jsr:@fathym/common@0.2.287-integration/build/version"
   },
   "imports": {},
   "exclude": [

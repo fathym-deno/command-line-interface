@@ -1,10 +1,10 @@
-import { Colors } from "../.deps.ts";
-import type { RGBStyleKeys, StyleKeys, StyleOptions } from "../styling/StyleKeys.ts";
+import { Colors } from '../.deps.ts';
+import type { RGBStyleKeys, StyleKeys, StyleOptions } from '../styling/StyleKeys.ts';
 
 export function appendStyles(text: string, styleKey: StyleOptions): string {
   let append: (txt: string) => string;
 
-  let [style, ...rgb] = styleKey.split(":") as [
+  let [style, ...rgb] = styleKey.split(':') as [
     StyleKeys | RGBStyleKeys,
     string | number,
     string | number | undefined,
@@ -12,14 +12,18 @@ export function appendStyles(text: string, styleKey: StyleOptions): string {
   ];
 
   if (rgb) {
-    rgb = rgb.map((x) => x !== undefined ? Number.parseInt(x as string) : undefined) as [number, number | undefined, number | undefined];
+    rgb = rgb.map((x) => x !== undefined ? Number.parseInt(x as string) : undefined) as [
+      number,
+      number | undefined,
+      number | undefined,
+    ];
   }
 
   if (
-    style === "bgRgb24" ||
-    style === "rgb24" ||
-    style === "rgb8" ||
-    style === "bgRgb8"
+    style === 'bgRgb24' ||
+    style === 'rgb24' ||
+    style === 'rgb8' ||
+    style === 'bgRgb8'
   ) {
     if (!rgb[1]) {
       const call = Colors[style] as (str: string, color: number) => string;

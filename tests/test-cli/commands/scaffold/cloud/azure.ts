@@ -1,5 +1,10 @@
-import { type CommandContext, CommandParams, CommandRuntime, defineCommandModule } from "../../../mod.ts";
-import { z } from "@fathym/common/third-party/zod";
+import {
+  type CommandContext,
+  CommandParams,
+  CommandRuntime,
+  defineCommandModule,
+} from '../../../mod.ts';
+import { z } from '@fathym/common/third-party/zod';
 
 export const FlagsSchema = z.object({});
 export const ArgsSchema = z.tuple([]);
@@ -17,13 +22,13 @@ export class AzureCommand extends CommandRuntime<AzureCommandParams> {
   }
 
   public override Run(ctx: CommandContext): void | number {
-    ctx.Log.Info("🔧 Scaffolding Azure...");
+    ctx.Log.Info('🔧 Scaffolding Azure...');
   }
 
   public override BuildMetadata() {
     return this.buildMetadataFromSchemas(
-      "Scaffold Azure",
-      "Generate a new Azure file.",
+      'Scaffold Azure',
+      'Generate a new Azure file.',
     );
   }
 }

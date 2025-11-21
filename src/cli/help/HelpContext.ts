@@ -1,5 +1,8 @@
-import { z } from "../.deps.ts";
-import { type CommandModuleMetadata, CommandModuleMetadataSchema } from "../commands/CommandModuleMetadata.ts";
+import { z } from '../.deps.ts';
+import {
+  type CommandModuleMetadata,
+  CommandModuleMetadataSchema,
+} from '../commands/CommandModuleMetadata.ts';
 
 /**
  * Represents the structured context used by the HelpCommand
@@ -30,23 +33,23 @@ export type HelpContext = {
    */
   Sections?: Array<
     | ({
-      type: "CommandDetails";
+      type: 'CommandDetails';
     } & CommandModuleMetadata)
     | ({
-      type: "GroupDetails";
+      type: 'GroupDetails';
     } & CommandModuleMetadata)
     | {
-      type: "CommandList";
+      type: 'CommandList';
       title: string;
       items: CommandModuleMetadata[];
     }
     | {
-      type: "GroupList";
+      type: 'GroupList';
       title: string;
       items: CommandModuleMetadata[];
     }
     | ({
-      type: "Error";
+      type: 'Error';
       message: string;
       suggestion?: string;
     } & Partial<CommandModuleMetadata>)
@@ -73,34 +76,34 @@ export const HelpContextSchema: z.ZodType<HelpContext> = z.object({
 
   Sections: z
     .array(
-      z.discriminatedUnion("type", [
+      z.discriminatedUnion('type', [
         // A section describing a specific command (usage, examples, etc.)
         CommandModuleMetadataSchema.extend({
-          type: z.literal("CommandDetails"),
+          type: z.literal('CommandDetails'),
         }),
 
         // A section describing a command group (e.g. scaffold/, deploy/)
         CommandModuleMetadataSchema.extend({
-          type: z.literal("GroupDetails"),
+          type: z.literal('GroupDetails'),
         }),
 
         // A flat list of subcommands under a group
         z.object({
-          type: z.literal("CommandList"),
+          type: z.literal('CommandList'),
           title: z.string(),
           items: z.array(CommandModuleMetadataSchema),
         }),
 
         // A flat list of subgroups under a group
         z.object({
-          type: z.literal("GroupList"),
+          type: z.literal('GroupList'),
           title: z.string(),
           items: z.array(CommandModuleMetadataSchema),
         }),
 
         // A fallback error section when no command match was found
         CommandModuleMetadataSchema.partial().extend({
-          type: z.literal("Error"),
+          type: z.literal('Error'),
           message: z.string(),
           suggestion: z.string().optional(),
         }),

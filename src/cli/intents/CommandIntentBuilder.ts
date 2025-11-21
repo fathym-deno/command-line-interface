@@ -1,7 +1,7 @@
-import type { CommandModule } from "../commands/CommandModule.ts";
-import type { CommandParams } from "../commands/CommandParams.ts";
-import { CommandIntentRuntime } from "./CommandIntentRuntime.ts";
-import type { CLIInitFn } from "../types/CLIInitFn.ts";
+import type { CommandModule } from '../commands/CommandModule.ts';
+import type { CommandParams } from '../commands/CommandParams.ts';
+import { CommandIntentRuntime } from './CommandIntentRuntime.ts';
+import type { CLIInitFn } from '../types/CLIInitFn.ts';
 
 export class CommandIntentBuilder<
   A extends unknown[],
@@ -53,7 +53,7 @@ export class CommandIntentBuilder<
     });
   }
 
-  public async RunStep(step: Deno.TestContext["step"]): Promise<void> {
+  public async RunStep(step: Deno.TestContext['step']): Promise<void> {
     await step(this.testName, async () => {
       await this.execute();
     });

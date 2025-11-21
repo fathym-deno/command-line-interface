@@ -1,4 +1,4 @@
-import { z } from "../.deps.ts";
+import { z } from '../.deps.ts';
 
 /**
  * Standard logging interface injected into all command contexts.
@@ -15,15 +15,15 @@ export type CommandLog = {
  */
 export const CommandLogSchema: z.ZodType<CommandLog> = z.object({
   Info: z.function().args(z.any()).returns(z.void()).describe(
-    "Log info output",
+    'Log info output',
   ),
   Warn: z.function().args(z.any()).returns(z.void()).describe(
-    "Log warning output",
+    'Log warning output',
   ),
   Error: z.function().args(z.any()).returns(z.void()).describe(
-    "Log error output",
+    'Log error output',
   ),
   Success: z.function().args(z.any()).returns(z.void()).describe(
-    "Log success output",
+    'Log success output',
   ),
 });

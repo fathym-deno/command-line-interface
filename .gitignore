@@ -11,3 +11,7 @@ denoKv/
 
 # Testing
 cov/
+
+.dist/
+.build/
+.temp/

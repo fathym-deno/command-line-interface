@@ -1,6 +1,6 @@
-import { findClosestMatch } from "../.deps.ts";
-import type { CommandRuntime } from "../commands/CommandRuntime.ts";
-import type { CommandSuggestions } from "../commands/CommandSuggestions.ts";
+import { findClosestMatch } from '../.deps.ts';
+import type { CommandRuntime } from '../commands/CommandRuntime.ts';
+import type { CommandSuggestions } from '../commands/CommandSuggestions.ts';
 
 export class DefaultCLISuggestions {
   SuggestCommands(partial: string, keys: string[]): string[] {

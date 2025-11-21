@@ -1,5 +1,5 @@
-import type { CommandParams } from "../commands/CommandParams.ts";
-import { CommandModuleBuilder } from "./CommandModuleBuilder.ts";
+import type { CommandParams } from '../commands/CommandParams.ts';
+import { CommandModuleBuilder } from './CommandModuleBuilder.ts';
 
 export function Command<
   A extends unknown[] = unknown[],
