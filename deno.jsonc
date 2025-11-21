@@ -5,7 +5,7 @@
     ".": "./src/.exports.ts"
   },
   "imports": {
-    "@fathym/common/third-party/zod": "jsr:@fathym/common@0.2.287-integration/third-party/zod"
+    "@fathym/common/third-party/zod": "jsr:@fathym/common@0.2.289-integration/third-party/zod"
   },
   "license": "MIT",
   "tasks": {
@@ -23,7 +23,7 @@
     "ftm-cli:prepare": "deno test --allow-all ./tests/intents/ftm-cli/prepare-in-path.intents.ts",
     "publish:check": "deno publish --dry-run --allow-dirty",
     "test": "npx rimraf cov && deno test -A ./tests/.tests.ts --coverage=cov",
-    "version": "deno run -A jsr:@fathym/common@0.2.287-integration/build/version"
+    "version": "deno run -A jsr:@fathym/common@0.2.289-integration/build/version"
   },
   "exclude": [
     "**/_eac-runtime/*",

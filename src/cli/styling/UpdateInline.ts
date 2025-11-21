@@ -1,13 +1,13 @@
-import { merge, writeAllSync, type WriterSync } from "../.deps.ts";
-import type { UpdateInlineOptions } from "./UpdateInlineOptions.ts";
-import { appendStyles } from "../utils/appendStyles.ts";
-import { buildTextContent } from "../utils/buildTextContent.ts";
-import { clearLine } from "../utils/clearLine.ts";
+import { merge, writeAllSync, type WriterSync } from '../.deps.ts';
+import type { UpdateInlineOptions } from './UpdateInlineOptions.ts';
+import { appendStyles } from '../utils/appendStyles.ts';
+import { buildTextContent } from '../utils/buildTextContent.ts';
+import { clearLine } from '../utils/clearLine.ts';
 
 export class UpdateInline {
   // #region Fields
   protected get lineCount(): number {
-    const lineCount = this.LastInlined?.split("\n").length ?? 0;
+    const lineCount = this.LastInlined?.split('\n').length ?? 0;
 
     return lineCount;
   }
@@ -28,7 +28,7 @@ export class UpdateInline {
   // #endregion
 
   constructor() {
-    this.LastInlined = "";
+    this.LastInlined = '';
 
     this.options = {};
 
@@ -39,7 +39,7 @@ export class UpdateInline {
 
   // #region API Methods
   public Configure(options: UpdateInlineOptions | string): this {
-    if (typeof options === "string") {
+    if (typeof options === 'string') {
       options = { Text: options };
     }
 
@@ -48,11 +48,11 @@ export class UpdateInline {
     this.options = merge(this.options ?? {}, options ?? {});
 
     if (
-      !(typeof this.options.Spinner === "undefined") &&
-      !(typeof this.options.Spinner === "boolean")
+      !(typeof this.options.Spinner === 'undefined') &&
+      !(typeof this.options.Spinner === 'boolean')
     ) {
       throw new Deno.errors.NotSupported(
-        "Custom spinner frames are not yet supported.",
+        'Custom spinner frames are not yet supported.',
       );
     }
 
@@ -87,9 +87,9 @@ export class UpdateInline {
 
     return lines
       .map((line) => {
-        const result = line.join(this.options.LineSpacer || " ");
+        const result = line.join(this.options.LineSpacer || ' ');
 
-        return result.split("").reduce<string[]>((acc, _, i) => {
+        return result.split('').reduce<string[]>((acc, _, i) => {
           if (i % columns === 0) {
             acc.push(result.slice(i, i + columns));
           }
@@ -115,7 +115,7 @@ export class UpdateInline {
     const lines: string[] = this.assembleLines(text, prefix, suffix);
 
     const result = lines.reduce((res, line) => {
-      let fullLine = "";
+      let fullLine = '';
 
       if (line) {
         fullLine = line;
@@ -128,7 +128,7 @@ export class UpdateInline {
       }
 
       return !fullLine ? res : !res ? fullLine : `${res}\n${fullLine}`;
-    }, "");
+    }, '');
 
     if (result) {
       this.writer.writeSync(this.textEncoder.encode(`${result}\n`));

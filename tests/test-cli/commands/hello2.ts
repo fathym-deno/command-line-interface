@@ -1,18 +1,14 @@
-import type { IoCContainer } from "../.deps.ts";
-import type { SayHello } from "../.cli.init.ts";
-import { Command } from "../../../src/cli/fluent/Command.ts";
-import {
-  HelloArgsSchema,
-  HelloCommandParams,
-  HelloFlagsSchema,
-} from "./hello.ts";
+import type { IoCContainer } from '../.deps.ts';
+import type { SayHello } from '../.cli.init.ts';
+import { Command } from '../../../src/cli/fluent/Command.ts';
+import { HelloArgsSchema, HelloCommandParams, HelloFlagsSchema } from './hello.ts';
 
-export default Command("hello", "Prints a friendly greeting.")
+export default Command('hello', 'Prints a friendly greeting.')
   .Args(HelloArgsSchema)
   .Flags(HelloFlagsSchema)
   .Params(HelloCommandParams)
   .Services(async (_ctx, ioc: IoCContainer) => {
-    const sayHello = await ioc.Resolve<SayHello>(ioc.Symbol("SayHello"));
+    const sayHello = await ioc.Resolve<SayHello>(ioc.Symbol('SayHello'));
 
     return { SayHello: sayHello };
   })

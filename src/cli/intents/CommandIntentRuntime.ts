@@ -1,19 +1,19 @@
 // deno-lint-ignore-file no-explicit-any
-import { assert, IoCContainer } from "../.deps.ts";
+import { assert, IoCContainer } from '../.deps.ts';
 import {
   captureLogs,
   CLICommandExecutor,
   CLICommandResolver,
   type CLIConfig,
   type CLIInitFn,
-} from "../.exports.ts";
+} from '../.exports.ts';
 
-import type { CommandRuntime } from "../commands/CommandRuntime.ts";
-import type { CommandModule } from "../commands/CommandModule.ts";
-import type { CommandParams } from "../commands/CommandParams.ts";
-import { CLICommandInvocationParser } from "../CLICommandInvocationParser.ts";
-import { CLIDFSContextManager } from "../CLIDFSContextManager.ts";
-import { LocalDevCLIFileSystemHooks } from "../LocalDevCLIFileSystemHooks.ts";
+import type { CommandRuntime } from '../commands/CommandRuntime.ts';
+import type { CommandModule } from '../commands/CommandModule.ts';
+import type { CommandParams } from '../commands/CommandParams.ts';
+import { CLICommandInvocationParser } from '../CLICommandInvocationParser.ts';
+import { CLIDFSContextManager } from '../CLIDFSContextManager.ts';
+import { LocalDevCLIFileSystemHooks } from '../LocalDevCLIFileSystemHooks.ts';
 
 export class CommandIntentRuntime<
   A extends unknown[],
@@ -23,7 +23,7 @@ export class CommandIntentRuntime<
   protected dfsCtxMgr: CLIDFSContextManager;
   protected expectedLogs: string[] = [];
   protected expectedExitCode: number | null = null;
-  protected capturedOutput = "";
+  protected capturedOutput = '';
   protected actualExitCode: number | null = null;
 
   protected runtime: CommandRuntime<P>;
@@ -34,7 +34,7 @@ export class CommandIntentRuntime<
   }
 
   public get Logs(): string[] {
-    return this.capturedOutput.split("\n").filter(Boolean);
+    return this.capturedOutput.split('\n').filter(Boolean);
   }
 
   public get ExitCode(): number | null {
@@ -57,8 +57,7 @@ export class CommandIntentRuntime<
     this.ioc.Register(CLIDFSContextManager, () => this.dfsCtxMgr);
     this.ioc.Register(
       CLICommandResolver,
-      () =>
-        new CLICommandResolver(new LocalDevCLIFileSystemHooks(this.dfsCtxMgr)),
+      () => new CLICommandResolver(new LocalDevCLIFileSystemHooks(this.dfsCtxMgr)),
     );
     this.ioc.Register(
       CLICommandInvocationParser,
@@ -98,7 +97,7 @@ export class CommandIntentRuntime<
 
       const projectDFS = await dfsCtx.GetProjectDFS();
 
-      const cliConfigFile = await projectDFS.GetFileInfo(".cli.json");
+      const cliConfigFile = await projectDFS.GetFileInfo('.cli.json');
 
       const configText = cliConfigFile
         ? await new Response(cliConfigFile.Contents).text()
@@ -127,8 +126,8 @@ export class CommandIntentRuntime<
       );
 
       const baseTemplatesDir = await this.dfsCtxMgr.ResolvePath(
-        "project",
-        "./templates",
+        'project',
+        './templates',
       );
 
       this.capturedOutput = await captureLogs(async () => {
@@ -182,7 +181,7 @@ export class CommandIntentRuntime<
     assert(
       failures.length === 0,
       `❌ Test "${this.testName}" failed with ${failures.length} issue(s):\n\n` +
-        failures.map((f, i) => `${i + 1}. ${f}`).join("\n") +
+        failures.map((f, i) => `${i + 1}. ${f}`).join('\n') +
         `\n\n📋 Captured Output:\n${this.capturedOutput.trim()}`,
     );
   }

@@ -7,7 +7,7 @@ import {
   join,
   LocalDFSFileHandler,
   type LocalDFSFileHandlerDetails,
-} from "./.deps.ts";
+} from './.deps.ts';
 
 export class CLIDFSContextManager {
   constructor(protected ioc: IoCContainer) {}
@@ -30,15 +30,15 @@ export class CLIDFSContextManager {
   }
 
   public RegisterExecutionDFS(cwd: string = Deno.cwd()): string {
-    return this.RegisterCustomDFS("execution", { FileRoot: cwd });
+    return this.RegisterCustomDFS('execution', { FileRoot: cwd });
   }
 
   public RegisterProjectDFS(
     fileUrlInProject: string,
-    name: string = "project",
-    rootFile: string = ".cli.json",
+    name: string = 'project',
+    rootFile: string = '.cli.json',
   ): string {
-    if (fileUrlInProject.startsWith("file:///")) {
+    if (fileUrlInProject.startsWith('file:///')) {
       fileUrlInProject = fromFileUrl(fileUrlInProject);
     }
 
@@ -50,16 +50,16 @@ export class CLIDFSContextManager {
 
   public RegisterUserHomeDFS(): string {
     const homeDir = this.getUserHomeDir();
-    return this.RegisterCustomDFS("user-home", { FileRoot: homeDir });
+    return this.RegisterCustomDFS('user-home', { FileRoot: homeDir });
   }
 
   // ─── DFS Access Utilities ─────────────────────────────────────────────
   public async GetUserHomeDFS(): Promise<DFSFileHandler> {
     try {
-      return await this.GetDFS("user-home");
+      return await this.GetDFS('user-home');
     } catch {
       this.RegisterUserHomeDFS();
-      return await this.GetDFS("user-home");
+      return await this.GetDFS('user-home');
     }
   }
 
@@ -74,11 +74,11 @@ export class CLIDFSContextManager {
   }
 
   public async GetExecutionDFS(): Promise<DFSFileHandler> {
-    return await this.GetDFS("execution");
+    return await this.GetDFS('execution');
   }
 
   public async GetProjectDFS(): Promise<DFSFileHandler> {
-    return await this.GetDFS("project");
+    return await this.GetDFS('project');
   }
 
   public async ResolvePath(scope: string, ...parts: string[]): Promise<string> {
@@ -105,9 +105,9 @@ export class CLIDFSContextManager {
 
   protected getUserHomeDir(): string {
     const env = Deno.env.get(
-      Deno.build.os === "windows" ? "USERPROFILE" : "HOME",
+      Deno.build.os === 'windows' ? 'USERPROFILE' : 'HOME',
     );
-    if (!env) throw new Error("❌ Unable to determine user home directory.");
+    if (!env) throw new Error('❌ Unable to determine user home directory.');
     return env;
   }
 }

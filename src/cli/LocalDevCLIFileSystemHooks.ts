@@ -1,19 +1,13 @@
-import {
-  type DFSFileHandler,
-  exists,
-  join,
-  resolve,
-  toFileUrl,
-} from "./.deps.ts";
-import type { CLICommandEntry } from "./types/CLICommandEntry.ts";
-import type { CLIConfig } from "./types/CLIConfig.ts";
-import type { CommandModule } from "./commands/CommandModule.ts";
-import { CommandModuleBuilder } from "./fluent/CommandModuleBuilder.ts";
-import type { TemplateLocator } from "./templates/TemplateLocator.ts";
-import type { CLIFileSystemHooks } from "./CLIFileSystemHooks.ts";
-import type { CLIInitFn } from "./types/CLIInitFn.ts";
-import type { CLIDFSContextManager } from "./CLIDFSContextManager.ts";
-import { DFSTemplateLocator } from "./templates/DFSTemplateLocator.ts";
+import { type DFSFileHandler, exists, join, resolve, toFileUrl } from './.deps.ts';
+import type { CLICommandEntry } from './types/CLICommandEntry.ts';
+import type { CLIConfig } from './types/CLIConfig.ts';
+import type { CommandModule } from './commands/CommandModule.ts';
+import { CommandModuleBuilder } from './fluent/CommandModuleBuilder.ts';
+import type { TemplateLocator } from './templates/TemplateLocator.ts';
+import type { CLIFileSystemHooks } from './CLIFileSystemHooks.ts';
+import type { CLIInitFn } from './types/CLIInitFn.ts';
+import type { CLIDFSContextManager } from './CLIDFSContextManager.ts';
+import { DFSTemplateLocator } from './templates/DFSTemplateLocator.ts';
 
 export class LocalDevCLIFileSystemHooks implements CLIFileSystemHooks {
   constructor(protected dfsCtxMgr: CLIDFSContextManager) {}
@@ -26,30 +20,30 @@ export class LocalDevCLIFileSystemHooks implements CLIFileSystemHooks {
     const dfs = await this.dfsCtxMgr.GetProjectDFS();
 
     // Normalize baseDir relative to DFS root
-    const projectRoot = dfs.Root.replace(/\\/g, "/").replace(/^\.\/|\/$/, "");
+    const projectRoot = dfs.Root.replace(/\\/g, '/').replace(/^\.\/|\/$/, '');
     const cleanBaseDir = baseDir
-      .replace(/\\/g, "/")
-      .replace(projectRoot, "")
-      .replace(/^\.?\//, "")
-      .replace(/^\/+/, "");
+      .replace(/\\/g, '/')
+      .replace(projectRoot, '')
+      .replace(/^\.?\//, '')
+      .replace(/^\/+/, '');
 
     const filePaths = await dfs.LoadAllPaths();
 
     const tsFiles = filePaths
-      .map((f) => f.replace(/^\.?\//, ""))
-      .filter((f) => f.startsWith(cleanBaseDir) && f.endsWith(".ts"));
+      .map((f) => f.replace(/^\.?\//, ''))
+      .filter((f) => f.startsWith(cleanBaseDir) && f.endsWith('.ts'));
 
     for (const path of tsFiles) {
       const rel = path
-        .replace(cleanBaseDir + "/", "")
-        .replace(/\\/g, "/")
-        .replace(/\/index$/, "");
+        .replace(cleanBaseDir + '/', '')
+        .replace(/\\/g, '/')
+        .replace(/\/index$/, '');
 
-      const key = path.endsWith("/.metadata.ts")
-        ? rel.replace(/\/\.metadata\.ts$/, "")
-        : rel.replace(/\.ts$/, "");
+      const key = path.endsWith('/.metadata.ts')
+        ? rel.replace(/\/\.metadata\.ts$/, '')
+        : rel.replace(/\.ts$/, '');
 
-      const group = key.split("/")[0];
+      const group = key.split('/')[0];
 
       const entryData = map.get(key) || {
         CommandPath: undefined,
@@ -57,9 +51,9 @@ export class LocalDevCLIFileSystemHooks implements CLIFileSystemHooks {
         ParentGroup: group !== key ? group : undefined,
       };
 
-      const resolvedPath = await this.dfsCtxMgr.ResolvePath("project", path);
+      const resolvedPath = await this.dfsCtxMgr.ResolvePath('project', path);
 
-      if (path.endsWith(".metadata.ts")) {
+      if (path.endsWith('.metadata.ts')) {
         entryData.GroupPath = resolvedPath;
       } else {
         entryData.CommandPath = resolvedPath;
@@ -79,11 +73,11 @@ export class LocalDevCLIFileSystemHooks implements CLIFileSystemHooks {
     let configPath: string | undefined;
     let remainingArgs = args;
 
-    if (args[0]?.endsWith(".json") && (await exists(args[0]))) {
+    if (args[0]?.endsWith('.json') && (await exists(args[0]))) {
       configPath = args[0];
       remainingArgs = args.slice(1);
     } else {
-      const fallback = join(Deno.cwd(), ".cli.json");
+      const fallback = join(Deno.cwd(), '.cli.json');
       if (await exists(fallback)) {
         configPath = fallback;
       } else {

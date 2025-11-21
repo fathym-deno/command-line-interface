@@ -1,17 +1,17 @@
 // deno-lint-ignore-file no-explicit-any
-import { z } from "../.deps.ts";
-import type { ZodSchema } from "../.deps.ts";
+import { z } from '../.deps.ts';
+import type { ZodSchema } from '../.deps.ts';
 
-import type { CLIConfig } from "../types/CLIConfig.ts";
-import { CLIConfigSchema } from "../types/CLIConfig.ts";
+import type { CLIConfig } from '../types/CLIConfig.ts';
+import { CLIConfigSchema } from '../types/CLIConfig.ts';
 
-import type { CommandParams } from "./CommandParams.ts";
+import type { CommandParams } from './CommandParams.ts';
 import {
   type CommandModuleMetadata,
   CommandModuleMetadataSchema,
-} from "./CommandModuleMetadata.ts";
+} from './CommandModuleMetadata.ts';
 
-import { type CommandLog, CommandLogSchema } from "./CommandLog.ts";
+import { type CommandLog, CommandLogSchema } from './CommandLog.ts';
 
 /**
  * A map of command invocation functions.
@@ -51,7 +51,7 @@ export type CommandContext<
 
 export type CommandContextSubset = Omit<
   CommandContext,
-  "Params" | "ArgsSchema" | "FlagsSchema" | "Commands"
+  'Params' | 'ArgsSchema' | 'FlagsSchema' | 'Commands'
 >;
 
 /**
@@ -67,10 +67,10 @@ export const CommandContextSchema: z.ZodObject<{
   Metadata: z.ZodOptional<typeof CommandModuleMetadataSchema>;
   Services: z.ZodRecord<z.ZodString, z.ZodUnknown>;
 }> = z.object({
-  Config: CLIConfigSchema.describe("Parsed CLI configuration (.cli.json)"),
+  Config: CLIConfigSchema.describe('Parsed CLI configuration (.cli.json)'),
 
   GroupMetadata: CommandModuleMetadataSchema.optional().describe(
-    "Metadata for the resolved parent command group, if applicable",
+    'Metadata for the resolved parent command group, if applicable',
   ),
 
   Key: z
@@ -78,16 +78,16 @@ export const CommandContextSchema: z.ZodObject<{
     .describe('Normalized command key (e.g. "init", "schema/promote", etc.)'),
 
   Log: CommandLogSchema.describe(
-    "Logging interface used for structured output",
+    'Logging interface used for structured output',
   ),
 
   Metadata: CommandModuleMetadataSchema.optional().describe(
-    "Metadata for the active command module",
+    'Metadata for the active command module',
   ),
 
   Services: z
     .record(z.string(), z.unknown())
-    .describe("Resolved runtime services injected into the command context"),
+    .describe('Resolved runtime services injected into the command context'),
 });
 
 /**

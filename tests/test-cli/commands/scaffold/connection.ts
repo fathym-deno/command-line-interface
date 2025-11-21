@@ -1,6 +1,6 @@
-import { z } from "../../.deps.ts";
-import { Command } from "../../../../src/cli/fluent/Command.ts";
-import { CommandParams } from "../../../../src/cli/commands/CommandParams.ts";
+import { z } from '../../.deps.ts';
+import { Command } from '../../../../src/cli/fluent/Command.ts';
+import { CommandParams } from '../../../../src/cli/commands/CommandParams.ts';
 
 export const FlagsSchema = z.object({});
 export const ArgsSchema = z.tuple([]);
@@ -12,10 +12,10 @@ export class ConnectionCommandParams extends CommandParams<
   // Add getters here when flags/args grow
 }
 
-export default Command("Scaffold Connection", "Generate a new connection file.")
+export default Command('Scaffold Connection', 'Generate a new connection file.')
   .Args(ArgsSchema)
   .Flags(FlagsSchema)
   .Params(ConnectionCommandParams)
   .Run(({ Log }) => {
-    Log.Info("🔧 Scaffolding connection...");
+    Log.Info('🔧 Scaffolding connection...');
   });

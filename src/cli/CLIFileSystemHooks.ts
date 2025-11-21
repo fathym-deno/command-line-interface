@@ -1,9 +1,9 @@
-import type { DFSFileHandler } from "./.deps.ts";
-import type { CLICommandEntry } from "./types/CLICommandEntry.ts";
-import type { CLIInitFn } from "./types/CLIInitFn.ts";
-import type { CLIConfig } from "./types/CLIConfig.ts";
-import type { CommandModule } from "./commands/CommandModule.ts";
-import type { TemplateLocator } from "./templates/TemplateLocator.ts";
+import type { DFSFileHandler } from './.deps.ts';
+import type { CLICommandEntry } from './types/CLICommandEntry.ts';
+import type { CLIInitFn } from './types/CLIInitFn.ts';
+import type { CLIConfig } from './types/CLIConfig.ts';
+import type { CommandModule } from './commands/CommandModule.ts';
+import type { TemplateLocator } from './templates/TemplateLocator.ts';
 
 export interface CLIFileSystemHooks {
   ResolveCommandEntryPaths(

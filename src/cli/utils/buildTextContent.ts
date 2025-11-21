@@ -1,21 +1,19 @@
-import type { StyleOptions } from "../styling/StyleKeys.ts";
-import type { TextContent } from "../styling/TextContent.ts";
-import { appendStyles } from "./appendStyles.ts";
+import type { StyleOptions } from '../styling/StyleKeys.ts';
+import type { TextContent } from '../styling/TextContent.ts';
+import { appendStyles } from './appendStyles.ts';
 
 export function buildTextContent(
   content?: string | TextContent,
 ): string {
-  let result = "";
+  let result = '';
 
   if (content) {
-    if (typeof content === "string") {
+    if (typeof content === 'string') {
       content = { Text: content };
     }
 
     const contentStyles: StyleOptions[] =
-      (!content.Styles || Array.isArray(content.Styles)
-        ? content.Styles
-        : [content.Styles]) || [];
+      (!content.Styles || Array.isArray(content.Styles) ? content.Styles : [content.Styles]) || [];
 
     result = content.Text;
 

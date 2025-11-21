@@ -1,18 +1,15 @@
 // deno-lint-ignore-file no-explicit-any ban-types
-import type { ZodSchema } from "../.deps.ts";
-import type { IoCContainer } from "../.deps.ts";
+import type { ZodSchema } from '../.deps.ts';
+import type { IoCContainer } from '../.deps.ts';
 
-import type { CommandModule } from "../commands/CommandModule.ts";
-import type { CommandContext } from "../commands/CommandContext.ts";
-import type {
-  CommandParamConstructor,
-  CommandParams,
-} from "../commands/CommandParams.ts";
+import type { CommandModule } from '../commands/CommandModule.ts';
+import type { CommandContext } from '../commands/CommandContext.ts';
+import type { CommandParamConstructor, CommandParams } from '../commands/CommandParams.ts';
 
-import { CommandRuntime } from "../commands/CommandRuntime.ts";
-import { CLICommandExecutor } from "../CLICommandExecutor.ts";
-import type { CommandInvokerMap } from "../commands/CommandContext.ts";
-import { CLICommandResolver } from "../CLICommandResolver.ts";
+import { CommandRuntime } from '../commands/CommandRuntime.ts';
+import { CLICommandExecutor } from '../CLICommandExecutor.ts';
+import type { CommandInvokerMap } from '../commands/CommandContext.ts';
+import { CLICommandResolver } from '../CLICommandResolver.ts';
 
 type UsedKeys = Record<string, true>;
 
@@ -251,7 +248,7 @@ export class CommandModuleBuilder<
 
     if (!argsSchema || !flagsSchema || !runFn || !paramsCtor) {
       throw new Error(
-        "CommandModuleBuilder is missing required Args, Flags, Params, or Run configuration.",
+        'CommandModuleBuilder is missing required Args, Flags, Params, or Run configuration.',
       );
     }
 

@@ -1,6 +1,6 @@
-import type { Spinner } from "../spinners/Spinner.ts";
+import type { Spinner } from '../spinners/Spinner.ts';
 
 export const ArcSpinner: Spinner = {
-  Frames: ["◜", "◠", "◝", "◞", "◡", "◟"],
+  Frames: ['◜', '◠', '◝', '◞', '◡', '◟'],
   Interval: 80,
 };

@@ -1,4 +1,4 @@
-import type { CLICommandEntry } from "./types/CLICommandEntry.ts";
+import type { CLICommandEntry } from './types/CLICommandEntry.ts';
 
 export class CLICommandRegistry {
   protected commands: Map<string, CLICommandEntry>;
