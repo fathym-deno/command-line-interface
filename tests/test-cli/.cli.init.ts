@@ -1,5 +1,5 @@
-import type { IoCContainer } from './.deps.ts';
-import type { CLIInitFn } from '../../src/cli/types/CLIInitFn.ts';
+import type { IoCContainer } from "./.deps.ts";
+import type { CLIInitFn } from "../../src/cli/types/CLIInitFn.ts";
 
 export interface SayHello {
   Speak(name: string): string;
@@ -13,6 +13,6 @@ export class DefaultSayHello implements SayHello {
 
 export default ((ioc: IoCContainer, _config: unknown) => {
   ioc.Register(() => new DefaultSayHello(), {
-    Type: ioc.Symbol('SayHello'),
+    Type: ioc.Symbol("SayHello"),
   });
 }) as CLIInitFn;

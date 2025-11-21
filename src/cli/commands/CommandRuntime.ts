@@ -1,9 +1,9 @@
 // deno-lint-ignore-file no-explicit-any
-import type { IoCContainer, ZodSchema } from '../.deps.ts';
-import type { CommandParams } from './CommandParams.ts';
-import type { CommandContext, CommandInvokerMap } from './CommandContext.ts';
-import type { CommandSuggestions } from './CommandSuggestions.ts';
-import type { CommandModuleMetadata } from './CommandModuleMetadata.ts';
+import type { IoCContainer, ZodSchema } from "../.deps.ts";
+import type { CommandParams } from "./CommandParams.ts";
+import type { CommandContext, CommandInvokerMap } from "./CommandContext.ts";
+import type { CommandSuggestions } from "./CommandSuggestions.ts";
+import type { CommandModuleMetadata } from "./CommandModuleMetadata.ts";
 
 /**
  * Abstract base class for all CLI commands.
@@ -50,12 +50,12 @@ export abstract class CommandRuntime<
     ctx: CommandContext<P, S, C>,
     ioc: IoCContainer,
   ): Promise<CommandContext<P, S, C>> {
-    if (typeof this.injectServices === 'function') {
+    if (typeof this.injectServices === "function") {
       const services = await this.injectServices(ctx, ioc);
       ctx.Services = { ...ctx.Services, ...services };
     }
 
-    if (typeof this.injectCommands === 'function') {
+    if (typeof this.injectCommands === "function") {
       const commands = await this.injectCommands(ctx, ioc);
       (ctx as any).Commands = commands;
     }
@@ -82,8 +82,8 @@ export abstract class CommandRuntime<
 
     if (
       flagsSchema &&
-      typeof flagsSchema === 'object' &&
-      'shape' in flagsSchema
+      typeof flagsSchema === "object" &&
+      "shape" in flagsSchema
     ) {
       flags.push(...Object.keys((flagsSchema as any).shape));
     }
@@ -117,15 +117,15 @@ export abstract class CommandRuntime<
 
     if (
       flagsSchema &&
-      typeof flagsSchema === 'object' &&
-      'shape' in flagsSchema
+      typeof flagsSchema === "object" &&
+      "shape" in flagsSchema
     ) {
       usageParts.push(
         ...Object.keys((flagsSchema as any).shape).map((f) => `[--${f}]`),
       );
     }
 
-    const usage = usageParts.join(' ');
+    const usage = usageParts.join(" ");
     const examples = usage ? [usage] : [];
 
     return {

@@ -1,9 +1,9 @@
-import type { CLICommandEntry } from './types/CLICommandEntry.ts';
-import type { CLICommandResolver } from './CLICommandResolver.ts';
-import type { CLIConfig } from './types/CLIConfig.ts';
-import { CLIHelpBuilder } from './help/CLIHelpBuilder.ts';
-import type { CommandMatch } from './commands/CommandMatch.ts';
-import { HelpCommand, HelpCommandParams } from './help/HelpCommand.ts';
+import type { CLICommandEntry } from "./types/CLICommandEntry.ts";
+import type { CLICommandResolver } from "./CLICommandResolver.ts";
+import type { CLIConfig } from "./types/CLIConfig.ts";
+import { CLIHelpBuilder } from "./help/CLIHelpBuilder.ts";
+import type { CommandMatch } from "./commands/CommandMatch.ts";
+import { HelpCommand, HelpCommandParams } from "./help/HelpCommand.ts";
 
 export class CLICommandMatcher {
   constructor(protected resolver: CLICommandResolver) {}
@@ -21,7 +21,7 @@ export class CLICommandMatcher {
 
     const parts = [...positional];
     while (parts.length > 0) {
-      const tryKey = parts.join('/');
+      const tryKey = parts.join("/");
       const entry = commandMap.get(tryKey);
 
       if (entry?.CommandPath || entry?.GroupPath) {
@@ -44,8 +44,12 @@ export class CLICommandMatcher {
 
     const [cmdDets, groupDets] = match
       ? await Promise.all([
-        match.CommandPath ? await this.resolver.LoadCommandInstance(match.CommandPath) : undefined,
-        match.GroupPath ? await this.resolver.LoadCommandInstance(match.GroupPath) : undefined,
+        match.CommandPath
+          ? await this.resolver.LoadCommandInstance(match.CommandPath)
+          : undefined,
+        match.GroupPath
+          ? await this.resolver.LoadCommandInstance(match.GroupPath)
+          : undefined,
       ])
       : [undefined, undefined];
 

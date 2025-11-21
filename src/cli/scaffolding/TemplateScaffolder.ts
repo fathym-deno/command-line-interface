@@ -1,5 +1,5 @@
-import { type DFSFileHandler, Handlebars, join } from '../.deps.ts';
-import type { TemplateLocator } from '../templates/TemplateLocator.ts';
+import { type DFSFileHandler, Handlebars, join } from "../.deps.ts";
+import type { TemplateLocator } from "../templates/TemplateLocator.ts";
 
 export interface TemplateScaffoldOptions {
   templateName: string;
@@ -18,23 +18,23 @@ export class TemplateScaffolder {
     const { templateName, outputDir, context = {} } = options;
 
     const mergedContext = { ...this.baseContext, ...context };
-    const templateRoot = `./template/${templateName}`.replace(/\\/g, '/');
+    const templateRoot = `./template/${templateName}`.replace(/\\/g, "/");
 
     const files = await this.locator.ListFiles(`./templates/${templateName}`);
 
     for (const fullPath of files) {
-      const normalizedFullPath = fullPath.replace(/\\/g, '/');
+      const normalizedFullPath = fullPath.replace(/\\/g, "/");
 
       const relPath = normalizedFullPath.replace(
         new RegExp(`^${templateRoot}/?`),
-        '',
+        "",
       );
 
-      const targetPath = join(outputDir || '.', relPath.replace(/\.hbs$/, ''));
+      const targetPath = join(outputDir || ".", relPath.replace(/\.hbs$/, ""));
       const raw = await this.locator.ReadTemplateFile(fullPath);
 
       let rendered: string;
-      if (fullPath.endsWith('.hbs')) {
+      if (fullPath.endsWith(".hbs")) {
         rendered = Handlebars.compile(raw)(mergedContext);
       } else {
         rendered = raw;

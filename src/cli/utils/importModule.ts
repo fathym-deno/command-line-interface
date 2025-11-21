@@ -1,6 +1,6 @@
-import { type DFSFileHandler, toFileUrl } from '../.deps.ts';
-import { runCommandWithLogs } from './runCommandWithLogs.ts';
-import type { CommandLog } from '../commands/CommandLog.ts';
+import { type DFSFileHandler, toFileUrl } from "../.deps.ts";
+import { runCommandWithLogs } from "./runCommandWithLogs.ts";
+import type { CommandLog } from "../commands/CommandLog.ts";
 
 /**
  * Dynamically imports a module from a DFS.
@@ -12,12 +12,12 @@ export async function importModule<T = unknown>(
   rootDFS: DFSFileHandler,
   buildDFS: DFSFileHandler,
 ): Promise<T> {
-  const isCompiled = !Deno.execPath().endsWith('deno');
+  const isCompiled = !Deno.execPath().endsWith("deno");
 
-  if (filePath.endsWith('.ts')) {
+  if (filePath.endsWith(".ts")) {
     if (isCompiled) {
       // Get the relative path from workspace root to preserve structure
-      const fileName = filePath.replace(/\.ts$/, '');
+      const fileName = filePath.replace(/\.ts$/, "");
 
       const fullFilePath = rootDFS.ResolvePath(filePath);
 
@@ -26,13 +26,13 @@ export async function importModule<T = unknown>(
       await log.Info(`📦 Bundling '${fullFilePath}' → '${buildPath}'`);
 
       // Call deno bundle to emit JS to the build path
-      await runCommandWithLogs(['bundle', fullFilePath, buildPath], log);
+      await runCommandWithLogs(["bundle", fullFilePath, buildPath], log);
 
       // Read and execute via Blob
       const jsCode = await buildDFS.GetFileInfo(filePath);
 
       const blob = new Blob([await new Response(jsCode?.Contents).text()], {
-        type: 'application/javascript',
+        type: "application/javascript",
       });
 
       const jsURL = URL.createObjectURL(blob);

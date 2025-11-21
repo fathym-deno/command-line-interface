@@ -1,6 +1,6 @@
-import type { Spinner } from './Spinner.ts';
+import type { Spinner } from "./Spinner.ts";
 
 export const DotsSpinner: Spinner = {
-  Frames: ['⠋', '⠙', '⠹', '⠸', '⠼', '⠴', '⠦', '⠧', '⠇', '⠏'],
+  Frames: ["⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏"],
   Interval: 80,
 };

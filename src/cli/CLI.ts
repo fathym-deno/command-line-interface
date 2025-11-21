@@ -1,15 +1,15 @@
-import { IoCContainer } from './.deps.ts';
-import type { CLIConfig } from './types/CLIConfig.ts';
-import type { CLIOptions } from './types/CLIOptions.ts';
+import { IoCContainer } from "./.deps.ts";
+import type { CLIConfig } from "./types/CLIConfig.ts";
+import type { CLIOptions } from "./types/CLIOptions.ts";
 
-import { CLICommandInvocationParser } from './CLICommandInvocationParser.ts';
-import { CLICommandResolver } from './CLICommandResolver.ts';
-import { CLICommandExecutor } from './CLICommandExecutor.ts';
-import type { CLICommandEntry } from './types/CLICommandEntry.ts';
-import { CLICommandMatcher } from './CLICommandMatcher.ts';
-import { CLIDFSContextManager } from './CLIDFSContextManager.ts';
-import { CLICommandRegistry } from './CLICommandRegistry.ts';
-import { LocalDevCLIFileSystemHooks } from './LocalDevCLIFileSystemHooks.ts';
+import { CLICommandInvocationParser } from "./CLICommandInvocationParser.ts";
+import { CLICommandResolver } from "./CLICommandResolver.ts";
+import { CLICommandExecutor } from "./CLICommandExecutor.ts";
+import type { CLICommandEntry } from "./types/CLICommandEntry.ts";
+import { CLICommandMatcher } from "./CLICommandMatcher.ts";
+import { CLIDFSContextManager } from "./CLIDFSContextManager.ts";
+import { CLICommandRegistry } from "./CLICommandRegistry.ts";
+import { LocalDevCLIFileSystemHooks } from "./LocalDevCLIFileSystemHooks.ts";
 
 export class CLI {
   protected dfsCtxMgr: CLIDFSContextManager;
@@ -68,7 +68,7 @@ export class CLI {
     const executor = new CLICommandExecutor(this.ioc, this.resolver);
 
     await executor.Execute(parsed.config, Command, {
-      key: parsed.key || '',
+      key: parsed.key || "",
       flags: Flags,
       positional: Args,
       paramsCtor: Params,

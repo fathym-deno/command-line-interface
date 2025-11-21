@@ -6,25 +6,25 @@ export function captureLogs(
   const originalError = console.error;
   const originalInfo = console.info;
   const originalWarn = console.warn;
-  let output = '';
+  let output = "";
 
   console.log = (...args: unknown[]) => {
-    output += args.map((a) => String(a)).join(' ') + '\n';
+    output += args.map((a) => String(a)).join(" ") + "\n";
 
     if (useOrig) originalLog(...args);
   };
   console.info = (...args: unknown[]) => {
-    output += args.map((a) => String(a)).join(' ') + '\n';
+    output += args.map((a) => String(a)).join(" ") + "\n";
 
     if (useOrig) originalInfo(...args);
   };
   console.warn = (...args: unknown[]) => {
-    output += args.map((a) => String(a)).join(' ') + '\n';
+    output += args.map((a) => String(a)).join(" ") + "\n";
 
     if (useOrig) originalWarn(...args);
   };
   console.error = (...args: unknown[]) => {
-    output += args.map((a) => String(a)).join(' ') + '\n';
+    output += args.map((a) => String(a)).join(" ") + "\n";
 
     if (useOrig) originalError(...args);
   };

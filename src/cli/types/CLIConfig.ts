@@ -1,4 +1,4 @@
-import { z } from '../.deps.ts';
+import { z } from "../.deps.ts";
 
 /**
  * Represents the structure of the root CLI configuration (`.cli.json`).
@@ -48,28 +48,28 @@ export type CLIConfig = {
 export const CLIConfigSchema: z.ZodType<CLIConfig> = z.object({
   Name: z
     .string()
-    .min(1, 'CLI name is required.')
-    .describe('A user-facing, friendly name for the CLI.'),
+    .min(1, "CLI name is required.")
+    .describe("A user-facing, friendly name for the CLI."),
 
   Tokens: z
     .array(z.string())
-    .min(1, 'At least one CLI token is required.')
+    .min(1, "At least one CLI token is required.")
     .describe('CLI aliases, e.g. ["openindustrial", "oi"]'),
 
   Version: z
     .string()
-    .min(1, 'CLI version is required.')
-    .describe('Version shown in help output and CLI logs.'),
+    .min(1, "CLI version is required.")
+    .describe("Version shown in help output and CLI logs."),
 
   Description: z
     .string()
     .optional()
-    .describe('Optional description of what this CLI is for.'),
+    .describe("Optional description of what this CLI is for."),
 
   Commands: z
     .string()
     .optional()
-    .default('./commands')
+    .default("./commands")
     .describe("Path to the CLI commands folder. Defaults to './commands'."),
 });
 

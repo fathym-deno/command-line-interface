@@ -1,4 +1,4 @@
-import type { TemplateLocator } from './TemplateLocator.ts';
+import type { TemplateLocator } from "./TemplateLocator.ts";
 
 /**
  * TemplateLocator implementation that reads from a preloaded in-memory map.
@@ -9,13 +9,13 @@ export class EmbeddedTemplateLocator implements TemplateLocator {
 
   public ListFiles(templateName: string): Promise<string[]> {
     const normalized = templateName
-      .replace(/^.*[\\/](templates|template)[\\/]/, '') // Strip any full path prefix
-      .replace(/^template\//, '');
+      .replace(/^.*[\\/](templates|template)[\\/]/, "") // Strip any full path prefix
+      .replace(/^template\//, "");
 
-    const prefix = normalized.endsWith('/') ? normalized : `${normalized}/`;
+    const prefix = normalized.endsWith("/") ? normalized : `${normalized}/`;
 
     const matchingKeys = Object.keys(this.templates)
-      .filter((key) => key.startsWith(prefix) && !key.endsWith('/'))
+      .filter((key) => key.startsWith(prefix) && !key.endsWith("/"))
       .map((key) => `./template/${key}`);
 
     return Promise.resolve(matchingKeys);
@@ -23,8 +23,8 @@ export class EmbeddedTemplateLocator implements TemplateLocator {
 
   public ReadTemplateFile(path: string): Promise<string> {
     const normalized = path
-      .replace(/^\.\/template\//, '')
-      .replace(/^template\//, '');
+      .replace(/^\.\/template\//, "")
+      .replace(/^template\//, "");
 
     const contents = this.templates[normalized];
 

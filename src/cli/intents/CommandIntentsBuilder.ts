@@ -1,8 +1,8 @@
 // CommandIntentsBuilder.ts
-import type { CLIInitFn } from '../types/CLIInitFn.ts';
-import type { CommandParams } from '../commands/CommandParams.ts';
-import type { CommandModule } from '../commands/CommandModule.ts';
-import { CommandIntentBuilder } from './CommandIntentBuilder.ts';
+import type { CLIInitFn } from "../types/CLIInitFn.ts";
+import type { CommandParams } from "../commands/CommandParams.ts";
+import type { CommandModule } from "../commands/CommandModule.ts";
+import { CommandIntentBuilder } from "./CommandIntentBuilder.ts";
 
 export class CommandIntentsBuilder<
   A extends unknown[],

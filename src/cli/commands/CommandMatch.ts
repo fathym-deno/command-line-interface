@@ -1,5 +1,5 @@
-import type { CommandParamConstructor } from './CommandParams.ts';
-import type { CommandRuntime } from './CommandRuntime.ts';
+import type { CommandParamConstructor } from "./CommandParams.ts";
+import type { CommandRuntime } from "./CommandRuntime.ts";
 
 export type CommandMatch = {
   Command: CommandRuntime | undefined;

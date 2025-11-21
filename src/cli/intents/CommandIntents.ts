@@ -1,8 +1,8 @@
 // CommandIntents.ts
-import type { CommandModule } from '../commands/CommandModule.ts';
-import type { CommandParams } from '../commands/CommandParams.ts';
-import { CommandIntentsBuilder } from './CommandIntentsBuilder.ts';
-import { CommandModuleBuilder } from '../fluent/CommandModuleBuilder.ts';
+import type { CommandModule } from "../commands/CommandModule.ts";
+import type { CommandParams } from "../commands/CommandParams.ts";
+import { CommandIntentsBuilder } from "./CommandIntentsBuilder.ts";
+import { CommandModuleBuilder } from "../fluent/CommandModuleBuilder.ts";
 
 export function CommandIntents<
   A extends unknown[],

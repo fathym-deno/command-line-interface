@@ -1,5 +1,5 @@
-import type { DFSFileHandler } from '../.deps.ts';
-import type { TemplateLocator } from './TemplateLocator.ts';
+import type { DFSFileHandler } from "../.deps.ts";
+import type { TemplateLocator } from "./TemplateLocator.ts";
 
 export class DFSTemplateLocator implements TemplateLocator {
   constructor(

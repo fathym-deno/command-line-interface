@@ -1,5 +1,5 @@
-import type { IoCContainer } from '../.deps.ts';
-import type { CLIConfig } from './CLIConfig.ts';
+import type { IoCContainer } from "../.deps.ts";
+import type { CLIConfig } from "./CLIConfig.ts";
 
 /**
  * Defines the shape of a CLI-wide initialization hook.

@@ -1,4 +1,4 @@
-import { z } from '../.deps.ts';
+import { z } from "../.deps.ts";
 
 /**
  * Represents the metadata for a single CLI command module.
@@ -20,32 +20,32 @@ export const CommandModuleMetadataSchema: z.ZodObject<
     Name: z.ZodString;
     Description: z.ZodOptional<z.ZodString>;
     Usage: z.ZodOptional<z.ZodString>;
-    Examples: z.ZodOptional<z.ZodArray<z.ZodString, 'many'>>;
+    Examples: z.ZodOptional<z.ZodArray<z.ZodString, "many">>;
   },
-  'strip',
+  "strip",
   z.ZodTypeAny,
   CommandModuleMetadata,
   CommandModuleMetadata
 > = z.object({
   Name: z
     .string()
-    .min(1, 'Command name is required.')
+    .min(1, "Command name is required.")
     .describe(
-      'A short, human-readable label for the command. Shown in help UIs and documentation.',
+      "A short, human-readable label for the command. Shown in help UIs and documentation.",
     ),
 
   Description: z
     .string()
     .optional()
     .describe(
-      'A brief description of what this command does. Appears in help output and introspection tools.',
+      "A brief description of what this command does. Appears in help output and introspection tools.",
     ),
 
   Usage: z
     .string()
     .optional()
     .describe(
-      'Optional usage string showing how to invoke this command. If omitted, it will be inferred from schema.',
+      "Optional usage string showing how to invoke this command. If omitted, it will be inferred from schema.",
     ),
 
   Examples: z

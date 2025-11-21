@@ -1,10 +1,10 @@
-import { z } from '../../../.deps.ts';
+import { z } from "../../../.deps.ts";
 import {
   type CommandContext,
   CommandParams,
   CommandRuntime,
   defineCommandModule,
-} from '../../../../../src/cli/commands/.exports.ts';
+} from "../../../../../src/cli/commands/.exports.ts";
 
 export const FlagsSchema = z.object({});
 export const ArgsSchema = z.tuple([]);
@@ -18,13 +18,13 @@ export class AWSCommandParams extends CommandParams<
 
 export class AWSCommand extends CommandRuntime<AWSCommandParams> {
   public override Run(ctx: CommandContext): void | number {
-    ctx.Log.Info('🔧 Scaffolding AWS...');
+    ctx.Log.Info("🔧 Scaffolding AWS...");
   }
 
   public override BuildMetadata() {
     return this.buildMetadataFromSchemas(
-      'Scaffold AWS',
-      'Generate a new AWS file.',
+      "Scaffold AWS",
+      "Generate a new AWS file.",
     );
   }
 }
