@@ -18,6 +18,7 @@
     "cli:compile": "deno compile --allow-all --output=ftm-cli-run ./scripts/cli-runtime.ts",
     "cli:run": "deno run -A ./scripts/cli-runtime.ts",
     "deploy": "npx rimraf cov && deno task build && ftm git",
+    "ftm-cli:init": "deno task ftm-cli:run init",
     "ftm-cli:build": "deno task ftm-cli:run build --config=./src/cli/ftm-cli/.cli.json",
     "ftm-cli:compile": "deno task ftm-cli:run compile --entry=./src/cli/ftm-cli/.build/cli.ts",
     "ftm-cli:run": "deno task cli:run ./src/cli/ftm-cli/.cli.json",
