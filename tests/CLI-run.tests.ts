@@ -11,7 +11,7 @@ Deno.test('Test CLI – Execution Coverage', async (t) => {
     const text = stripColor(logs);
 
     assertMatch(text, /running "scaffold\/cloud\/aws"/i);
-    assertMatch(text, /✅.*completed/i);
+    assertMatch(text, /completed/i);
   });
 
   await t.step('Execute: scaffold/cloud/azure', async () => {
@@ -19,7 +19,7 @@ Deno.test('Test CLI – Execution Coverage', async (t) => {
     const text = stripColor(logs);
 
     assertMatch(text, /running "scaffold\/cloud\/azure"/i);
-    assertMatch(text, /✅.*completed/i);
+    assertMatch(text, /completed/i);
   });
 
   await t.step('Execute: scaffold/connection', async () => {
@@ -27,7 +27,7 @@ Deno.test('Test CLI – Execution Coverage', async (t) => {
     const text = stripColor(logs);
 
     assertMatch(text, /running "scaffold\/connection"/i);
-    assertMatch(text, /✅.*completed/i);
+    assertMatch(text, /completed/i);
   });
 
   await t.step('Execute: dev', async () => {
@@ -35,6 +35,6 @@ Deno.test('Test CLI – Execution Coverage', async (t) => {
     const text = stripColor(logs);
 
     assertMatch(text, /running "dev"/i);
-    assertMatch(text, /✅.*completed/i);
+    assertMatch(text, /completed/i);
   });
 });

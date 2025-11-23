@@ -1,4 +1,6 @@
-import { IoCContainer } from './.deps.ts';
+import { IoCContainer, type TelemetryLogger, type WriterSync } from './.deps.ts';
+
+type TelemetryWriterGlobal = { __telemetryWriter?: WriterSync };
 import type { CLIConfig } from './types/CLIConfig.ts';
 import type { CLIOptions } from './types/CLIOptions.ts';
 
@@ -46,6 +48,8 @@ export class CLI {
     args: string[],
     configPath: string,
   ): Promise<void> {
+    await this.registerTelemetry(config);
+
     const parsed = await this.parser.ParseInvocation(config, args, configPath);
 
     await this.initialize(parsed.initPath, parsed.config);
@@ -88,6 +92,33 @@ export class CLI {
 
       await initFn?.(this.ioc, config);
     }
+  }
+
+  protected async registerTelemetry(config: CLIConfig) {
+    // Install a CLI-local telemetry logger that renders to stderr with styling.
+    const { createCliTelemetryLogger } = await import('./logging/createCliTelemetryLogger.ts');
+
+    let writer: WriterSync | undefined = undefined;
+    try {
+      writer = await this.ioc.Resolve(this.ioc.Symbol('TelemetryWriter'));
+    } catch {
+      // optional writer not provided; fall back to global test writer or stderr
+      const globalWriter = (globalThis as TelemetryWriterGlobal)
+        .__telemetryWriter;
+      if (globalWriter) writer = globalWriter;
+    }
+
+    const logger: TelemetryLogger = createCliTelemetryLogger({
+      baseAttributes: {
+        cliName: config.Name,
+        cliVersion: config.Version,
+      },
+      writer,
+    });
+
+    this.ioc.Register(() => logger, {
+      Type: this.ioc.Symbol('TelemetryLogger'),
+    });
   }
 
   protected mergeCommandMaps(

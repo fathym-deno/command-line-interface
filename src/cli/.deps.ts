@@ -18,6 +18,12 @@ export { pascalCase } from 'jsr:@luca/cases@1.0.0';
 export { IoCContainer, type IoCServiceConstructor } from 'jsr:@fathym/ioc@0.0.21';
 
 export {
+  telemetryFor,
+  telemetryForSync,
+  type TelemetryLogger,
+} from 'jsr:@fathym/common@0.2.289-integration/telemetry';
+
+export {
   z,
   type ZodSchema,
   zodToJsonSchema,

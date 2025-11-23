@@ -1,6 +1,6 @@
 // deno-lint-ignore-file no-explicit-any
 import type { CLIConfig } from './types/CLIConfig.ts';
-import type { IoCContainer } from './.deps.ts';
+import type { IoCContainer, TelemetryLogger } from './.deps.ts';
 
 import type { CommandRuntime } from './commands/CommandRuntime.ts';
 import type { CommandContext, CommandInvokerMap } from './commands/CommandContext.ts';
@@ -9,6 +9,7 @@ import { type CommandParamConstructor, CommandParams } from './commands/CommandP
 import { HelpCommand } from './help/HelpCommand.ts';
 import type { CLICommandResolver } from './CLICommandResolver.ts';
 import { CLIDFSContextManager } from './CLIDFSContextManager.ts';
+import { TelemetryLogAdapter } from './logging/TelemetryLogAdapter.ts';
 
 /**
  * Options provided when executing a CLI command.
@@ -91,13 +92,6 @@ export class CLICommandExecutor {
     command: CommandRuntime,
     opts: CLICommandExecutorOptions,
   ): Promise<CommandContext> {
-    const log = {
-      Info: (...data: any[]) => console.info(...data),
-      Warn: (...data: any[]) => console.warn(...data),
-      Error: (...data: any[]) => console.error(...data),
-      Success: (...args: unknown[]) => console.log('✅', ...args),
-    };
-
     const { flags, positional, paramsCtor } = opts;
 
     const params = paramsCtor
@@ -107,6 +101,13 @@ export class CLICommandExecutor {
           super(positional, flags);
         }
       })();
+
+    const telemetry = await this.ioc.Resolve<TelemetryLogger>(
+      this.ioc.Symbol('TelemetryLogger'),
+    );
+    const log = new TelemetryLogAdapter(telemetry, {
+      commandKey: opts.key,
+    });
 
     const dfsCtxMgr = await this.ioc.Resolve(CLIDFSContextManager);
 

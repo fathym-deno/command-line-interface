@@ -11,7 +11,7 @@ class InMemoryDFS extends DFSFileHandler {
   }
 
   async LoadAllPaths(): Promise<string[]> {
-    return Array.from(this.files.keys());
+    return await Promise.resolve(Array.from(this.files.keys()));
   }
 
   async GetFileInfo(
@@ -32,7 +32,7 @@ class InMemoryDFS extends DFSFileHandler {
       },
     });
 
-    return { Contents: stream, Path: normalized };
+    return await Promise.resolve({ Contents: stream, Path: normalized });
   }
 
   override async HasFile(path: string): Promise<boolean> {
@@ -56,6 +56,7 @@ class InMemoryDFS extends DFSFileHandler {
 
   async RemoveFile(path: string): Promise<void> {
     this.files.delete(path.replace(/\\/g, '/'));
+    await Promise.resolve();
   }
 }
 
@@ -63,8 +64,10 @@ class MapTemplateLocator implements TemplateLocator {
   constructor(private templates: Map<string, string>) {}
 
   async ListFiles(templatePath: string): Promise<string[]> {
-    return Array.from(this.templates.keys()).filter((p) =>
-      p.startsWith(`${templatePath.replace(/\\/g, '/')}/`)
+    return await Promise.resolve(
+      Array.from(this.templates.keys()).filter((p) =>
+        p.startsWith(`${templatePath.replace(/\\/g, '/')}/`)
+      ),
     );
   }
 
@@ -72,7 +75,7 @@ class MapTemplateLocator implements TemplateLocator {
     const normalized = path.replace(/\\/g, '/');
     const found = this.templates.get(normalized);
     if (!found) throw new Error(`Template not found: ${path}`);
-    return found;
+    return await Promise.resolve(found);
   }
 }
 

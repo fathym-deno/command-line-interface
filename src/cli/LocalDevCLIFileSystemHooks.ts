@@ -1,10 +1,4 @@
-import {
-  type DFSFileHandler,
-  exists,
-  join,
-  resolve,
-  toFileUrl,
-} from './.deps.ts';
+import { type DFSFileHandler, exists, join, resolve, toFileUrl } from './.deps.ts';
 import type { CLICommandEntry } from './types/CLICommandEntry.ts';
 import type { CLIConfig } from './types/CLIConfig.ts';
 import type { CommandModule } from './commands/CommandModule.ts';
@@ -19,7 +13,7 @@ export class LocalDevCLIFileSystemHooks implements CLIFileSystemHooks {
   constructor(protected dfsCtxMgr: CLIDFSContextManager) {}
 
   public async ResolveCommandEntryPaths(
-    baseDir: string
+    baseDir: string,
   ): Promise<Map<string, CLICommandEntry>> {
     const map = new Map<string, CLICommandEntry>();
 
@@ -90,7 +84,7 @@ export class LocalDevCLIFileSystemHooks implements CLIFileSystemHooks {
         console.error(
           `❌ Unable to locate CLI config.\n` +
             `🧐 Tried: first arg and fallback '${args[0] || '.cli.json'}'\n` +
-            `👉 Create one or pass path explicitly.\n`
+            `👉 Create one or pass path explicitly.\n`,
         );
         Deno.exit(1);
       }
@@ -110,7 +104,7 @@ export class LocalDevCLIFileSystemHooks implements CLIFileSystemHooks {
   }
 
   public async LoadInitFn(
-    initPath: string
+    initPath: string,
   ): Promise<{ initFn: CLIInitFn | undefined; resolvedInitPath: string }> {
     const resolvedInitPath = toFileUrl(initPath).href;
 
@@ -120,10 +114,10 @@ export class LocalDevCLIFileSystemHooks implements CLIFileSystemHooks {
   }
 
   public ResolveTemplateLocator(
-    dfsHandler?: DFSFileHandler
+    dfsHandler?: DFSFileHandler,
   ): Promise<TemplateLocator | undefined> {
     return Promise.resolve(
-      dfsHandler ? new DFSTemplateLocator(dfsHandler) : undefined
+      dfsHandler ? new DFSTemplateLocator(dfsHandler) : undefined,
     );
   }
 }

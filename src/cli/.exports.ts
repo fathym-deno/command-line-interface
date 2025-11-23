@@ -9,6 +9,7 @@ export * from './intents/.exports.ts';
 export * from './scaffolding/.exports.ts';
 export * from './spinners/.exports.ts';
 export * from './templates/.exports.ts';
+export * from './logging/TelemetryLogAdapter.ts';
 export * from './types/.exports.ts';
 export * from './utils/.exports.ts';
 export { IoCContainer } from './.deps.ts';
