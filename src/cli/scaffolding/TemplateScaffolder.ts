@@ -18,7 +18,7 @@ export class TemplateScaffolder {
     const { templateName, outputDir, context = {} } = options;
 
     const mergedContext = { ...this.baseContext, ...context };
-    const templateRoot = `./template/${templateName}`.replace(/\\/g, '/');
+    const templateRoot = `./templates/${templateName}`.replace(/\\/g, '/');
 
     const files = await this.locator.ListFiles(`./templates/${templateName}`);
 
