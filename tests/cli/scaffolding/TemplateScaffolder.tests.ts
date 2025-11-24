@@ -110,4 +110,22 @@ Deno.test('TemplateScaffolder strips template root when rendering', async () => 
       './templates/cli-build-static/nested/file.txt'.replace(/^\.\//, ''),
     ].sort(),
   );
+
+  const renderedCli = await dfs.GetFileInfo('.build/cli.ts');
+  const cliText = await new Response(renderedCli?.Contents).text();
+  assertEquals(cliText.trim(), 'console.log("hi");');
+
+  const staticFile = await dfs.GetFileInfo('.build/nested/file.txt');
+  const staticText = await new Response(staticFile?.Contents).text();
+  assertEquals(staticText.trim(), 'static file');
+});
+
+Deno.test('TemplateScaffolder no-ops when template missing', async () => {
+  const locator = new MapTemplateLocator(new Map());
+  const dfs = new InMemoryDFS();
+  const scaffolder = new TemplateScaffolder(locator, dfs);
+
+  await scaffolder.Scaffold({ templateName: 'missing' });
+  const files = await dfs.LoadAllPaths();
+  assertEquals(files.length, 0);
 });

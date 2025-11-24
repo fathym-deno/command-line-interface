@@ -28,6 +28,21 @@ Deno.test('runWithPassthroughLogs – captures stdout/stderr and respects prefix
   assert(entries.some((e) => e === 'ERR:cli: bad'));
 });
 
+Deno.test('runWithPassthroughLogs – stderr only and exitOnFail=false', async () => {
+  const { log, entries } = createLog();
+  const cmd = new Deno.Command(Deno.execPath(), {
+    args: ['eval', "console.error('only err'); Deno.exit(1);"],
+    stdout: 'piped',
+    stderr: 'piped',
+  });
+
+  const result = await runWithPassthroughLogs(cmd, log, { exitOnFail: false });
+
+  assertEquals(result.success, false);
+  assertEquals(result.code, 1);
+  assert(entries.includes('ERR:only err'));
+});
+
 Deno.test('runWithPassthroughLogs – exits when command fails by default', async () => {
   const { log, entries } = createLog();
   const cmd = new Deno.Command(Deno.execPath(), {

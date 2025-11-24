@@ -25,4 +25,11 @@ Deno.test('CommandParams – accessors and DryRun', async (t) => {
     assertEquals(empty.DryRun, false);
     assert(empty instanceof CommandParams);
   });
+
+  await t.step('gracefully handles undefined args/flags (optional chaining branches)', () => {
+    const undef = new SampleParams(undefined as unknown as [string, number?], undefined as any);
+    assertEquals(undef.Name, undefined);
+    assertEquals(undef.Count, undefined);
+    assertEquals(undef.DryRun, false);
+  });
 });
