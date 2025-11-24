@@ -11,3 +11,9 @@ export { stripColor } from 'jsr:@std/fmt@^0.221.0/colors';
 export { captureLogs, type CommandModuleMetadata, createTestCLI } from '../src/cli/.exports.ts';
 
 export { CommandIntent, CommandIntents } from '../src/cli/intents/.exports.ts';
+
+export {
+  DFSFileHandler,
+  LocalDFSFileHandler,
+  type LocalDFSFileHandlerDetails,
+} from 'jsr:@fathym/dfs@0.0.11-integration';

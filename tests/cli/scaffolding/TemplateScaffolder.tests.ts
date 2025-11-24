@@ -1,7 +1,6 @@
-import { assertEquals } from '../../test.deps.ts';
-import { TemplateScaffolder } from '../../../../src/cli/.exports.ts';
-import type { TemplateLocator } from '../../../../src/cli/templates/TemplateLocator.ts';
-import { DFSFileHandler } from '../../../../src/cli/.deps.ts';
+import { TemplateScaffolder } from '../../../src/cli/scaffolding/TemplateScaffolder.ts';
+import { TemplateLocator } from '../../../src/cli/templates/TemplateLocator.ts';
+import { assertEquals, DFSFileHandler } from '../../test.deps.ts';
 
 class InMemoryDFS extends DFSFileHandler {
   public Root = '.';
