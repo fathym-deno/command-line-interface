@@ -1,6 +1,7 @@
 import './CLI.tests.ts';
 import './commands/.tests.ts';
 import './help/.tests.ts';
+import './parser/CLICommandInvocationParser.tests.ts';
 import './scaffolding/.tests.ts';
 import './styling/.tests.ts';
 import './types/.tests.ts';
