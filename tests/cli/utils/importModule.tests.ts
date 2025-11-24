@@ -20,12 +20,14 @@ Deno.test('importModule – imports TypeScript module in dev mode', async () => 
   const { log, entries } = createCommandLog();
   const filePath = fromFileUrl(import.meta.resolve('../../../test-cli/commands/hello.ts'));
 
-  const mod = await importModule<{ default: { Command: unknown } }>(
-    log,
-    filePath,
-    {} as DFSFileHandler,
-    {} as DFSFileHandler,
-  );
+  const originalExecPath = Deno.execPath;
+  (Deno as any).execPath = () => 'deno';
+
+  const mod = await importModule<{ default: { Command: unknown } }>(log, filePath, {
+    ResolvePath: (...parts: string[]) => parts.join('/'),
+  } as unknown as DFSFileHandler, {} as DFSFileHandler);
+
+  (Deno as any).execPath = originalExecPath;
 
   assert('default' in mod && 'Command' in (mod as any).default);
   assertEquals(entries.length, 0);
