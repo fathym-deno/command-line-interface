@@ -1,4 +1,4 @@
-import { CommandModuleMetadata } from '../../../../../test.deps.ts';
+import { CommandModuleMetadata } from '../../../test.deps.ts';
 
 export default {
   Name: 'scaffold',
