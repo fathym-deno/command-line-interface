@@ -63,3 +63,12 @@ export const CommandModuleMetadataSchema: z.ZodObject<
 export type CommandModuleMetadataSchema = z.infer<
   typeof CommandModuleMetadataSchema
 >;
+
+/**
+ * Runtime type guard for CommandModuleMetadata.
+ */
+export function isCommandModuleMetadata(
+  value: unknown,
+): value is CommandModuleMetadata {
+  return CommandModuleMetadataSchema.safeParse(value).success;
+}

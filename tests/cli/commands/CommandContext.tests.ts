@@ -1,5 +1,8 @@
 import { assert, assertEquals } from '../../test.deps.ts';
-import { CommandContextSchema } from '../../../src/cli/commands/CommandContext.ts';
+import {
+  CommandContextSchema,
+  isCommandContext,
+} from '../../../src/cli/commands/CommandContext.ts';
 
 const baseContext = {
   Config: { Name: 'Test', Tokens: ['test'], Version: '0.0.0' },
@@ -25,4 +28,10 @@ Deno.test('CommandContextSchema – rejects missing key', () => {
   const { Key, ...rest } = baseContext;
   const parsed = CommandContextSchema.safeParse(rest as unknown);
   assert(!parsed.success);
+});
+
+Deno.test('isCommandContext – guards valid and invalid shapes', () => {
+  assertEquals(isCommandContext(baseContext), true);
+  const { Key, ...rest } = baseContext;
+  assertEquals(isCommandContext(rest as unknown), false);
 });

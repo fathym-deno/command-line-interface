@@ -94,3 +94,12 @@ export const CommandContextSchema: z.ZodObject<{
  * Runtime-typed version of CommandContext for validation, help, and introspection.
  */
 export type CommandContextSchema = z.infer<typeof CommandContextSchema>;
+
+/**
+ * Runtime type guard for CommandContextSubset (core context fields).
+ */
+export function isCommandContext(
+  value: unknown,
+): value is CommandContextSubset {
+  return CommandContextSchema.safeParse(value).success;
+}

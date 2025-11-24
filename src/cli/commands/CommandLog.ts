@@ -27,3 +27,10 @@ export const CommandLogSchema: z.ZodType<CommandLog> = z.object({
     'Log success output',
   ),
 });
+
+/**
+ * Runtime type guard for CommandLog.
+ */
+export function isCommandLog(value: unknown): value is CommandLog {
+  return CommandLogSchema.safeParse(value).success;
+}
