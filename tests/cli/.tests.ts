@@ -4,6 +4,7 @@ import './executor/CLICommandExecutor.tests.ts';
 import './help/.tests.ts';
 import './matcher/CLICommandMatcher.tests.ts';
 import './parser/CLICommandInvocationParser.tests.ts';
+import './hooks/LocalDevCLIFileSystemHooks.tests.ts';
 import './scaffolding/.tests.ts';
 import './styling/.tests.ts';
 import './types/.tests.ts';
