@@ -7,9 +7,13 @@ function createLog() {
   return {
     log: entries,
     logger: {
-      Info: (msg: string) => entries.push(`INFO:${msg}`),
+      Info: (...args: unknown[]) => {
+        entries.push(`INFO:${args.join(' ')}`);
+      },
       Warn: () => {},
-      Error: (msg: string) => entries.push(`ERR:${msg}`),
+      Error: (...args: unknown[]) => {
+        entries.push(`ERR:${args.join(' ')}`);
+      },
       Success: () => {},
     },
   };
