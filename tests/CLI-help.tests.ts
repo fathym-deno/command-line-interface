@@ -1,7 +1,7 @@
 import { assertMatch, captureLogs, createTestCLI, fromFileUrl, stripColor } from './test.deps.ts';
 
 Deno.test('Test CLI – Help Coverage', async (t) => {
-  const configPath = fromFileUrl(import.meta.resolve('./test-cli/.cli.json'));
+  const configPath = fromFileUrl(import.meta.resolve('../test-cli/.cli.json'));
   const cli = createTestCLI();
 
   await t.step('Root Help', async () => {
