@@ -7,7 +7,7 @@ import type { CommandContext } from '../commands/CommandContext.ts';
 import type { CommandParamConstructor, CommandParams } from '../commands/CommandParams.ts';
 
 import { CommandRuntime } from '../commands/CommandRuntime.ts';
-import { CLICommandExecutor } from '../CLICommandExecutor.ts';
+import { CLICommandExecutor } from '../executor/CLICommandExecutor.ts';
 import type { CommandInvokerMap } from '../commands/CommandContext.ts';
 import { CLICommandResolver } from '../CLICommandResolver.ts';
 

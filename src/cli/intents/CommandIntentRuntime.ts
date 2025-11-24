@@ -11,9 +11,9 @@ import {
 import type { CommandRuntime } from '../commands/CommandRuntime.ts';
 import type { CommandModule } from '../commands/CommandModule.ts';
 import type { CommandParams } from '../commands/CommandParams.ts';
-import { CLICommandInvocationParser } from '../CLICommandInvocationParser.ts';
+import { CLICommandInvocationParser } from '../parser/CLICommandInvocationParser.ts';
 import { CLIDFSContextManager } from '../CLIDFSContextManager.ts';
-import { LocalDevCLIFileSystemHooks } from '../LocalDevCLIFileSystemHooks.ts';
+import { LocalDevCLIFileSystemHooks } from '../hooks/LocalDevCLIFileSystemHooks.ts';
 
 export class CommandIntentRuntime<
   A extends unknown[],

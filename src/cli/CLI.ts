@@ -4,14 +4,14 @@ type TelemetryWriterGlobal = { __telemetryWriter?: WriterSync };
 import type { CLIConfig } from './types/CLIConfig.ts';
 import type { CLIOptions } from './types/CLIOptions.ts';
 
-import { CLICommandInvocationParser } from './CLICommandInvocationParser.ts';
+import { CLICommandInvocationParser } from './parser/CLICommandInvocationParser.ts';
 import { CLICommandResolver } from './CLICommandResolver.ts';
-import { CLICommandExecutor } from './CLICommandExecutor.ts';
+import { CLICommandExecutor } from './executor/CLICommandExecutor.ts';
 import type { CLICommandEntry } from './types/CLICommandEntry.ts';
-import { CLICommandMatcher } from './CLICommandMatcher.ts';
+import { CLICommandMatcher } from './matcher/CLICommandMatcher.ts';
 import { CLIDFSContextManager } from './CLIDFSContextManager.ts';
 import { CLICommandRegistry } from './CLICommandRegistry.ts';
-import { LocalDevCLIFileSystemHooks } from './LocalDevCLIFileSystemHooks.ts';
+import { LocalDevCLIFileSystemHooks } from './hooks/LocalDevCLIFileSystemHooks.ts';
 
 export class CLI {
   protected dfsCtxMgr: CLIDFSContextManager;

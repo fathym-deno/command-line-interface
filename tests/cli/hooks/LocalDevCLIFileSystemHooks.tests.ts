@@ -1,5 +1,5 @@
 import { assertEquals, assert } from '../../test.deps.ts';
-import { LocalDevCLIFileSystemHooks } from '../../../src/cli/LocalDevCLIFileSystemHooks.ts';
+import { LocalDevCLIFileSystemHooks } from '../../../src/cli/hooks/LocalDevCLIFileSystemHooks.ts';
 import { CLIDFSContextManager } from '../../../src/cli/CLIDFSContextManager.ts';
 import { IoCContainer, DFSFileHandler } from '../../../src/cli/.deps.ts';
 import { join } from '../../../src/cli/.deps.ts';

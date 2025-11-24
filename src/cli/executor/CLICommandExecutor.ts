@@ -1,15 +1,15 @@
 // deno-lint-ignore-file no-explicit-any
-import type { CLIConfig } from './types/CLIConfig.ts';
-import type { IoCContainer, TelemetryLogger } from './.deps.ts';
+import type { CLIConfig } from '../types/CLIConfig.ts';
+import type { IoCContainer, TelemetryLogger } from '../.deps.ts';
 
-import type { CommandRuntime } from './commands/CommandRuntime.ts';
-import type { CommandContext, CommandInvokerMap } from './commands/CommandContext.ts';
-import { type CommandParamConstructor, CommandParams } from './commands/CommandParams.ts';
+import type { CommandRuntime } from '../commands/CommandRuntime.ts';
+import type { CommandContext, CommandInvokerMap } from '../commands/CommandContext.ts';
+import { type CommandParamConstructor, CommandParams } from '../commands/CommandParams.ts';
 
-import { HelpCommand } from './help/HelpCommand.ts';
-import type { CLICommandResolver } from './CLICommandResolver.ts';
-import { CLIDFSContextManager } from './CLIDFSContextManager.ts';
-import { TelemetryLogAdapter } from './logging/TelemetryLogAdapter.ts';
+import { HelpCommand } from '../help/HelpCommand.ts';
+import type { CLICommandResolver } from '../CLICommandResolver.ts';
+import { CLIDFSContextManager } from '../CLIDFSContextManager.ts';
+import { TelemetryLogAdapter } from '../logging/TelemetryLogAdapter.ts';
 
 /**
  * Options provided when executing a CLI command.

@@ -1,5 +1,5 @@
 import { assertEquals, assert } from '../../test.deps.ts';
-import { CLICommandExecutor } from '../../../src/cli/CLICommandExecutor.ts';
+import { CLICommandExecutor } from '../../../src/cli/executor/CLICommandExecutor.ts';
 import { CommandRuntime } from '../../../src/cli/commands/CommandRuntime.ts';
 import { CommandParams } from '../../../src/cli/commands/CommandParams.ts';
 import { IoCContainer, type TelemetryLogger, DFSFileHandler } from '../../../src/cli/.deps.ts';

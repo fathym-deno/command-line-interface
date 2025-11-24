@@ -57,6 +57,7 @@ Deno.test('createCliTelemetryLogger – renders all levels with context', () => 
   logger.warn('warn');
   logger.error('err');
   logger.fatal('boom');
+  logger.withContext({ stage: 'child' }).info('child');
 
   const lines = stripColor(writer.toString().trim()).split('\n');
   assertEquals(lines[0], '… dbg {"cli":"ctx"}');
@@ -64,4 +65,5 @@ Deno.test('createCliTelemetryLogger – renders all levels with context', () => 
   assertEquals(lines[2], '⚠ warn {"cli":"ctx"}');
   assertEquals(lines[3], '✖ err {"cli":"ctx"}');
   assertEquals(lines[4], '💥 boom {"cli":"ctx"}');
+  assertEquals(lines[5], 'ℹ child {"cli":"ctx","stage":"child"}');
 });

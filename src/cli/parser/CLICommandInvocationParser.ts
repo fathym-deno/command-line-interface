@@ -1,7 +1,7 @@
-import { parseArgs } from './.deps.ts';
-import type { CLIParsedResult } from './types/CLIParsedResult.ts';
-import type { CLIConfig } from './types/CLIConfig.ts';
-import type { CLIDFSContextManager } from './CLIDFSContextManager.ts';
+import { parseArgs } from '../.deps.ts';
+import type { CLIParsedResult } from '../types/CLIParsedResult.ts';
+import type { CLIConfig } from '../types/CLIConfig.ts';
+import type { CLIDFSContextManager } from '../CLIDFSContextManager.ts';
 
 export class CLICommandInvocationParser {
   constructor(protected readonly dfs: CLIDFSContextManager) {}

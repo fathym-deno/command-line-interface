@@ -1,9 +1,9 @@
-import type { CLICommandEntry } from './types/CLICommandEntry.ts';
-import type { CLICommandResolver } from './CLICommandResolver.ts';
-import type { CLIConfig } from './types/CLIConfig.ts';
-import { CLIHelpBuilder } from './help/CLIHelpBuilder.ts';
-import type { CommandMatch } from './commands/CommandMatch.ts';
-import { HelpCommand, HelpCommandParams } from './help/HelpCommand.ts';
+import type { CLICommandEntry } from '../types/CLICommandEntry.ts';
+import type { CLICommandResolver } from '../CLICommandResolver.ts';
+import type { CLIConfig } from '../types/CLIConfig.ts';
+import { CLIHelpBuilder } from '../help/CLIHelpBuilder.ts';
+import type { CommandMatch } from '../commands/CommandMatch.ts';
+import { HelpCommand, HelpCommandParams } from '../help/HelpCommand.ts';
 
 export class CLICommandMatcher {
   constructor(protected resolver: CLICommandResolver) {}

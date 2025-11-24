@@ -1,7 +1,7 @@
 import { assertEquals, assert } from '../../test.deps.ts';
-import { CLICommandMatcher } from '../../../src/cli/CLICommandMatcher.ts';
+import { CLICommandMatcher } from '../../../src/cli//matcher/CLICommandMatcher.ts';
 import { CLICommandResolver } from '../../../src/cli/CLICommandResolver.ts';
-import { LocalDevCLIFileSystemHooks } from '../../../src/cli/LocalDevCLIFileSystemHooks.ts';
+import { LocalDevCLIFileSystemHooks } from '../../../src/cli/hooks/LocalDevCLIFileSystemHooks.ts';
 import { CLIDFSContextManager } from '../../../src/cli/CLIDFSContextManager.ts';
 import { IoCContainer } from '../../../src/cli/.deps.ts';
 
