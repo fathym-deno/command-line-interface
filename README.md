@@ -47,3 +47,7 @@ CLI for working with Fathym runtimes and micro-frameworks—covering scaffolding
 3. Capture upstream provenance, release channels, and packaging details in `UPSTREAM.md` once known.
 4. Keep links relative; reference implementation repos/branches when selected.
 5. Record prompts or scripts used when designing commands or automations.
+
+## Related Projects
+
+- Fathym CLI (open-source): `projects/open-source/fathym-cli` now hosts the `ftm-cli` commands/templates/docs. Use `@fathym/cli` runtime from this repo as the dependency.
