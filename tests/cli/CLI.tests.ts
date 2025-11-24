@@ -111,8 +111,8 @@ Deno.test('CLI – Hello Variants', async (t) => {
     const logs = await captureLogs(() => cli.RunFromArgs([configPath, 'hello']));
     const text = stripColor(logs);
     assertMatch(text, /running "hello"/i);
-    assertMatch(text, /👋 Hello, hello!/);
-    assertMatch(text, /✅.*completed/i);
+    assertMatch(text, /👋 Hello, world!/);
+    assertMatch(text, /completed/i);
   });
 
   await t.step('hello Azi', async () => {

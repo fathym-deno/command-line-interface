@@ -1,5 +1,5 @@
 import type { IoCContainer } from './.deps.ts';
-import type { CLIInitFn } from '../../src/cli/types/CLIInitFn.ts';
+import type { CLIInitFn } from '../src/cli/types/CLIInitFn.ts';
 
 export interface SayHello {
   Speak(name: string): string;

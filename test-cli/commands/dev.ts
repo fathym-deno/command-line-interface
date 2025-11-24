@@ -4,7 +4,7 @@ import {
   CommandParams,
   CommandRuntime,
   defineCommandModule,
-} from '../../../src/cli/commands/.exports.ts';
+} from '../../src/cli/commands/.exports.ts';
 
 export const DevFlagsSchema = z.object({
   Verbose: z.boolean().optional().describe('Enable verbose logging'),

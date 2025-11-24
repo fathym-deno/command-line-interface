@@ -32,9 +32,21 @@ export class CLICommandInvocationParser {
 
     // Check if .cli.init.ts exists within the project DFS
     const initCandidate = '.cli.init.ts';
-    const initFileInfo = await (
-      await this.dfs.GetProjectDFS()
-    ).GetFileInfo(initCandidate);
+    const projectDfs = await this.dfs.GetProjectDFS();
+
+    let initFileInfo = await projectDfs.GetFileInfo(initCandidate);
+    if (!initFileInfo) {
+      // Some DFS handlers expect relative paths to include './'
+      initFileInfo = await projectDfs.GetFileInfo(`./${initCandidate}`);
+    }
+
+    if (!initFileInfo) {
+      const allPaths = await projectDfs.LoadAllPaths();
+      const found = allPaths.find((p) => p.replace(/^\.\/?/, '') === initCandidate);
+      if (found) {
+        initFileInfo = { Contents: new ReadableStream(), Path: found };
+      }
+    }
 
     const initPath = initFileInfo
       ? await this.dfs.ResolvePath('project', initCandidate)

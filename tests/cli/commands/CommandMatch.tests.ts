@@ -1,0 +1,14 @@
+import { assertEquals } from '../../test.deps.ts';
+import type { CommandMatch } from '../../../src/cli/commands/CommandMatch.ts';
+
+Deno.test('CommandMatch – basic shape defaults', () => {
+  const match: CommandMatch = {
+    Command: undefined,
+    Flags: {},
+    Args: [],
+    Params: undefined,
+  };
+
+  assertEquals(match.Flags, {});
+  assertEquals(match.Args, []);
+});

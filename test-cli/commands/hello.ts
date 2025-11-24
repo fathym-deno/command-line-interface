@@ -4,7 +4,7 @@ import {
   CommandParams,
   CommandRuntime,
   defineCommandModule,
-} from '../../../src/cli/commands/.exports.ts';
+} from '../../src/cli/commands/.exports.ts';
 import type { IoCContainer } from '../.deps.ts';
 import type { SayHello } from '../.cli.init.ts';
 

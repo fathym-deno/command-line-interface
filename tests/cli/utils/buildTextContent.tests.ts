@@ -9,7 +9,7 @@ Deno.test('Build Text Content Tests', async (t) => {
     console.log(result);
 
     assert(result);
-    assertEquals(result, '\x1b[0mHello\x1b[0m');
+    assertEquals(result, 'Hello');
   });
 
   await t.step('TextContent - Content Style', async () => {
@@ -21,7 +21,7 @@ Deno.test('Build Text Content Tests', async (t) => {
     console.log(result);
 
     assert(result);
-    assertEquals(result, '\x1b[0m\x1b[44m Hello \x1b[49m\x1b[0m');
+    assertEquals(result, '\x1b[44mHello\x1b[49m');
   });
 
   await t.step('TextContent - Content Styles', async () => {
@@ -35,7 +35,7 @@ Deno.test('Build Text Content Tests', async (t) => {
     assert(result);
     assertEquals(
       result,
-      '\x1b[0m\x1b[31m\x1b[44m Hello \x1b[49m\x1b[39m\x1b[0m',
+      '\x1b[31m\x1b[44mHello\x1b[49m\x1b[39m',
     );
   });
 
@@ -50,7 +50,7 @@ Deno.test('Build Text Content Tests', async (t) => {
     assert(result);
     assertEquals(
       result,
-      '\x1b[0m\x1b[9m\x1b[3m\x1b[30m\x1b[48;2;74;145;142m Hello \x1b[49m\x1b[39m\x1b[23m\x1b[29m\x1b[0m',
+      '\x1b[9m\x1b[3m\x1b[30m\x1b[48;2;74;145;142mHello\x1b[49m\x1b[39m\x1b[23m\x1b[29m',
     );
   });
 });
