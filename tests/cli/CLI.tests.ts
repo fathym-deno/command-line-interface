@@ -1,9 +1,9 @@
 import { assertMatch, captureLogs, createTestCLI, fromFileUrl, stripColor } from '../test.deps.ts';
 
-Deno.test('Test CLI – Help Coverage', async (t) => {
-  const configPath = fromFileUrl(import.meta.resolve('../../test-cli/.cli.json'));
-  const cli = createTestCLI();
+const configPath = fromFileUrl(import.meta.resolve('../../test-cli/.cli.json'));
+const cli = createTestCLI();
 
+Deno.test('CLI – Help Coverage', async (t) => {
   await t.step('Root Help', async () => {
     const logs = await captureLogs(() => cli.RunFromArgs([configPath]));
     const text = stripColor(logs);
@@ -41,8 +41,6 @@ Deno.test('Test CLI – Help Coverage', async (t) => {
     );
     const text = stripColor(logs);
     assertMatch(text, /📘 Command: Scaffold AWS/);
-    // assertMatch(text, /Usage:/);
-    // assertMatch(text, /Examples:/);
   });
 
   await t.step('Leaf Command Help: scaffold/cloud/azure', async () => {
@@ -51,8 +49,6 @@ Deno.test('Test CLI – Help Coverage', async (t) => {
     );
     const text = stripColor(logs);
     assertMatch(text, /📘 Command: Scaffold Azure/);
-    // assertMatch(text, /Usage:/);
-    // assertMatch(text, /Examples:/);
   });
 
   await t.step('Command Help: scaffold/connection', async () => {
@@ -61,8 +57,6 @@ Deno.test('Test CLI – Help Coverage', async (t) => {
     );
     const text = stripColor(logs);
     assertMatch(text, /📘 Command: Scaffold Connection/);
-    // assertMatch(text, /Usage:/);
-    // assertMatch(text, /Examples:/);
   });
 
   await t.step('Command Help: dev', async () => {
@@ -79,5 +73,73 @@ Deno.test('Test CLI – Help Coverage', async (t) => {
     assertMatch(text, /❌ Unknown command: scaffold\/clod/);
     assertMatch(text, /💡 Did you mean: scaffold\/cloud\?/);
     assertMatch(text, /test <command> \[options\]/);
+  });
+});
+
+Deno.test('CLI – Execution Coverage', async (t) => {
+  await t.step('Execute: scaffold/cloud/aws', async () => {
+    const logs = await captureLogs(() => cli.RunFromArgs([configPath, 'scaffold/cloud/aws']));
+    const text = stripColor(logs);
+    assertMatch(text, /running "scaffold\/cloud\/aws"/i);
+    assertMatch(text, /completed/i);
+  });
+
+  await t.step('Execute: scaffold/cloud/azure', async () => {
+    const logs = await captureLogs(() => cli.RunFromArgs([configPath, 'scaffold/cloud/azure']));
+    const text = stripColor(logs);
+    assertMatch(text, /running "scaffold\/cloud\/azure"/i);
+    assertMatch(text, /completed/i);
+  });
+
+  await t.step('Execute: scaffold/connection', async () => {
+    const logs = await captureLogs(() => cli.RunFromArgs([configPath, 'scaffold/connection']));
+    const text = stripColor(logs);
+    assertMatch(text, /running "scaffold\/connection"/i);
+    assertMatch(text, /completed/i);
+  });
+
+  await t.step('Execute: dev', async () => {
+    const logs = await captureLogs(() => cli.RunFromArgs([configPath, 'dev']));
+    const text = stripColor(logs);
+    assertMatch(text, /running "dev"/i);
+    assertMatch(text, /completed/i);
+  });
+});
+
+Deno.test('CLI – Hello Variants', async (t) => {
+  await t.step('hello (default)', async () => {
+    const logs = await captureLogs(() => cli.RunFromArgs([configPath, 'hello']));
+    const text = stripColor(logs);
+    assertMatch(text, /running "hello"/i);
+    assertMatch(text, /👋 Hello, hello!/);
+    assertMatch(text, /✅.*completed/i);
+  });
+
+  await t.step('hello Azi', async () => {
+    const logs = await captureLogs(() => cli.RunFromArgs([configPath, 'hello', 'Azi']));
+    const text = stripColor(logs);
+    assertMatch(text, /👋 Hello, Azi!/);
+  });
+
+  await t.step('hello Azi --loud', async () => {
+    const logs = await captureLogs(() => cli.RunFromArgs([configPath, 'hello', 'Azi', '--loud']));
+    const text = stripColor(logs);
+    assertMatch(text, /👋 HELLO, AZI!/);
+  });
+
+  await t.step('hello Azi --dry-run', async () => {
+    const logs = await captureLogs(() =>
+      cli.RunFromArgs([configPath, 'hello', 'Azi', '--dry-run'])
+    );
+    const text = stripColor(logs);
+    assertMatch(text, /🛑 Dry run: "Hello, Azi!"/);
+  });
+
+  await t.step('hello Azi --loud --dry-run', async () => {
+    const logs = await captureLogs(() =>
+      cli.RunFromArgs([configPath, 'hello', 'Azi', '--loud', '--dry-run'])
+    );
+    const text = stripColor(logs);
+    assertMatch(text, /🛑 Dry run: "HELLO, AZI!"/);
   });
 });
