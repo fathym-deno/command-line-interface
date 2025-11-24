@@ -20,32 +20,34 @@ class NoopCommand extends CommandRuntime<NoopParams> {
   }
 }
 
-Deno.test('CommandRuntime – metadata builds usage and examples', () => {
-  const cmd = new NoopCommand();
-  const meta = cmd.BuildMetadata();
+Deno.test('CommandRuntime – metadata and suggestions', async (t) => {
+  await t.step('builds usage and examples from schemas', () => {
+    const cmd = new NoopCommand();
+    const meta = cmd.BuildMetadata();
 
-  assertEquals(meta.Name, 'Noop');
-  assertEquals(meta.Description, 'Does nothing');
-  assertEquals(meta.Usage, '[--foo]');
-  assertEquals(meta.Examples, ['[--foo]']);
-});
+    assertEquals(meta.Name, 'Noop');
+    assertEquals(meta.Description, 'Does nothing');
+    assertEquals(meta.Usage, '[--foo]');
+    assertEquals(meta.Examples, ['[--foo]']);
+  });
 
-Deno.test('CommandRuntime – suggestions derive from schemas', () => {
-  class SuggestionCmd extends NoopCommand {
-    public exposeSuggestions() {
-      return this.buildSuggestionsFromSchemas(
-        z.object({ foo: z.string(), bar: z.boolean().optional() }),
-        z.tuple([z.string(), z.number()]),
-      );
+  await t.step('derives suggestions from schemas', () => {
+    class SuggestionCmd extends NoopCommand {
+      public exposeSuggestions() {
+        return this.buildSuggestionsFromSchemas(
+          z.object({ foo: z.string(), bar: z.boolean().optional() }),
+          z.tuple([z.string(), z.number()]),
+        );
+      }
     }
-  }
 
-  const cmd = new SuggestionCmd();
-  const suggestions = cmd.exposeSuggestions();
+    const cmd = new SuggestionCmd();
+    const suggestions = cmd.exposeSuggestions();
 
-  const flags = Array.isArray(suggestions.Flags) ? [...suggestions.Flags].sort() : [];
-  const args = Array.isArray(suggestions.Args) ? [...suggestions.Args] : [];
+    const flags = Array.isArray(suggestions.Flags) ? [...suggestions.Flags].sort() : [];
+    const args = Array.isArray(suggestions.Args) ? [...suggestions.Args] : [];
 
-  assertEquals(flags, ['bar', 'foo']);
-  assertEquals(args, ['<arg1>', '<arg2>']);
+    assertEquals(flags, ['bar', 'foo']);
+    assertEquals(args, ['<arg1>', '<arg2>']);
+  });
 });

@@ -18,20 +18,22 @@ const baseContext = {
   Services: {},
 };
 
-Deno.test('CommandContextSchema – accepts minimal valid context', () => {
-  const parsed = CommandContextSchema.safeParse(baseContext);
-  assert(parsed.success);
-  assertEquals(parsed.data.Key, 'hello');
-});
+Deno.test('CommandContext schema and guard', async (t) => {
+  await t.step('accepts minimal valid context', () => {
+    const parsed = CommandContextSchema.safeParse(baseContext);
+    assert(parsed.success);
+    assertEquals(parsed.data.Key, 'hello');
+  });
 
-Deno.test('CommandContextSchema – rejects missing key', () => {
-  const { Key, ...rest } = baseContext;
-  const parsed = CommandContextSchema.safeParse(rest as unknown);
-  assert(!parsed.success);
-});
+  await t.step('rejects missing key', () => {
+    const { Key, ...rest } = baseContext;
+    const parsed = CommandContextSchema.safeParse(rest as unknown);
+    assert(!parsed.success);
+  });
 
-Deno.test('isCommandContext – guards valid and invalid shapes', () => {
-  assertEquals(isCommandContext(baseContext), true);
-  const { Key, ...rest } = baseContext;
-  assertEquals(isCommandContext(rest as unknown), false);
+  await t.step('guard accepts valid and rejects invalid shapes', () => {
+    assertEquals(isCommandContext(baseContext), true);
+    const { Key, ...rest } = baseContext;
+    assertEquals(isCommandContext(rest as unknown), false);
+  });
 });

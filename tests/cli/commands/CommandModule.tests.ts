@@ -16,27 +16,29 @@ class DemoCommand extends CommandRuntime<DemoParams> {
   }
 }
 
-Deno.test('CommandModule – defineCommandModule returns expected shape', () => {
-  const mod = defineCommandModule({
-    ArgsSchema: z.tuple([z.string()]),
-    FlagsSchema: z.object({ flag: z.boolean().optional() }),
-    Command: DemoCommand,
-    Params: DemoParams,
+Deno.test('CommandModule – defineCommandModule shape', async (t) => {
+  await t.step('returns expected structure', () => {
+    const mod = defineCommandModule({
+      ArgsSchema: z.tuple([z.string()]),
+      FlagsSchema: z.object({ flag: z.boolean().optional() }),
+      Command: DemoCommand,
+      Params: DemoParams,
+    });
+
+    assertEquals(typeof mod.Command, 'function');
+    assertEquals(typeof mod.Params, 'function');
+    assertEquals(typeof mod.ArgsSchema, 'object');
+    assertEquals(typeof mod.FlagsSchema, 'object');
   });
 
-  assertEquals(typeof mod.Command, 'function');
-  assertEquals(typeof mod.Params, 'function');
-  assertEquals(typeof mod.ArgsSchema, 'object');
-  assertEquals(typeof mod.FlagsSchema, 'object');
-});
+  await t.step('type shape conforms', () => {
+    const mod: CommandModule<[string], { flag?: boolean }, DemoParams> = {
+      ArgsSchema: z.tuple([z.string()]),
+      FlagsSchema: z.object({ flag: z.boolean().optional() }),
+      Command: DemoCommand,
+      Params: DemoParams,
+    };
 
-Deno.test('CommandModule – type shape conforms', () => {
-  const mod: CommandModule<[string], { flag?: boolean }, DemoParams> = {
-    ArgsSchema: z.tuple([z.string()]),
-    FlagsSchema: z.object({ flag: z.boolean().optional() }),
-    Command: DemoCommand,
-    Params: DemoParams,
-  };
-
-  assertEquals(typeof mod.Command, 'function');
+    assertEquals(typeof mod.Command, 'function');
+  });
 });
