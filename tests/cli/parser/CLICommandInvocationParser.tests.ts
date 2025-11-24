@@ -32,3 +32,40 @@ Deno.test('CLICommandInvocationParser – parses args, flags, and init detection
     assert(parsed.initPath?.endsWith('.cli.init.ts'));
   });
 });
+
+Deno.test('CLICommandInvocationParser – handles missing init and custom templates dir', async () => {
+  const ioc = new IoCContainer();
+  const dfs = new CLIDFSContextManager(ioc);
+  const parser = new CLICommandInvocationParser(dfs);
+
+  const projectRoot = await Deno.makeTempDir();
+  const configPath = `${projectRoot}/.cli.json`;
+  await Deno.writeTextFile(
+    configPath,
+    JSON.stringify({
+      Name: 'Tmp',
+      Tokens: ['tmp'],
+      Version: '0.0.0',
+      Templates: './tpls',
+      Commands: './cmds',
+    }),
+  );
+
+  const parsed = await parser.ParseInvocation(
+    {
+      Name: 'Tmp',
+      Tokens: ['tmp'],
+      Version: '0.0.0',
+      Templates: './tpls',
+      Commands: './cmds',
+    },
+    ['cmds/dev', '--help'],
+    configPath,
+  );
+
+  assertEquals(parsed.key, 'cmds/dev');
+  assertEquals(parsed.positional, ['cmds/dev']);
+  assertEquals(parsed.flags.help, true);
+  assert(parsed.baseTemplatesDir.replace(/\\/g, '/').endsWith('/tpls'));
+  assertEquals(parsed.initPath, undefined);
+});
