@@ -1,7 +1,7 @@
-import { assertMatch, captureLogs, createTestCLI, fromFileUrl, stripColor } from './test.deps.ts';
+import { assertMatch, captureLogs, createTestCLI, fromFileUrl, stripColor } from '../test.deps.ts';
 
 Deno.test('Hello Command – Runtime Variants', async (t) => {
-  const configPath = fromFileUrl(import.meta.resolve('../test-cli/.cli.json'));
+  const configPath = fromFileUrl(import.meta.resolve('../../test-cli/.cli.json'));
   const cli = createTestCLI();
 
   await t.step('hello (default)', async () => {
