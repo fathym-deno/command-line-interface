@@ -117,3 +117,10 @@ export const HelpContextSchema: z.ZodType<HelpContext> = z.object({
  * Matches the validated structure of CLI help flags.
  */
 export type HelpContextSchema = z.infer<typeof HelpContextSchema>;
+
+/**
+ * Runtime type guard for HelpContext.
+ */
+export function isHelpContext(value: unknown): value is HelpContext {
+  return HelpContextSchema.safeParse(value).success;
+}

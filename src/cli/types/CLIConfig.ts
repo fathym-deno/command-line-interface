@@ -78,3 +78,10 @@ export const CLIConfigSchema: z.ZodType<CLIConfig> = z.object({
  * Matches the validated structure used throughout the CLI engine.
  */
 export type CLIConfigSchema = z.infer<typeof CLIConfigSchema>;
+
+/**
+ * Runtime type guard for CLIConfig.
+ */
+export function isCLIConfig(value: unknown): value is CLIConfig {
+  return CLIConfigSchema.safeParse(value).success;
+}
