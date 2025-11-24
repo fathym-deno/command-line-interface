@@ -29,4 +29,27 @@ Deno.test('HelpContext schema and guard', async (t) => {
     assertEquals(isHelpContext({}), true);
     assertEquals(isHelpContext({ Sections: 'oops' }), false);
   });
+
+  await t.step('accepts command/group lists and error sections', () => {
+    const parsed = HelpContextSchema.safeParse({
+      Sections: [
+        {
+          type: 'CommandList',
+          title: 'Cmds',
+          items: [{ Name: 'run', Description: 'Run' }],
+        },
+        {
+          type: 'GroupList',
+          title: 'Groups',
+          items: [{ Name: 'scaffold', Description: 'Scaffold' }],
+        },
+        {
+          type: 'Error',
+          message: 'Unknown',
+          suggestion: 'maybe',
+        },
+      ],
+    });
+    assert(parsed.success);
+  });
 });
