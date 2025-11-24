@@ -47,3 +47,21 @@ Deno.test('createCliTelemetryLogger – withContext merges attributes', () => {
   const text = stripColor(writer.toString().trim());
   assertEquals(text, 'ℹ ok {"cli":"test","task":"build"}');
 });
+
+Deno.test('createCliTelemetryLogger – renders all levels with context', () => {
+  const writer = new BufferWriter();
+  const logger = createCliTelemetryLogger({ writer }).withContext({ cli: 'ctx' });
+
+  logger.debug('dbg');
+  logger.info('info');
+  logger.warn('warn');
+  logger.error('err');
+  logger.fatal('boom');
+
+  const lines = stripColor(writer.toString().trim()).split('\n');
+  assertEquals(lines[0], '… dbg {"cli":"ctx"}');
+  assertEquals(lines[1], 'ℹ info {"cli":"ctx"}');
+  assertEquals(lines[2], '⚠ warn {"cli":"ctx"}');
+  assertEquals(lines[3], '✖ err {"cli":"ctx"}');
+  assertEquals(lines[4], '💥 boom {"cli":"ctx"}');
+});

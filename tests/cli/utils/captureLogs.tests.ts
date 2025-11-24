@@ -41,3 +41,17 @@ Deno.test('captureLogs – useOrig forwards to existing console methods', async 
     console.log = originalLog;
   }
 });
+
+Deno.test('captureLogs – preserves existing global writer and captures warn/error', async () => {
+  const globalAny = globalThis as { __telemetryWriter?: unknown };
+  const existingWriter = { writeSync: () => 0 };
+  globalAny.__telemetryWriter = existingWriter;
+
+  const output = await captureLogs(async () => {
+    console.warn('warn here');
+    console.error('error here');
+  });
+
+  assertEquals(globalAny.__telemetryWriter, existingWriter);
+  assertEquals(output.trim().split('\n'), ['warn here', 'error here']);
+});

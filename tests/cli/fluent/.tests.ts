@@ -1,0 +1,1 @@
+import './CommandModuleBuilder.tests.ts';
