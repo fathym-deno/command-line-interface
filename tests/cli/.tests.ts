@@ -1,5 +1,6 @@
 import './CLI.tests.ts';
 import './commands/.tests.ts';
+import './executor/CLICommandExecutor.tests.ts';
 import './help/.tests.ts';
 import './matcher/CLICommandMatcher.tests.ts';
 import './parser/CLICommandInvocationParser.tests.ts';
