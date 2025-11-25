@@ -5,8 +5,6 @@
     ".": "./src/.exports.ts"
   },
   "imports": {
-    "@fathym/dfs": "jsr:@fathym/dfs@0.0.11-integration",
-    "@fathym/common/third-party/zod": "jsr:@fathym/common@0.2.289-integration/third-party/zod"
   },
   "license": "MIT",
   "tasks": {

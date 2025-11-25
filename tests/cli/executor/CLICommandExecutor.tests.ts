@@ -1,8 +1,9 @@
-import { assertEquals, assert } from '../../test.deps.ts';
+// deno-lint-ignore-file no-explicit-any
+import { assert, assertEquals } from '../../test.deps.ts';
 import { CLICommandExecutor } from '../../../src/cli/executor/CLICommandExecutor.ts';
 import { CommandRuntime } from '../../../src/cli/commands/CommandRuntime.ts';
 import { CommandParams } from '../../../src/cli/commands/CommandParams.ts';
-import { IoCContainer, type TelemetryLogger, DFSFileHandler } from '../../../src/cli/.deps.ts';
+import { DFSFileHandler, IoCContainer, type TelemetryLogger } from '../../../src/cli/.deps.ts';
 import { CLIDFSContextManager } from '../../../src/cli/CLIDFSContextManager.ts';
 
 class StubParams extends CommandParams<[], { 'dry-run'?: boolean }> {}
@@ -81,49 +82,52 @@ class StubDFS extends CLIDFSContextManager {
 
 const config = { Name: 'Test CLI', Tokens: ['test'], Version: '0.0.0' };
 
-Deno.test('CLICommandExecutor – lifecycle runs Init->Run->Cleanup', async () => {
-  const ioc = new IoCContainer();
-  const resolver = new StubResolver();
-  const dfs = new StubDFS(ioc);
+Deno.test(
+  'CLICommandExecutor – lifecycle runs Init->Run->Cleanup',
+  async () => {
+    const ioc = new IoCContainer();
+    const resolver = new StubResolver();
+    const dfs = new StubDFS(ioc);
 
-  const logs: string[] = [];
-  const logger: TelemetryLogger = {
-    debug: () => {},
-    info: (msg) => logs.push(`info:${msg}`),
-    warn: (msg) => logs.push(`warn:${msg}`),
-    error: (msg) => logs.push(`error:${msg}`),
-    fatal: (msg) => logs.push(`fatal:${msg}`),
-    withContext: () => logger,
-  };
+    const logs: string[] = [];
+    const logger: TelemetryLogger = {
+      debug: () => {},
+      info: (msg) => logs.push(`info:${msg}`),
+      warn: (msg) => logs.push(`warn:${msg}`),
+      error: (msg) => logs.push(`error:${msg}`),
+      fatal: (msg) => logs.push(`fatal:${msg}`),
+      withContext: () => logger,
+    };
 
-  ioc.Register(() => logger, { Type: ioc.Symbol('TelemetryLogger') });
-  ioc.Register(CLIDFSContextManager, () => dfs);
+    ioc.Register(() => logger, { Type: ioc.Symbol('TelemetryLogger') });
+    ioc.Register(CLIDFSContextManager, () => dfs);
 
-  const cmd = new StubCommand();
-  const executor = new CLICommandExecutor(ioc, resolver as any);
+    const cmd = new StubCommand();
+    const executor = new CLICommandExecutor(ioc, resolver as any);
 
-  const originalExit = Deno.exit;
-  let exitCode: number | null = null;
-  (Deno as any).exit = (code: number) => {
-    exitCode = code;
-  };
+    const originalExit = Deno.exit;
+    let exitCode: number | null = null;
+    (Deno as any).exit = (code: number) => {
+      exitCode = code;
+    };
 
-  try {
-    await executor.Execute(config as any, cmd, {
-      key: 'hello',
-      flags: {},
-      positional: [],
-      paramsCtor: StubParams,
-      baseTemplatesDir: '/templates',
-    });
-  } finally {
-    (Deno as any).exit = originalExit;
-  }
+    try {
+      await executor.Execute(config as any, cmd, {
+        key: 'hello',
+        flags: {},
+        positional: [],
+        paramsCtor: StubParams,
+        baseTemplatesDir: '/templates',
+      });
+    } finally {
+      (Deno as any).exit = originalExit;
+    }
 
-  assertEquals(cmd.calls, ['Init', 'Run', 'Cleanup']);
-  assertEquals(exitCode, null);
-  assert(logs.some((l) => l.includes('completed')));
-});
+    assertEquals(cmd.calls, ['Init', 'Run', 'Cleanup']);
+    assertEquals(exitCode, null);
+    assert(logs.some((l) => l.includes('completed')));
+  },
+);
 
 Deno.test('CLICommandExecutor – uses DryRun when flag set', async () => {
   const ioc = new IoCContainer();
@@ -156,43 +160,46 @@ Deno.test('CLICommandExecutor – uses DryRun when flag set', async () => {
   assertEquals(cmd.calls, ['Init', 'DryRun', 'Cleanup']);
 });
 
-Deno.test('CLICommandExecutor – exits with code when Run returns number', async () => {
-  const ioc = new IoCContainer();
-  const resolver = new StubResolver();
-  const dfs = new StubDFS(ioc);
+Deno.test(
+  'CLICommandExecutor – exits with code when Run returns number',
+  async () => {
+    const ioc = new IoCContainer();
+    const resolver = new StubResolver();
+    const dfs = new StubDFS(ioc);
 
-  const logger: TelemetryLogger = {
-    debug: () => {},
-    info: () => {},
-    warn: () => {},
-    error: () => {},
-    fatal: () => {},
-    withContext: () => logger,
-  };
+    const logger: TelemetryLogger = {
+      debug: () => {},
+      info: () => {},
+      warn: () => {},
+      error: () => {},
+      fatal: () => {},
+      withContext: () => logger,
+    };
 
-  ioc.Register(() => logger, { Type: ioc.Symbol('TelemetryLogger') });
-  ioc.Register(CLIDFSContextManager, () => dfs);
+    ioc.Register(() => logger, { Type: ioc.Symbol('TelemetryLogger') });
+    ioc.Register(CLIDFSContextManager, () => dfs);
 
-  const cmd = new StubCommand(5);
-  const executor = new CLICommandExecutor(ioc, resolver as any);
+    const cmd = new StubCommand(5);
+    const executor = new CLICommandExecutor(ioc, resolver as any);
 
-  const originalExit = Deno.exit;
-  let exitCode: number | null = null;
-  (Deno as any).exit = (code: number) => {
-    exitCode = code;
-  };
+    const originalExit = Deno.exit;
+    let exitCode: number | null = null;
+    (Deno as any).exit = (code: number) => {
+      exitCode = code;
+    };
 
-  try {
-    await executor.Execute(config as any, cmd, {
-      key: 'hello',
-      flags: {},
-      positional: [],
-      paramsCtor: StubParams,
-      baseTemplatesDir: '/templates',
-    });
-  } finally {
-    (Deno as any).exit = originalExit;
-  }
+    try {
+      await executor.Execute(config as any, cmd, {
+        key: 'hello',
+        flags: {},
+        positional: [],
+        paramsCtor: StubParams,
+        baseTemplatesDir: '/templates',
+      });
+    } finally {
+      Deno.exit = originalExit;
+    }
 
-  assertEquals(exitCode, 5);
-});
+    assertEquals(exitCode, 5);
+  },
+);

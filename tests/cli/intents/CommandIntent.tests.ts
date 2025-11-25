@@ -32,6 +32,5 @@ CommandIntents('CommandIntents – Hello variants', HelloModule as any, configPa
     b
       .Args(['Azi'] as any)
       .Flags({ loud: true, 'dry-run': true } as any)
-      .ExpectLogs('🛑 Dry run: "HELLO, AZI!"'),
-  )
+      .ExpectLogs('🛑 Dry run: "HELLO, AZI!"'))
   .Run();

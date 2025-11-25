@@ -1,4 +1,4 @@
-import { assertEquals, assert } from '../../test.deps.ts';
+import { assert, assertEquals } from '../../test.deps.ts';
 import { CLICommandMatcher } from '../../../src/cli//matcher/CLICommandMatcher.ts';
 import { CLICommandResolver } from '../../../src/cli/CLICommandResolver.ts';
 import { LocalDevCLIFileSystemHooks } from '../../../src/cli/hooks/LocalDevCLIFileSystemHooks.ts';
@@ -30,24 +30,52 @@ Deno.test('CLICommandMatcher – resolves command vs help', async (t) => {
   dfs.RegisterProjectDFS('./test-cli/.cli.json');
 
   await t.step('resolves leaf command and remaining args', async () => {
-    const result = await matcher.Resolve(config, commandMap, 'hello', {}, ['hello', 'extra'], '/templates');
+    const result = await matcher.Resolve(
+      config,
+      commandMap,
+      'hello',
+      {},
+      ['hello', 'extra'],
+      '/templates',
+    );
     assert(result.Command);
     assertEquals(result.Args, ['extra']);
     assertEquals(result.Flags.baseTemplatesDir, '/templates');
   });
 
   await t.step('falls back to help when unknown key', async () => {
-    const result = await matcher.Resolve(config, commandMap, 'unknown', {}, ['unknown'], '/templates');
+    const result = await matcher.Resolve(
+      config,
+      commandMap,
+      'unknown',
+      {},
+      ['unknown'],
+      '/templates',
+    );
     assertEquals(result.Command?.constructor.name, 'HelpCommand');
   });
 
   await t.step('shows group help when only group exists', async () => {
-    const result = await matcher.Resolve(config, commandMap, 'scaffold', {}, ['scaffold'], '/templates');
+    const result = await matcher.Resolve(
+      config,
+      commandMap,
+      'scaffold',
+      {},
+      ['scaffold'],
+      '/templates',
+    );
     assertEquals(result.Command?.constructor.name, 'HelpCommand');
   });
 
   await t.step('respects --help flag', async () => {
-    const result = await matcher.Resolve(config, commandMap, 'hello', { help: true }, ['hello'], '/templates');
+    const result = await matcher.Resolve(
+      config,
+      commandMap,
+      'hello',
+      { help: true },
+      ['hello'],
+      '/templates',
+    );
     assertEquals(result.Command?.constructor.name, 'HelpCommand');
   });
 });

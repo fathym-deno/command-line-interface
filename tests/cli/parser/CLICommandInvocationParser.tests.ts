@@ -1,4 +1,4 @@
-import { assertEquals, assert } from '../../test.deps.ts';
+import { assert, assertEquals } from '../../test.deps.ts';
 import { CLICommandInvocationParser } from '../../../src/cli/parser/CLICommandInvocationParser.ts';
 import { CLIDFSContextManager } from '../../../src/cli/CLIDFSContextManager.ts';
 import { LocalDevCLIFileSystemHooks } from '../../../src/cli/hooks/LocalDevCLIFileSystemHooks.ts';
@@ -12,7 +12,11 @@ Deno.test('CLICommandInvocationParser – parses args, flags, and init detection
   const resolver = new CLICommandResolver(new LocalDevCLIFileSystemHooks(dfs));
 
   const configPath = './test-cli/.cli.json';
-  const { config, resolvedPath, remainingArgs } = await resolver.ResolveConfig([configPath, 'hello', '--loud']);
+  const { config, resolvedPath, remainingArgs } = await resolver.ResolveConfig([
+    configPath,
+    'hello',
+    '--loud',
+  ]);
 
   const parsed = await parser.ParseInvocation(config, remainingArgs, resolvedPath);
 

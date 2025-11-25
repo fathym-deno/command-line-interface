@@ -1,14 +1,17 @@
-import { assertEquals, assert } from '../../test.deps.ts';
+import { assert, assertEquals } from '../../test.deps.ts';
 import { LocalDevCLIFileSystemHooks } from '../../../src/cli/hooks/LocalDevCLIFileSystemHooks.ts';
 import { CLIDFSContextManager } from '../../../src/cli/CLIDFSContextManager.ts';
-import { IoCContainer, DFSFileHandler } from '../../../src/cli/.deps.ts';
+import { DFSFileHandler, IoCContainer } from '../../../src/cli/.deps.ts';
 import { join } from '../../../src/cli/.deps.ts';
 
 Deno.test('LocalDevCLIFileSystemHooks – ResolveConfig picks arg or fallback', async (t) => {
   const hooks = new LocalDevCLIFileSystemHooks(new CLIDFSContextManager(new IoCContainer()));
 
   await t.step('uses provided path', async () => {
-    const { config, resolvedPath, remainingArgs } = await hooks.ResolveConfig(['./test-cli/.cli.json', 'hello']);
+    const { config, resolvedPath, remainingArgs } = await hooks.ResolveConfig([
+      './test-cli/.cli.json',
+      'hello',
+    ]);
     assertEquals(config.Name, 'Test CLI');
     assert(resolvedPath.endsWith('.cli.json'));
     assertEquals(remainingArgs, ['hello']);
