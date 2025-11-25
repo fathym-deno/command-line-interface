@@ -21,22 +21,22 @@ export {
   telemetryFor,
   telemetryForSync,
   type TelemetryLogger,
-} from 'jsr:@fathym/common@0.2.289-integration/telemetry';
+} from 'jsr:@fathym/common@0.2.292-integration/telemetry';
 
 export {
   z,
   type ZodSchema,
   zodToJsonSchema,
   ZodType,
-} from 'jsr:@fathym/common@0.2.289-integration/third-party/zod';
-export { Handlebars } from 'jsr:@fathym/common@0.2.289-integration/third-party/handlebars';
+} from 'jsr:@fathym/common@0.2.292-integration/third-party/zod';
+export { Handlebars } from 'jsr:@fathym/common@0.2.292-integration/third-party/handlebars';
 
 export { writeAll, writeAllSync, type Writer, type WriterSync } from 'jsr:@std/io@0.225.2';
 
-export { findClosestMatch } from 'jsr:@fathym/common@0.2.289-integration/matches';
-export { merge, mergeWithArrays } from 'jsr:@fathym/common@0.2.289-integration/merge';
+export { findClosestMatch } from 'jsr:@fathym/common@0.2.292-integration/matches';
+export { merge, mergeWithArrays } from 'jsr:@fathym/common@0.2.292-integration/merge';
 
-export { exists, existsSync } from 'jsr:@fathym/common@0.2.289-integration/path';
+export { exists, existsSync } from 'jsr:@fathym/common@0.2.292-integration/path';
 
 export {
   DFSFileHandler,
