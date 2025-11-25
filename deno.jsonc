@@ -4,8 +4,7 @@
   "exports": {
     ".": "./src/.exports.ts"
   },
-  "imports": {
-  },
+  "imports": {},
   "license": "MIT",
   "tasks": {
     "build": "npx rimraf cov && deno task build:schema && deno task build:fmt && deno task build:lint && deno task publish:check && deno task test",
@@ -25,36 +24,18 @@
     "test": "npx rimraf cov && deno test -A ./tests/.tests.ts --coverage=cov",
     "version": "deno run -A jsr:@fathym/common@0.2.289-integration/build/version"
   },
-  "exclude": [
-    "**/_eac-runtime/*",
-    "!src/**/.exports.ts",
-    "!mod.ts"
-  ],
+  "exclude": ["**/_eac-runtime/*", "!src/**/.exports.ts", "!mod.ts"],
   "lint": {
-    "include": [
-      "apps/",
-      "configs/",
-      "src/",
-      "tests/"
-    ],
+    "include": ["apps/", "configs/", "src/", "tests/"],
     "exclude": [],
     "rules": {
-      "tags": [
-        "recommended"
-      ],
-      "include": [
-        "ban-untagged-todo"
-      ],
+      "tags": ["recommended"],
+      "include": ["ban-untagged-todo"],
       "exclude": []
     }
   },
   "fmt": {
-    "include": [
-      "apps/",
-      "configs/",
-      "src/",
-      "tests/"
-    ],
+    "include": ["apps/", "configs/", "src/", "tests/"],
     "exclude": [],
     "indentWidth": 2,
     "lineWidth": 100,
@@ -63,8 +44,6 @@
     "singleQuote": true,
     "useTabs": false
   },
-  "unstable": [
-    "kv"
-  ],
+  "unstable": ["kv"],
   "lock": false
 }
