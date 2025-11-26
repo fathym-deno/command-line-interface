@@ -1,3 +1,4 @@
+// deno-lint-ignore-file no-explicit-any
 import { assertEquals } from '../../test.deps.ts';
 import { TelemetryLogAdapter } from '../../../src/cli/logging/TelemetryLogAdapter.ts';
 

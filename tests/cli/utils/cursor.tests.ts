@@ -19,10 +19,10 @@ Deno.test('cursor helpers write expected escape sequences', () => {
   const writer = new BufferWriter();
   const encoder = new TextEncoder();
 
-  hideCursor(writer as any, encoder);
-  showCursor(writer as any, encoder);
-  clearLine(writer as any, encoder, 1);
-  clearLine(writer as any, encoder, 2, 3);
+  hideCursor(writer, encoder);
+  showCursor(writer, encoder);
+  clearLine(writer, encoder, 1);
+  clearLine(writer, encoder, 2, 3);
 
   const output = writer.toString();
   assertEquals(

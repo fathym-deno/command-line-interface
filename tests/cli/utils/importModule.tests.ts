@@ -1,3 +1,4 @@
+// deno-lint-ignore-file no-explicit-any
 import { assert, assertEquals, fromFileUrl } from '../../test.deps.ts';
 import { importModule } from '../../../src/cli/utils/importModule.ts';
 import type { DFSFileHandler } from '../../../src/cli/.deps.ts';
@@ -18,18 +19,25 @@ function createCommandLog() {
 
 Deno.test('importModule – imports TypeScript module in dev mode', async () => {
   const { log, entries } = createCommandLog();
-  const filePath = fromFileUrl(import.meta.resolve('../../../test-cli/commands/hello.ts'));
+  const filePath = fromFileUrl(
+    import.meta.resolve('../../../test-cli/commands/hello.ts'),
+  );
 
   const originalExecPath = Deno.execPath;
-  (Deno as any).execPath = () => 'deno';
+  Deno.execPath = () => 'deno';
 
-  const mod = await importModule<{ default: { Command: unknown } }>(log, filePath, {
-    ResolvePath: (...parts: string[]) => parts.join('/'),
-  } as unknown as DFSFileHandler, {} as DFSFileHandler);
+  const mod = await importModule<{ default: { Command: unknown } }>(
+    log,
+    filePath,
+    {
+      ResolvePath: (...parts: string[]) => parts.join('/'),
+    } as unknown as DFSFileHandler,
+    {} as DFSFileHandler,
+  );
 
-  (Deno as any).execPath = originalExecPath;
+  Deno.execPath = originalExecPath;
 
-  assert('default' in mod && 'Command' in (mod as any).default);
+  assert('default' in mod && 'Command' in mod.default);
   assertEquals(entries.length, 0);
 });
 
@@ -45,10 +53,10 @@ Deno.test('importModule – bundles and loads module when compiled', async () =>
 
   const buildDFS = {
     ResolvePath: (...parts: string[]) => parts.join('/'),
-    async GetFileInfo(_path: string) {
+    GetFileInfo(_path: string) {
       return { Contents: bundleContents };
     },
-    async RemoveFile(path: string) {
+    RemoveFile(path: string) {
       removed.push(path);
     },
   } as unknown as DFSFileHandler;
@@ -56,7 +64,7 @@ Deno.test('importModule – bundles and loads module when compiled', async () =>
   const originalExecPath = Deno.execPath;
   const originalCommand = Deno.Command;
 
-  (Deno as any).execPath = () => '/tmp/ftm-binary';
+  Deno.execPath = () => '/tmp/ftm-binary';
   class StubCommand {
     constructor(_cmd: string, _options: unknown) {}
     spawn() {
@@ -67,7 +75,7 @@ Deno.test('importModule – bundles and loads module when compiled', async () =>
       };
     }
   }
-  (Deno as any).Command = StubCommand;
+  Deno.Command = StubCommand as any;
 
   try {
     const mod = await importModule<{ bundled: number }>(
@@ -79,8 +87,8 @@ Deno.test('importModule – bundles and loads module when compiled', async () =>
 
     assertEquals(mod.bundled, 7);
   } finally {
-    (Deno as any).execPath = originalExecPath;
-    (Deno as any).Command = originalCommand;
+    Deno.execPath = originalExecPath;
+    Deno.Command = originalCommand;
   }
 
   await Promise.resolve();

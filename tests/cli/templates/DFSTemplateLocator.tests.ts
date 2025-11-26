@@ -16,10 +16,10 @@ function createStubDFS(): DFSFileHandler {
   const value = contents as Record<string, string>;
   const dfs = {
     Root: '.',
-    async LoadAllPaths() {
+    LoadAllPaths() {
       return samplePaths;
     },
-    async GetFileInfo(path: string) {
+    GetFileInfo(path: string) {
       const clean = path.replace(/^\.\/?/, '');
       if (!(clean in contents)) return undefined;
       return {

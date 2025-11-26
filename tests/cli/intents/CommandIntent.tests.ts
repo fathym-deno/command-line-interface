@@ -1,3 +1,4 @@
+// deno-lint-ignore-file no-explicit-any
 import { CommandIntent, CommandIntents } from '../../test.deps.ts';
 import type { CLIInitFn } from '../../../src/cli/types/CLIInitFn.ts';
 import initFn from '../../../test-cli/.cli.init.ts';
@@ -20,12 +21,20 @@ const telemetryInit: CLIInitFn = (ioc, config) => {
   return (initFn as CLIInitFn)(ioc, config);
 };
 
-CommandIntent('CommandIntent – Hello default greeting', HelloModule as any, configPath)
+CommandIntent(
+  'CommandIntent – Hello default greeting',
+  HelloModule as any,
+  configPath,
+)
   .WithInit(telemetryInit as any)
   .ExpectLogs('👋 Hello, world!')
   .Run();
 
-CommandIntents('CommandIntents – Hello variants', HelloModule as any, configPath)
+CommandIntents(
+  'CommandIntents – Hello variants',
+  HelloModule as any,
+  configPath,
+)
   .WithInit(telemetryInit as any)
   .Intent('named greet', (b) => b.Args(['Azi'] as any).ExpectLogs('👋 Hello, Azi!'))
   .Intent('loud dry run', (b) =>

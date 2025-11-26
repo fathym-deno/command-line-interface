@@ -23,21 +23,7 @@
     "test": "npx rimraf cov && deno test -A ./tests/.tests.ts --coverage=cov",
     "version": "deno run -A jsr:@fathym/common@0.2.292-integration/build/version"
   },
-  "imports": {
-    "jsr:@fathym/ioc@0.0.21": "../ioc/mod.ts",
-    "jsr:@fathym/common@0.2.292-integration/telemetry": "../reference-architecture/src/telemetry/.exports.ts",
-    "jsr:@fathym/common@0.2.292-integration/third-party/zod": "../reference-architecture/src/third-party/zod/.exports.ts",
-    "jsr:@fathym/common@0.2.292-integration/third-party/handlebars": "../reference-architecture/src/third-party/handlebars/.exports.ts",
-    "jsr:@fathym/common@0.2.292-integration/matches": "../reference-architecture/src/matches/.exports.ts",
-    "jsr:@fathym/common@0.2.292-integration/merge": "../reference-architecture/src/merge/.exports.ts",
-    "jsr:@fathym/common@0.2.292-integration/path": "../reference-architecture/src/path/.exports.ts",
-    "jsr:@fathym/dfs@0.0.11-integration": "../distributed-file-system/src/.exports.ts"
-  },
-/**
-// @sync-imports BEGIN ORIGINAL IMPORTS
-//   "imports": {},
-// @sync-imports END ORIGINAL IMPORTS
-*/
+  "imports": {},
   "exclude": ["**/_eac-runtime/*", "!src/**/.exports.ts", "!mod.ts"],
   "lint": {
     "include": ["apps/", "configs/", "src/", "tests/"],

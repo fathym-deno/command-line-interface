@@ -1,3 +1,4 @@
+// deno-lint-ignore-file no-explicit-any
 import { assert, assertEquals } from '../../test.deps.ts';
 import { runWithPassthroughLogs } from '../../../src/cli/utils/runWithPassthroughLogs.ts';
 
@@ -62,7 +63,7 @@ Deno.test('runWithPassthroughLogs – exits when command fails by default', asyn
     assertEquals(result.success, false);
     assertEquals(result.code, 2);
   } finally {
-    (Deno as any).exit = originalExit;
+    Deno.exit = originalExit;
   }
 
   assertEquals(exitCode, 2);

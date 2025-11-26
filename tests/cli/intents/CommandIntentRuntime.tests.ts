@@ -1,3 +1,4 @@
+// deno-lint-ignore-file no-explicit-any
 import { assertRejects } from '../../test.deps.ts';
 import { CommandIntentRuntime } from '../../../src/cli/intents/CommandIntentRuntime.ts';
 import type { CLIInitFn } from '../../../src/cli/types/CLIInitFn.ts';
@@ -33,18 +34,21 @@ Deno.test('CommandIntentRuntime – errors when .cli.json missing', async () => 
   await assertRejects(() => runtime.Run(), Error, '.cli.json');
 });
 
-Deno.test('CommandIntentRuntime – fails assertion when exit code expectation not met', async () => {
-  const configPath = './test-cli/.cli.json';
-  const runtime = new CommandIntentRuntime(
-    'exit mismatch',
-    HelloModule as any,
-    [] as any,
-    {} as any,
-    configPath,
-    telemetryInit,
-  );
+Deno.test(
+  'CommandIntentRuntime – fails assertion when exit code expectation not met',
+  async () => {
+    const configPath = './test-cli/.cli.json';
+    const runtime = new CommandIntentRuntime(
+      'exit mismatch',
+      HelloModule as any,
+      [] as any,
+      {} as any,
+      configPath,
+      telemetryInit,
+    );
 
-  runtime.ExpectExit(1);
+    runtime.ExpectExit(1);
 
-  await assertRejects(() => runtime.Run(), Error, 'Expected exit code 1');
-});
+    await assertRejects(() => runtime.Run(), Error, 'Expected exit code 1');
+  },
+);

@@ -1,3 +1,4 @@
+// deno-lint-ignore-file no-explicit-any
 import { CommandIntents } from '../../test.deps.ts';
 import { CommandModuleBuilder } from '../../../src/cli/fluent/CommandModuleBuilder.ts';
 import { z } from '../../test.deps.ts';

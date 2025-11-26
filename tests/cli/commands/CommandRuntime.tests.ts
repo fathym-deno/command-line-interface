@@ -3,9 +3,9 @@ import { CommandRuntime } from '../../../src/cli/commands/CommandRuntime.ts';
 import { CommandParams } from '../../../src/cli/commands/CommandParams.ts';
 import { z } from '../../test.deps.ts';
 
-class NoopParams extends CommandParams<[], Record<string, unknown>> {}
+class _NoopParams extends CommandParams<[], Record<string, unknown>> {}
 
-class NoopCommand extends CommandRuntime<NoopParams> {
+class NoopCommand extends CommandRuntime<_NoopParams> {
   public BuildMetadata() {
     return this.buildMetadataFromSchemas(
       'Noop',

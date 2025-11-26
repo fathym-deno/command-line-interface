@@ -18,20 +18,20 @@ class StubCommand extends CommandRuntime<StubParams> {
     return this.buildMetadataFromSchemas('stub', 'stub cmd');
   }
 
-  public override async Init() {
+  public override Init() {
     this.calls.push('Init');
   }
 
-  public override async Run() {
+  public override Run() {
     this.calls.push('Run');
     return this.runReturn;
   }
 
-  public override async DryRun() {
+  public override DryRun() {
     this.calls.push('DryRun');
   }
 
-  public override async Cleanup() {
+  public override Cleanup() {
     this.calls.push('Cleanup');
   }
 }
@@ -49,24 +49,24 @@ class MinimalDFS extends DFSFileHandler {
     super({ FileRoot: '.' });
   }
 
-  async LoadAllPaths(): Promise<string[]> {
-    return [];
+  LoadAllPaths(): Promise<string[]> {
+    return Promise.resolve([]);
   }
 
-  async GetFileInfo() {
-    return undefined;
+  GetFileInfo() {
+    return Promise.resolve(undefined);
   }
 
   override ResolvePath(...parts: string[]): string {
     return parts.join('/');
   }
 
-  async WriteFile(): Promise<void> {
-    return;
+  WriteFile(): Promise<void> {
+    return Promise.resolve();
   }
 
-  async RemoveFile(): Promise<void> {
-    return;
+  RemoveFile(): Promise<void> {
+    return Promise.resolve();
   }
 }
 
@@ -75,8 +75,8 @@ class StubDFS extends CLIDFSContextManager {
     super(ioc);
   }
 
-  public override async GetProjectDFS(): Promise<DFSFileHandler> {
-    return new MinimalDFS();
+  public override GetProjectDFS(): Promise<DFSFileHandler> {
+    return Promise.resolve(new MinimalDFS());
   }
 }
 

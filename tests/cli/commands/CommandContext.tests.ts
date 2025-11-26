@@ -26,14 +26,14 @@ Deno.test('CommandContext schema and guard', async (t) => {
   });
 
   await t.step('rejects missing key', () => {
-    const { Key, ...rest } = baseContext;
+    const { Key: _, ...rest } = baseContext;
     const parsed = CommandContextSchema.safeParse(rest as unknown);
     assert(!parsed.success);
   });
 
   await t.step('guard accepts valid and rejects invalid shapes', () => {
     assertEquals(isCommandContext(baseContext), true);
-    const { Key, ...rest } = baseContext;
+    const { Key: _, ...rest } = baseContext;
     assertEquals(isCommandContext(rest as unknown), false);
   });
 });
