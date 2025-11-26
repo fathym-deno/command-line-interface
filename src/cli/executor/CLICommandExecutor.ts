@@ -1,6 +1,6 @@
 // deno-lint-ignore-file no-explicit-any
 import type { CLIConfig } from '../types/CLIConfig.ts';
-import type { IoCContainer, TelemetryLogger } from '../.deps.ts';
+import type { IoCContainer, TelemetryLogger, WriterSync } from '../.deps.ts';
 
 import type { CommandRuntime } from '../commands/CommandRuntime.ts';
 import type { CommandContext, CommandInvokerMap } from '../commands/CommandContext.ts';
@@ -10,6 +10,9 @@ import { HelpCommand } from '../help/HelpCommand.ts';
 import type { CLICommandResolver } from '../CLICommandResolver.ts';
 import { CLIDFSContextManager } from '../CLIDFSContextManager.ts';
 import { TelemetryLogAdapter } from '../logging/TelemetryLogAdapter.ts';
+import { createCliTelemetryLogger } from '../logging/createCliTelemetryLogger.ts';
+
+type TelemetryWriterGlobal = { __telemetryWriter?: WriterSync };
 
 /**
  * Options provided when executing a CLI command.
@@ -102,9 +105,7 @@ export class CLICommandExecutor {
         }
       })();
 
-    const telemetry = await this.ioc.Resolve<TelemetryLogger>(
-      this.ioc.Symbol('TelemetryLogger'),
-    );
+    const telemetry = await this.ensureTelemetryLogger(config);
     const log = new TelemetryLogAdapter(telemetry, {
       commandKey: opts.key,
     });
@@ -135,6 +136,40 @@ export class CLICommandExecutor {
     };
 
     return await command.ConfigureContext(baseContext, this.ioc);
+  }
+
+  /**
+   * Ensure a TelemetryLogger is available in IoC. If none has been registered
+   * (e.g., tests calling the executor directly), create the CLI logger and
+   * register it on the fly so downstream resolution succeeds.
+   */
+  protected async ensureTelemetryLogger(config: CLIConfig): Promise<TelemetryLogger> {
+    const telemetrySymbol = this.ioc.Symbol('TelemetryLogger');
+
+    try {
+      return await this.ioc.Resolve<TelemetryLogger>(telemetrySymbol);
+    } catch {
+      // fall through to create a CLI-scoped logger
+    }
+
+    let writer: WriterSync | undefined;
+    try {
+      writer = await this.ioc.Resolve(this.ioc.Symbol('TelemetryWriter'));
+    } catch {
+      writer = (globalThis as TelemetryWriterGlobal).__telemetryWriter;
+    }
+
+    const logger = createCliTelemetryLogger({
+      baseAttributes: {
+        cliName: config.Name,
+        cliVersion: config.Version,
+      },
+      writer,
+    });
+
+    this.ioc.Register(() => logger, { Type: telemetrySymbol });
+
+    return logger;
   }
 
   /**

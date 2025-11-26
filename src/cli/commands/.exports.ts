@@ -3,6 +3,7 @@
  * @module
  */
 export * from './CommandContext.ts';
+export * from './CommandLog.ts';
 export * from './CommandMatch.ts';
 export * from './CommandModule.ts';
 export * from './CommandModuleMetadata.ts';
