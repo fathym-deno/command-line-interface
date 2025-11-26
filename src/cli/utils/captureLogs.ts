@@ -12,6 +12,13 @@ export function captureLogs(
   const writer: WriterSync = {
     writeSync(p: Uint8Array): number {
       buffer.push(p.slice());
+      // Tee telemetry output to stderr so it is visible during tests.
+      // This preserves the in-memory buffer for assertions.
+      try {
+        Deno.stderr.writeSync(p);
+      } catch {
+        // Ignore tee failures; still capture in buffer.
+      }
       return p.length;
     },
   };
