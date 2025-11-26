@@ -1,6 +1,6 @@
 import { assertEquals } from '../../test.deps.ts';
-import { CommandRuntime } from '../../../src/cli/commands/CommandRuntime.ts';
-import { CommandParams } from '../../../src/cli/commands/CommandParams.ts';
+import { CommandRuntime } from '../../../src/commands/CommandRuntime.ts';
+import { CommandParams } from '../../../src/commands/CommandParams.ts';
 import { z } from '../../test.deps.ts';
 
 class _NoopParams extends CommandParams<[], Record<string, unknown>> {}

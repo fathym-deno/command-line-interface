@@ -29,30 +29,33 @@ export const CommandModuleMetadataSchema: z.ZodObject<
     Name: z.ZodString;
     Description: z.ZodOptional<z.ZodString>;
     Usage: z.ZodOptional<z.ZodString>;
-    Examples: z.ZodOptional<z.ZodArray<z.ZodString, 'many'>>;
+    Examples: z.ZodOptional<z.ZodArray<z.ZodString>>;
     Args: z.ZodOptional<
       z.ZodArray<
-        z.ZodObject<{
-          Name: z.ZodString;
-          Description: z.ZodOptional<z.ZodString>;
-          Optional: z.ZodOptional<z.ZodBoolean>;
-        }>
+        z.ZodObject<
+          {
+            Name: z.ZodString;
+            Description: z.ZodOptional<z.ZodString>;
+            Optional: z.ZodOptional<z.ZodBoolean>;
+          },
+          z.core.$strip
+        >
       >
     >;
     Flags: z.ZodOptional<
       z.ZodArray<
-        z.ZodObject<{
-          Name: z.ZodString;
-          Description: z.ZodOptional<z.ZodString>;
-          Optional: z.ZodOptional<z.ZodBoolean>;
-        }>
+        z.ZodObject<
+          {
+            Name: z.ZodString;
+            Description: z.ZodOptional<z.ZodString>;
+            Optional: z.ZodOptional<z.ZodBoolean>;
+          },
+          z.core.$strip
+        >
       >
     >;
   },
-  'strip',
-  z.ZodTypeAny,
-  CommandModuleMetadata,
-  CommandModuleMetadata
+  z.core.$strip
 > = z.object({
   Name: z
     .string()

@@ -1,8 +1,8 @@
 // deno-lint-ignore-file no-explicit-any
 import { CommandIntents } from '../../test.deps.ts';
-import { CommandModuleBuilder } from '../../../src/cli/fluent/CommandModuleBuilder.ts';
+import { CommandModuleBuilder } from '../../../src/fluent/CommandModuleBuilder.ts';
 import { z } from '../../test.deps.ts';
-import { CommandParams } from '../../../src/cli/commands/CommandParams.ts';
+import { CommandParams } from '../../../src/commands/CommandParams.ts';
 
 class NoopParams extends CommandParams<[], Record<string, unknown>> {}
 

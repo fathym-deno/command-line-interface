@@ -1,5 +1,5 @@
 import { assertEquals, assertThrows } from '../../test.deps.ts';
-import { EmbeddedTemplateLocator } from '../../../src/cli/templates/EmbeddedTemplateLocator.ts';
+import { EmbeddedTemplateLocator } from '../../../src/templates/EmbeddedTemplateLocator.ts';
 
 Deno.test('EmbeddedTemplateLocator – normalizes prefixes and lists files', async () => {
   const locator = new EmbeddedTemplateLocator({

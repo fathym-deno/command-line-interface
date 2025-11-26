@@ -1,5 +1,5 @@
 import { assert } from '../../test.deps.ts';
-import { emitSchema } from '../../../src/cli/utils/emitSchema.ts';
+import { emitSchema } from '../../../src/utils/emitSchema.ts';
 import { z } from '../../test.deps.ts';
 
 Deno.test('emitSchema – writes schema to output directory', async () => {

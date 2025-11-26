@@ -1,5 +1,5 @@
 import { assert, assertEquals } from '../../test.deps.ts';
-import { HelpContextSchema, isHelpContext } from '../../../src/cli/help/HelpContext.ts';
+import { HelpContextSchema, isHelpContext } from '../../../src/help/HelpContext.ts';
 
 Deno.test('HelpContext schema and guard', async (t) => {
   await t.step('accepts minimal (empty) context', () => {

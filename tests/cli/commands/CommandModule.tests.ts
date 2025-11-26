@@ -1,7 +1,7 @@
 import { assertEquals } from '../../test.deps.ts';
-import { CommandModule, defineCommandModule } from '../../../src/cli/commands/CommandModule.ts';
-import { CommandParams } from '../../../src/cli/commands/CommandParams.ts';
-import { CommandRuntime } from '../../../src/cli/commands/CommandRuntime.ts';
+import { CommandModule, defineCommandModule } from '../../../src/commands/CommandModule.ts';
+import { CommandParams } from '../../../src/commands/CommandParams.ts';
+import { CommandRuntime } from '../../../src/commands/CommandRuntime.ts';
 import { z } from '../../test.deps.ts';
 
 class DemoParams extends CommandParams<[string], { flag?: boolean }> {}

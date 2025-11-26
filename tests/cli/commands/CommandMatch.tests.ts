@@ -1,5 +1,5 @@
 import { assertEquals } from '../../test.deps.ts';
-import type { CommandMatch } from '../../../src/cli/commands/CommandMatch.ts';
+import type { CommandMatch } from '../../../src/commands/CommandMatch.ts';
 
 Deno.test('CommandMatch – basic shape defaults', async (t) => {
   await t.step('supports undefined command and empty args/flags', () => {

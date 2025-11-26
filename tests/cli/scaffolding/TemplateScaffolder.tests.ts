@@ -1,5 +1,5 @@
-import { TemplateScaffolder } from '../../../src/cli/scaffolding/TemplateScaffolder.ts';
-import { TemplateLocator } from '../../../src/cli/templates/TemplateLocator.ts';
+import { TemplateScaffolder } from '../../../src/scaffolding/TemplateScaffolder.ts';
+import { TemplateLocator } from '../../../src/templates/TemplateLocator.ts';
 import { assertEquals, DFSFileHandler } from '../../test.deps.ts';
 
 class InMemoryDFS extends DFSFileHandler {

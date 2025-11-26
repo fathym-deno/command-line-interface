@@ -1,7 +1,7 @@
 // import { assert, assertEquals, delay } from "../../test.deps.ts";
-// import { UpdateInline } from "../../../src/cli/styling/UpdateInline.ts";
-// import { showCursor } from "../../../src/cli/utils/showCursor.ts";
-// import { hideCursor } from "../../../src/cli/utils/hideCursor.ts";
+// import { UpdateInline } from "../../../src/styling/UpdateInline.ts";
+// import { showCursor } from "../../../src/utils/showCursor.ts";
+// import { hideCursor } from "../../../src/utils/hideCursor.ts";
 
 // Deno.test("Update Inline Tests", async (t) => {
 //   await t.step("Quick Texts", async () => {

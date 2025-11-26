@@ -1,6 +1,6 @@
 import { assertEquals, assertRejects } from '../../test.deps.ts';
-import { DFSTemplateLocator } from '../../../src/cli/templates/DFSTemplateLocator.ts';
-import type { DFSFileHandler } from '../../../src/cli/.deps.ts';
+import { DFSTemplateLocator } from '../../../src/templates/DFSTemplateLocator.ts';
+import type { DFSFileHandler } from '../../../src/.deps.ts';
 
 const contents = {
   'templates/base/file.txt': 'hello',

@@ -1,5 +1,5 @@
 import { assert, assertEquals } from '../../test.deps.ts';
-import { CLIConfigSchema, isCLIConfig } from '../../../src/cli/types/CLIConfig.ts';
+import { CLIConfigSchema, isCLIConfig } from '../../../src/types/CLIConfig.ts';
 
 const baseConfig = {
   Name: 'Test CLI',

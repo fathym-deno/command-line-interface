@@ -1,8 +1,8 @@
 // deno-lint-ignore-file no-explicit-any
 import { assert, assertEquals, fromFileUrl } from '../../test.deps.ts';
-import { importModule } from '../../../src/cli/utils/importModule.ts';
-import type { DFSFileHandler } from '../../../src/cli/.deps.ts';
-import type { CommandLog } from '../../../src/cli/commands/CommandLog.ts';
+import { importModule } from '../../../src/utils/importModule.ts';
+import type { DFSFileHandler } from '../../../src/.deps.ts';
+import type { CommandLog } from '../../../src/commands/CommandLog.ts';
 
 function createCommandLog() {
   const entries: string[] = [];

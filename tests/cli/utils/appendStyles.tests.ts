@@ -1,4 +1,4 @@
-import { appendStyles } from '../../../src/cli/utils/appendStyles.ts';
+import { appendStyles } from '../../../src/utils/appendStyles.ts';
 import { assertEquals } from '../../test.deps.ts';
 import { assert } from '../../test.deps.ts';
 

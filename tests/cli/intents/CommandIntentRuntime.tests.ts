@@ -1,7 +1,7 @@
 // deno-lint-ignore-file no-explicit-any
 import { assertRejects } from '../../test.deps.ts';
-import { CommandIntentRuntime } from '../../../src/cli/intents/CommandIntentRuntime.ts';
-import type { CLIInitFn } from '../../../src/cli/types/CLIInitFn.ts';
+import { CommandIntentRuntime } from '../../../src/intents/CommandIntentRuntime.ts';
+import type { CLIInitFn } from '../../../src/types/CLIInitFn.ts';
 import HelloModule from '../../../test-cli/commands/hello.ts';
 import initFn from '../../../test-cli/.cli.init.ts';
 

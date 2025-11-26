@@ -1,7 +1,7 @@
 import { assertEquals } from '../../test.deps.ts';
-import { hideCursor } from '../../../src/cli/utils/hideCursor.ts';
-import { showCursor } from '../../../src/cli/utils/showCursor.ts';
-import { clearLine } from '../../../src/cli/utils/clearLine.ts';
+import { hideCursor } from '../../../src/utils/hideCursor.ts';
+import { showCursor } from '../../../src/utils/showCursor.ts';
+import { clearLine } from '../../../src/utils/clearLine.ts';
 
 class BufferWriter {
   public chunks: Uint8Array[] = [];

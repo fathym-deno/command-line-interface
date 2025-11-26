@@ -1,6 +1,6 @@
 import { assert, assertEquals } from '../../test.deps.ts';
-import { CLITelemetryRenderer } from '../../../src/cli/logging/CLITelemetryRenderer.ts';
-import { Colors, type WriterSync } from '../../../src/cli/.deps.ts';
+import { CLITelemetryRenderer } from '../../../src/logging/CLITelemetryRenderer.ts';
+import { Colors, type WriterSync } from '../../../src/.deps.ts';
 
 class BufferWriter implements WriterSync {
   private readonly chunks: Uint8Array[] = [];

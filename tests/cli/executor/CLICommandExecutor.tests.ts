@@ -1,10 +1,10 @@
 // deno-lint-ignore-file no-explicit-any
 import { assert, assertEquals } from '../../test.deps.ts';
-import { CLICommandExecutor } from '../../../src/cli/executor/CLICommandExecutor.ts';
-import { CommandRuntime } from '../../../src/cli/commands/CommandRuntime.ts';
-import { CommandParams } from '../../../src/cli/commands/CommandParams.ts';
-import { DFSFileHandler, IoCContainer, type TelemetryLogger } from '../../../src/cli/.deps.ts';
-import { CLIDFSContextManager } from '../../../src/cli/CLIDFSContextManager.ts';
+import { CLICommandExecutor } from '../../../src/executor/CLICommandExecutor.ts';
+import { CommandRuntime } from '../../../src/commands/CommandRuntime.ts';
+import { CommandParams } from '../../../src/commands/CommandParams.ts';
+import { DFSFileHandler, IoCContainer, type TelemetryLogger } from '../../../src/.deps.ts';
+import { CLIDFSContextManager } from '../../../src/CLIDFSContextManager.ts';
 
 class StubParams extends CommandParams<[], { 'dry-run'?: boolean }> {}
 

@@ -1,6 +1,6 @@
 import { assertEquals, stripColor } from '../../test.deps.ts';
-import { createCliTelemetryLogger } from '../../../src/cli/logging/createCliTelemetryLogger.ts';
-import type { WriterSync } from '../../../src/cli/.deps.ts';
+import { createCliTelemetryLogger } from '../../../src/logging/createCliTelemetryLogger.ts';
+import type { WriterSync } from '../../../src/.deps.ts';
 
 class BufferWriter implements WriterSync {
   private chunks: Uint8Array[] = [];

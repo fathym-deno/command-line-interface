@@ -1,6 +1,6 @@
 // deno-lint-ignore-file no-explicit-any
 import { assert, assertEquals } from '../../test.deps.ts';
-import { runCommandWithLogs } from '../../../src/cli/utils/runCommandWithLogs.ts';
+import { runCommandWithLogs } from '../../../src/utils/runCommandWithLogs.ts';
 
 function createLog() {
   const entries: string[] = [];

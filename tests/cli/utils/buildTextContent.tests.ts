@@ -1,4 +1,4 @@
-import { buildTextContent } from '../../../src/cli/utils/buildTextContent.ts';
+import { buildTextContent } from '../../../src/utils/buildTextContent.ts';
 import { assertEquals } from '../../test.deps.ts';
 import { assert } from '../../test.deps.ts';
 

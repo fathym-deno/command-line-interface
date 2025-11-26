@@ -1,16 +1,13 @@
 // deno-lint-ignore-file no-explicit-any
 import type { DFSFileHandler, ZodSchema } from './.deps.ts';
 import type { CLIFileSystemHooks } from './CLIFileSystemHooks.ts';
-import {
-  type CLICommandEntry,
-  type CLIConfig,
-  type CLIInitFn,
-  type CommandModuleMetadata,
-  type CommandParamConstructor,
-  type CommandParams,
-  CommandRuntime,
-} from './.exports.ts';
+import { CommandModuleMetadata } from './commands/CommandModuleMetadata.ts';
+import { CommandParamConstructor, CommandParams } from './commands/CommandParams.ts';
+import { CommandRuntime } from './commands/CommandRuntime.ts';
 import type { TemplateLocator } from './templates/TemplateLocator.ts';
+import { CLICommandEntry } from './types/CLICommandEntry.ts';
+import { CLIConfig } from './types/CLIConfig.ts';
+import { CLIInitFn } from './types/CLIInitFn.ts';
 
 export class CLICommandResolver {
   constructor(protected readonly hooks: CLIFileSystemHooks) {}

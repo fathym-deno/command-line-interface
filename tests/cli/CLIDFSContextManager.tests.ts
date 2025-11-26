@@ -1,6 +1,6 @@
 import { assertEquals, assertThrows } from '../test.deps.ts';
-import { CLIDFSContextManager } from '../../src/cli/CLIDFSContextManager.ts';
-import { IoCContainer, join } from '../../src/cli/.deps.ts';
+import { CLIDFSContextManager } from '../../src/CLIDFSContextManager.ts';
+import { IoCContainer, join } from '../../src/.deps.ts';
 
 Deno.test('CLIDFSContextManager – discovers project root via .cli.json', async () => {
   const ioc = new IoCContainer();

@@ -1,6 +1,6 @@
 // deno-lint-ignore-file no-explicit-any
 import { assertEquals } from '../../test.deps.ts';
-import { TelemetryLogAdapter } from '../../../src/cli/logging/TelemetryLogAdapter.ts';
+import { TelemetryLogAdapter } from '../../../src/logging/TelemetryLogAdapter.ts';
 
 type Call = { level: string; message: string; attributes: Record<string, unknown> | undefined };
 

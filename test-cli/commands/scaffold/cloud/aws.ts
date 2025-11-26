@@ -4,7 +4,7 @@ import {
   CommandParams,
   CommandRuntime,
   defineCommandModule,
-} from '../../../../src/cli/commands/.exports.ts';
+} from '../../../../src/commands/.exports.ts';
 
 export const FlagsSchema = z.object({});
 export const ArgsSchema = z.tuple([]);

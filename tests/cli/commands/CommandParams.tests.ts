@@ -1,6 +1,6 @@
 // deno-lint-ignore-file no-explicit-any
 import { assert, assertEquals } from '../../test.deps.ts';
-import { CommandParams } from '../../../src/cli/commands/CommandParams.ts';
+import { CommandParams } from '../../../src/commands/CommandParams.ts';
 
 class SampleParams extends CommandParams<[string, number?], { 'dry-run'?: boolean }> {
   get Name() {

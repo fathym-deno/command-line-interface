@@ -1,5 +1,5 @@
 import { assert, assertEquals } from '../../test.deps.ts';
-import { CommandLogSchema, isCommandLog } from '../../../src/cli/commands/CommandLog.ts';
+import { CommandLogSchema, isCommandLog } from '../../../src/commands/CommandLog.ts';
 
 Deno.test('CommandLog schema and guard', async (t) => {
   await t.step('validates logging interface shape', () => {

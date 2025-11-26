@@ -1,6 +1,6 @@
 import type { IoCContainer } from '../.deps.ts';
 import type { SayHello } from '../.cli.init.ts';
-import { Command } from '../../src/cli/fluent/Command.ts';
+import { Command } from '../../src/fluent/Command.ts';
 import { HelloArgsSchema, HelloCommandParams, HelloFlagsSchema } from './hello.ts';
 
 export default Command('hello', 'Prints a friendly greeting.')

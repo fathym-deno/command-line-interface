@@ -1,6 +1,5 @@
 // deno-lint-ignore-file no-explicit-any
-import { z } from '../.deps.ts';
-import type { ZodSchema } from '../.deps.ts';
+import { z, type ZodSchema } from '../.deps.ts';
 
 import type { CLIConfig } from '../types/CLIConfig.ts';
 import { CLIConfigSchema } from '../types/CLIConfig.ts';

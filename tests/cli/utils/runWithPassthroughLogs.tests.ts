@@ -1,6 +1,6 @@
 // deno-lint-ignore-file no-explicit-any
 import { assert, assertEquals } from '../../test.deps.ts';
-import { runWithPassthroughLogs } from '../../../src/cli/utils/runWithPassthroughLogs.ts';
+import { runWithPassthroughLogs } from '../../../src/utils/runWithPassthroughLogs.ts';
 
 function createLog() {
   const entries: string[] = [];

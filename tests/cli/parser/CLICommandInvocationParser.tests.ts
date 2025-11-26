@@ -1,9 +1,9 @@
 import { assert, assertEquals } from '../../test.deps.ts';
-import { CLICommandInvocationParser } from '../../../src/cli/parser/CLICommandInvocationParser.ts';
-import { CLIDFSContextManager } from '../../../src/cli/CLIDFSContextManager.ts';
-import { LocalDevCLIFileSystemHooks } from '../../../src/cli/hooks/LocalDevCLIFileSystemHooks.ts';
-import { CLICommandResolver } from '../../../src/cli/CLICommandResolver.ts';
-import { IoCContainer } from '../../../src/cli/.deps.ts';
+import { CLICommandInvocationParser } from '../../../src/parser/CLICommandInvocationParser.ts';
+import { CLIDFSContextManager } from '../../../src/CLIDFSContextManager.ts';
+import { LocalDevCLIFileSystemHooks } from '../../../src/hooks/LocalDevCLIFileSystemHooks.ts';
+import { CLICommandResolver } from '../../../src/CLICommandResolver.ts';
+import { IoCContainer } from '../../../src/.deps.ts';
 
 Deno.test('CLICommandInvocationParser – parses args, flags, and init detection', async (t) => {
   const ioc = new IoCContainer();

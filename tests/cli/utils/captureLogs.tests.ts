@@ -1,5 +1,5 @@
 import { assertEquals } from '../../test.deps.ts';
-import { captureLogs } from '../../../src/cli/utils/captureLogs.ts';
+import { captureLogs } from '../../../src/utils/captureLogs.ts';
 
 Deno.test(
   'captureLogs – captures console output and restores originals',

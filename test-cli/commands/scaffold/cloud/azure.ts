@@ -1,6 +1,6 @@
 import { z } from '../../../.deps.ts';
-import { Command } from '../../../../src/cli/fluent/Command.ts';
-import { CommandParams } from '../../../../src/cli/commands/CommandParams.ts';
+import { Command } from '../../../../src/fluent/Command.ts';
+import { CommandParams } from '../../../../src/commands/CommandParams.ts';
 
 export const FlagsSchema = z.object({});
 export const ArgsSchema = z.tuple([]);

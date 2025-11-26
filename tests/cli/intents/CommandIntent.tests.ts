@@ -1,6 +1,6 @@
 // deno-lint-ignore-file no-explicit-any
 import { CommandIntent, CommandIntents } from '../../test.deps.ts';
-import type { CLIInitFn } from '../../../src/cli/types/CLIInitFn.ts';
+import type { CLIInitFn } from '../../../src/types/CLIInitFn.ts';
 import initFn from '../../../test-cli/.cli.init.ts';
 import HelloModule from '../../../test-cli/commands/hello.ts';
 

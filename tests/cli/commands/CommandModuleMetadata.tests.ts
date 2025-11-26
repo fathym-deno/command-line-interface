@@ -2,7 +2,7 @@ import { assert, assertEquals } from '../../test.deps.ts';
 import {
   CommandModuleMetadataSchema,
   isCommandModuleMetadata,
-} from '../../../src/cli/commands/CommandModuleMetadata.ts';
+} from '../../../src/commands/CommandModuleMetadata.ts';
 
 Deno.test('CommandModuleMetadata schema and guard', async (t) => {
   await t.step('accepts name-only metadata', () => {

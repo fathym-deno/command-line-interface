@@ -1,5 +1,5 @@
 import { assertEquals } from '../../test.deps.ts';
-import type { CommandSuggestions } from '../../../src/cli/commands/CommandSuggestions.ts';
+import type { CommandSuggestions } from '../../../src/commands/CommandSuggestions.ts';
 
 Deno.test('CommandSuggestions – flags and args variants', async (t) => {
   await t.step('accepts flag/arg arrays', () => {
