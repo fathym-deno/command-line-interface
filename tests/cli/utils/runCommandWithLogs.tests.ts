@@ -28,7 +28,7 @@ Deno.test(
     const result = await runCommandWithLogs(
       ['eval', "console.log('hi'); console.error('warn');"],
       logger,
-      { command: Deno.execPath(), prefix: 'cli: ' },
+      { command: Deno.execPath(), prefix: 'cli: ', cwd: Deno.cwd() },
     );
 
     assertEquals(result, { code: 0, success: true });
@@ -45,7 +45,7 @@ Deno.test(
     const result = await runCommandWithLogs(
       ['eval', "console.error('boom'); Deno.exit(2);"],
       logger,
-      { command: Deno.execPath(), exitOnFail: false },
+      { command: Deno.execPath(), exitOnFail: false, cwd: Deno.cwd() },
     );
 
     assertEquals(result.success, false);
@@ -69,7 +69,7 @@ Deno.test(
       const result = await runCommandWithLogs(
         ['eval', 'Deno.exit(3);'],
         logger,
-        { command: Deno.execPath() },
+        { command: Deno.execPath(), cwd: Deno.cwd() },
       );
 
       assertEquals(result.success, false);

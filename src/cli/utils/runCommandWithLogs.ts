@@ -8,18 +8,21 @@ export async function runCommandWithLogs(
     exitOnFail = true,
     stdin = 'inherit',
     prefix = '',
+    cwd,
   }: {
     command?: string;
     exitOnFail?: boolean;
     stdin?: 'inherit' | 'null';
     prefix?: string;
-  } = {},
+    cwd: string;
+  },
 ): Promise<{ code: number; success: boolean }> {
   const cmd = new Deno.Command(command, {
     args,
     stdin,
     stdout: 'piped',
     stderr: 'piped',
+    cwd,
   });
 
   const proc = cmd.spawn();

@@ -19,14 +19,16 @@ export async function importModule<T = unknown>(
       // Get the relative path from workspace root to preserve structure
       const fileName = filePath.replace(/\.ts$/, '');
 
-      const fullFilePath = rootDFS.ResolvePath(filePath);
+      const fullFilePath = await rootDFS.ResolvePath(filePath);
 
-      const buildPath = buildDFS.ResolvePath(`${fileName}.js`);
+      const buildPath = await buildDFS.ResolvePath(`${fileName}.js`);
 
       await log.Info(`📦 Bundling '${fullFilePath}' → '${buildPath}'`);
 
       // Call deno bundle to emit JS to the build path
-      await runCommandWithLogs(['bundle', fullFilePath, buildPath], log);
+      await runCommandWithLogs(['bundle', fullFilePath, buildPath], log, {
+        cwd: rootDFS.Root,
+      });
 
       // Read and execute via Blob
       const jsCode = await buildDFS.GetFileInfo(filePath);
