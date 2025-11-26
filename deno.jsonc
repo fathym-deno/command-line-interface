@@ -31,8 +31,13 @@
     "jsr:@fathym/common@0.2.292-integration/matches": "../reference-architecture/src/matches/.exports.ts",
     "jsr:@fathym/common@0.2.292-integration/merge": "../reference-architecture/src/merge/.exports.ts",
     "jsr:@fathym/common@0.2.292-integration/path": "../reference-architecture/src/path/.exports.ts",
-    "jsr:@fathym/dfs@0.0.11-integration": "../distributed-file-system/src/.exports.ts",
+    "jsr:@fathym/dfs@0.0.11-integration": "../distributed-file-system/src/.exports.ts"
   },
+/**
+// @sync-imports BEGIN ORIGINAL IMPORTS
+//   "imports": {},
+// @sync-imports END ORIGINAL IMPORTS
+*/
   "exclude": ["**/_eac-runtime/*", "!src/**/.exports.ts", "!mod.ts"],
   "lint": {
     "include": ["apps/", "configs/", "src/", "tests/"],
