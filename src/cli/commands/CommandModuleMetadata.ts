@@ -2,18 +2,27 @@ import { z } from '../.deps.ts';
 
 /**
  * Represents the metadata for a single CLI command module.
- * This metadata includes the command's name, description, usage, and examples.
+ * Includes derived args/flags details for richer help output.
  */
 export type CommandModuleMetadata = {
   Name: string;
   Description?: string;
   Usage?: string;
   Examples?: string[];
+  Args?: Array<{
+    Name: string;
+    Description?: string;
+    Optional?: boolean;
+  }>;
+  Flags?: Array<{
+    Name: string;
+    Description?: string;
+    Optional?: boolean;
+  }>;
 };
 
 /**
  * Zod schema to validate the structure of the CommandModuleMetadata.
- * This schema ensures that the Name is required, and other properties are optional.
  */
 export const CommandModuleMetadataSchema: z.ZodObject<
   {
@@ -21,6 +30,24 @@ export const CommandModuleMetadataSchema: z.ZodObject<
     Description: z.ZodOptional<z.ZodString>;
     Usage: z.ZodOptional<z.ZodString>;
     Examples: z.ZodOptional<z.ZodArray<z.ZodString, 'many'>>;
+    Args: z.ZodOptional<
+      z.ZodArray<
+        z.ZodObject<{
+          Name: z.ZodString;
+          Description: z.ZodOptional<z.ZodString>;
+          Optional: z.ZodOptional<z.ZodBoolean>;
+        }>
+      >
+    >;
+    Flags: z.ZodOptional<
+      z.ZodArray<
+        z.ZodObject<{
+          Name: z.ZodString;
+          Description: z.ZodOptional<z.ZodString>;
+          Optional: z.ZodOptional<z.ZodBoolean>;
+        }>
+      >
+    >;
   },
   'strip',
   z.ZodTypeAny,
@@ -54,11 +81,32 @@ export const CommandModuleMetadataSchema: z.ZodObject<
     .describe(
       "Optional example invocations. Each entry should be a CLI string, e.g. 'oi dev --verbose'.",
     ),
+
+  Args: z
+    .array(
+      z.object({
+        Name: z.string(),
+        Description: z.string().optional(),
+        Optional: z.boolean().optional(),
+      }),
+    )
+    .optional()
+    .describe('Positional arguments for the command (derived from schema).'),
+
+  Flags: z
+    .array(
+      z.object({
+        Name: z.string(),
+        Description: z.string().optional(),
+        Optional: z.boolean().optional(),
+      }),
+    )
+    .optional()
+    .describe('Flags for the command (derived from schema).'),
 });
 
 /**
- * Type inferred from the CommandModuleMetadataSchema, providing type safety when working with
- * command metadata in the application.
+ * Type inferred from the CommandModuleMetadataSchema.
  */
 export type CommandModuleMetadataSchema = z.infer<
   typeof CommandModuleMetadataSchema

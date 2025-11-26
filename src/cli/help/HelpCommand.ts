@@ -66,6 +66,20 @@ export class HelpCommand extends CommandRuntime<HelpCommandParams> {
             console.log(`📘 ${section.Name}`);
             if (section.Description) console.log(section.Description);
             if (section.Usage) console.log(`\nUsage:\n  ${section.Usage}`);
+            if (section.Args?.length) {
+              console.log('\nArgs:');
+              for (const arg of section.Args) {
+                const desc = arg.Description ? ` - ${arg.Description}` : '';
+                console.log(`  <${arg.Name}>${desc}`);
+              }
+            }
+            if (section.Flags?.length) {
+              console.log('\nFlags:');
+              for (const flag of section.Flags) {
+                const desc = flag.Description ? ` - ${flag.Description}` : '';
+                console.log(`  --${flag.Name}${desc}`);
+              }
+            }
             if (section.Examples?.length) {
               console.log('\nExamples:');
               for (const ex of section.Examples) {

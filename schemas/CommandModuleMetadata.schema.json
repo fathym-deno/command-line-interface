@@ -23,6 +23,50 @@
             "type": "string"
           },
           "description": "Optional example invocations. Each entry should be a CLI string, e.g. 'oi dev --verbose'."
+        },
+        "Args": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "Name": {
+                "type": "string"
+              },
+              "Description": {
+                "type": "string"
+              },
+              "Optional": {
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "Name"
+            ],
+            "additionalProperties": false
+          },
+          "description": "Positional arguments for the command (derived from schema)."
+        },
+        "Flags": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "Name": {
+                "type": "string"
+              },
+              "Description": {
+                "type": "string"
+              },
+              "Optional": {
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "Name"
+            ],
+            "additionalProperties": false
+          },
+          "description": "Flags for the command (derived from schema)."
         }
       },
       "required": [

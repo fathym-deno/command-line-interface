@@ -106,6 +106,8 @@ export abstract class CommandRuntime<
     flagsSchema?: ZodSchema,
   ): CommandModuleMetadata {
     const usageParts: string[] = [];
+    const argsMeta: CommandModuleMetadata['Args'] = [];
+    const flagsMeta: CommandModuleMetadata['Flags'] = [];
 
     if ((argsSchema as any)?._def?.items?.length) {
       usageParts.push(
@@ -113,6 +115,17 @@ export abstract class CommandRuntime<
           (_: unknown, i: number) => `<arg${i + 1}>`,
         ),
       );
+
+      (argsSchema as any)._def.items.forEach((item: any, i: number) => {
+        const optional = typeof item.isOptional === 'function'
+          ? item.isOptional()
+          : item._def?.typeName === 'ZodOptional';
+        argsMeta.push({
+          Name: `arg${i + 1}`,
+          Description: item._def?.description,
+          Optional: optional,
+        });
+      });
     }
 
     if (
@@ -123,6 +136,17 @@ export abstract class CommandRuntime<
       usageParts.push(
         ...Object.keys((flagsSchema as any).shape).map((f) => `[--${f}]`),
       );
+
+      Object.entries((flagsSchema as any).shape).forEach(([name, schema]) => {
+        const optional = typeof (schema as any).isOptional === 'function'
+          ? (schema as any).isOptional()
+          : (schema as any)._def?.typeName === 'ZodOptional';
+        flagsMeta.push({
+          Name: name,
+          Description: (schema as any)._def?.description,
+          Optional: optional,
+        });
+      });
     }
 
     const usage = usageParts.join(' ');
@@ -133,6 +157,8 @@ export abstract class CommandRuntime<
       Description: description,
       Usage: usage,
       Examples: examples,
+      Args: argsMeta.length ? argsMeta : undefined,
+      Flags: flagsMeta.length ? flagsMeta : undefined,
     };
   }
 }
