@@ -1,7 +1,7 @@
 export * from 'jsr:@std/assert@1.0.3';
 export { delay } from 'jsr:@std/async@1.0.4/delay';
 
-export { z, type ZodSchema } from 'jsr:@fathym/common@0.2.297/third-party/zod';
+export { z, type ZodSchema } from 'jsr:@fathym/common@0.2.298/third-party/zod';
 export { zodToJsonSchema } from 'npm:zod-to-json-schema@3.24.6';
 
 export * as Colors from 'jsr:@std/fmt@1.0.1/colors';

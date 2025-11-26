@@ -1,7 +1,74 @@
 {
-  "$ref": "#/definitions/CommandModuleMetadata",
-  "definitions": {
-    "CommandModuleMetadata": {}
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "Name": {
+      "description": "A short, human-readable label for the command. Shown in help UIs and documentation.",
+      "type": "string",
+      "minLength": 1
+    },
+    "Description": {
+      "description": "A brief description of what this command does. Appears in help output and introspection tools.",
+      "type": "string"
+    },
+    "Usage": {
+      "description": "Optional usage string showing how to invoke this command. If omitted, it will be inferred from schema.",
+      "type": "string"
+    },
+    "Examples": {
+      "description": "Optional example invocations. Each entry should be a CLI string, e.g. 'oi dev --verbose'.",
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "Args": {
+      "description": "Positional arguments for the command (derived from schema).",
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "Name": {
+            "type": "string"
+          },
+          "Description": {
+            "type": "string"
+          },
+          "Optional": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "Name"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "Flags": {
+      "description": "Flags for the command (derived from schema).",
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "Name": {
+            "type": "string"
+          },
+          "Description": {
+            "type": "string"
+          },
+          "Optional": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "Name"
+        ],
+        "additionalProperties": false
+      }
+    }
   },
-  "$schema": "http://json-schema.org/draft-07/schema#"
+  "required": [
+    "Name"
+  ],
+  "additionalProperties": false
 }

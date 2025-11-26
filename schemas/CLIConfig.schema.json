@@ -1,7 +1,40 @@
 {
-  "$ref": "#/definitions/CLIConfig",
-  "definitions": {
-    "CLIConfig": {}
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "Name": {
+      "description": "A user-facing, friendly name for the CLI.",
+      "type": "string",
+      "minLength": 1
+    },
+    "Tokens": {
+      "description": "CLI aliases, e.g. [\"openindustrial\", \"oi\"]",
+      "minItems": 1,
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "Version": {
+      "description": "Version shown in help output and CLI logs.",
+      "type": "string",
+      "minLength": 1
+    },
+    "Description": {
+      "description": "Optional description of what this CLI is for.",
+      "type": "string"
+    },
+    "Commands": {
+      "description": "Path to the CLI commands folder. Defaults to './commands'.",
+      "default": "./commands",
+      "type": "string"
+    }
   },
-  "$schema": "http://json-schema.org/draft-07/schema#"
+  "required": [
+    "Name",
+    "Tokens",
+    "Version",
+    "Commands"
+  ],
+  "additionalProperties": false
 }

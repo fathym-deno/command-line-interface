@@ -4,17 +4,28 @@ import { CommandModuleBuilder } from '../../../src/fluent/CommandModuleBuilder.t
 import { z } from '../../test.deps.ts';
 import { CommandParams } from '../../../src/commands/CommandParams.ts';
 
-class NoopParams extends CommandParams<[], Record<string, unknown>> {}
+const NoopArgsSchema = z.tuple([]);
+
+const NoopFlagsSchema: z.ZodType<Record<PropertyKey, never>> = z.object({});
+
+class NoopParams extends CommandParams<
+  z.infer<typeof NoopArgsSchema>,
+  z.infer<typeof NoopFlagsSchema>
+> {}
 
 const builder = new CommandModuleBuilder('noop', 'Noop')
-  .Args(z.tuple([]))
-  .Flags(z.object({}))
+  .Args(NoopArgsSchema)
+  .Flags(NoopFlagsSchema)
   .Params(NoopParams)
   .Run(() => {});
 
 Deno.test('CommandIntents – WithInit is applied to all intents', () => {
   const calls: string[] = [];
-  const intents = CommandIntents('init propagation', builder as any, './test-cli/.cli.json')
+  const intents = CommandIntents(
+    'init propagation',
+    builder as any,
+    './test-cli/.cli.json',
+  )
     .WithInit((_ioc, _config) => {
       calls.push('init');
     })

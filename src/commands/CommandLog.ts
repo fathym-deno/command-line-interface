@@ -1,8 +1,5 @@
 import { z } from '../.deps.ts';
 
-/**
- * Standard logging interface injected into all command contexts.
- */
 export type CommandLog = {
   Info: (...args: unknown[]) => void;
   Warn: (...args: unknown[]) => void;
@@ -10,27 +7,20 @@ export type CommandLog = {
   Success: (...args: unknown[]) => void;
 };
 
-/**
- * Zod schema for validating the logging interface.
- */
-export const CommandLogSchema: z.ZodType<CommandLog> = z.object({
-  Info: z.function().args(z.any()).returns(z.void()).describe(
-    'Log info output',
-  ),
-  Warn: z.function().args(z.any()).returns(z.void()).describe(
-    'Log warning output',
-  ),
-  Error: z.function().args(z.any()).returns(z.void()).describe(
-    'Log error output',
-  ),
-  Success: z.function().args(z.any()).returns(z.void()).describe(
-    'Log success output',
-  ),
-});
+const fnSchema = (desc: string) =>
+  z
+    .custom<(...args: unknown[]) => void>(
+      (val): val is (...args: unknown[]) => void => typeof val === 'function',
+    )
+    .describe(desc);
 
-/**
- * Runtime type guard for CommandLog.
- */
+export const CommandLogSchema = z.object({
+  Info: fnSchema('Log info output'),
+  Warn: fnSchema('Log warning output'),
+  Error: fnSchema('Log error output'),
+  Success: fnSchema('Log success output'),
+}) as unknown as z.ZodType<CommandLog>;
+
 export function isCommandLog(value: unknown): value is CommandLog {
   return CommandLogSchema.safeParse(value).success;
 }

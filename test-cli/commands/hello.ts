@@ -19,9 +19,8 @@ export const HelloFlagsSchema: z.ZodType<{
     .describe('Show the message without printing'),
 });
 
-export const HelloArgsSchema: z.ZodType<[string | undefined]> = z.tuple([
-  z.string().optional().describe('Name to greet'),
-]);
+export const HelloArgsSchema: z.ZodTuple<[z.ZodOptional<z.ZodString>], null> =
+  z.tuple([z.string().optional().describe('Name to greet')]);
 
 export class HelloCommandParams extends CommandParams<
   z.infer<typeof HelloArgsSchema>,
@@ -39,7 +38,7 @@ export class HelloCommandParams extends CommandParams<
 export class HelloCommand extends CommandRuntime<HelloCommandParams> {
   public override async Run(
     ctx: CommandContext<HelloCommandParams>,
-    ioc: IoCContainer,
+    ioc: IoCContainer
   ): Promise<void | number> {
     const { Name, Loud, DryRun } = ctx.Params;
 
@@ -61,7 +60,7 @@ export class HelloCommand extends CommandRuntime<HelloCommandParams> {
       'Hello',
       'Prints a friendly greeting.',
       HelloArgsSchema,
-      HelloFlagsSchema,
+      HelloFlagsSchema
     );
   }
 }
