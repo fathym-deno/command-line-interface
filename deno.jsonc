@@ -21,7 +21,7 @@
     "ftm-cli:prepare": "deno test --allow-all ./tests/intents/ftm-cli/prepare-in-path.intents.ts",
     "publish:check": "deno publish --dry-run --allow-dirty",
     "test": "npx rimraf cov && deno test -A ./tests/.tests.ts --coverage=cov",
-    "version": "deno run -A jsr:@fathym/common@0.2.298/build/version"
+    "version": "deno run -A jsr:@fathym/common@0.2.299/build/version"
   },
   "imports": {},
   "exclude": ["**/_eac-runtime/*", "!src/**/.exports.ts", "!mod.ts"],
