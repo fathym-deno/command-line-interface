@@ -1,6 +1,6 @@
 import { type DFSFileHandler, exists, join, resolve, toFileUrl } from '../.deps.ts';
 import type { CLICommandEntry } from '../types/CLICommandEntry.ts';
-import type { CLIConfig } from '../types/CLIConfig.ts';
+import type { CLIConfig, CLICommandSource } from '../types/CLIConfig.ts';
 import type { CommandModule } from '../commands/CommandModule.ts';
 import { CommandModuleBuilder } from '../fluent/CommandModuleBuilder.ts';
 import type { TemplateLocator } from '../templates/TemplateLocator.ts';
@@ -13,9 +13,14 @@ export class LocalDevCLIFileSystemHooks implements CLIFileSystemHooks {
   constructor(protected dfsCtxMgr: CLIDFSContextManager) {}
 
   public async ResolveCommandEntryPaths(
-    baseDir: string,
+    source: CLICommandSource,
   ): Promise<Map<string, CLICommandEntry>> {
     const map = new Map<string, CLICommandEntry>();
+    const baseDir = source.Path;
+    const rootPrefix = source.Root;
+
+    // Normalize root prefix (remove leading/trailing slashes)
+    const normalizedRoot = rootPrefix?.replace(/^\/+|\/+$/g, '');
 
     const dfs = await this.dfsCtxMgr.GetProjectDFS();
 
@@ -39,16 +44,36 @@ export class LocalDevCLIFileSystemHooks implements CLIFileSystemHooks {
         .replace(/\\/g, '/')
         .replace(/\/index$/, '');
 
-      const key = path.endsWith('/.metadata.ts')
-        ? rel.replace(/\/\.metadata\.ts$/, '')
-        : rel.replace(/\.ts$/, '');
+      let key: string;
 
-      const group = key.split('/')[0];
+      // Special handling for root-level .metadata.ts
+      if (rel === '.metadata.ts') {
+        // This is the root .metadata.ts - it becomes the Root group's metadata
+        if (normalizedRoot) {
+          key = normalizedRoot; // e.g., "testing/plus"
+        } else {
+          // Skip root .metadata.ts if no Root prefix (nowhere to attach it)
+          continue;
+        }
+      } else {
+        // Normal key derivation
+        key = path.endsWith('/.metadata.ts')
+          ? rel.replace(/\/\.metadata\.ts$/, '')
+          : rel.replace(/\.ts$/, '');
+
+        // Apply root prefix if specified
+        if (normalizedRoot) {
+          key = `${normalizedRoot}/${key}`;
+        }
+      }
+
+      // Calculate ParentGroup from the FINAL key (after root applied)
+      const group = key.includes('/') ? key.split('/')[0] : undefined;
 
       const entryData = map.get(key) || {
         CommandPath: undefined,
         GroupPath: undefined,
-        ParentGroup: group !== key ? group : undefined,
+        ParentGroup: group,
       };
 
       const resolvedPath = await this.dfsCtxMgr.ResolvePath('project', path);

@@ -20,8 +20,11 @@ Deno.test('CLICommandInvocationParser – parses args, flags, and init detection
 
   const parsed = await parser.ParseInvocation(config, remainingArgs, resolvedPath);
 
-  await t.step('resolves base command/templates dirs', () => {
-    assert(parsed.baseCommandDir.replace(/\\/g, '/').includes('test-cli/commands'));
+  await t.step('resolves command sources and templates dir', () => {
+    // Command sources should be normalized from config
+    assert(Array.isArray(parsed.commandSources));
+    assert(parsed.commandSources.length > 0);
+    assert(parsed.commandSources[0].Path);
     // Templates may fall back to default when not specified; just ensure a templates path is present.
     assert(parsed.baseTemplatesDir.replace(/\\/g, '/').endsWith('/templates'));
   });

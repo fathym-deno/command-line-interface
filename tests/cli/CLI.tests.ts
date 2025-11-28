@@ -1,4 +1,12 @@
-import { assertMatch, captureLogs, createTestCLI, fromFileUrl, stripColor } from '../test.deps.ts';
+import {
+  assertMatch,
+  assertRejects,
+  captureLogs,
+  createTestCLI,
+  fromFileUrl,
+  stripColor,
+} from '../test.deps.ts';
+import { CLI } from '../../src/CLI.ts';
 
 const configPath = fromFileUrl(import.meta.resolve('../../test-cli/.cli.json'));
 const cli = createTestCLI();
@@ -141,5 +149,79 @@ Deno.test('CLI – Hello Variants', async (t) => {
     );
     const text = stripColor(logs);
     assertMatch(text, /🛑 Dry run: "HELLO, AZI!"/);
+  });
+});
+
+Deno.test('CLI – Multi-source Commands with Root prefix', async (t) => {
+  const multiSourceCli = new CLI();
+
+  await t.step('loads commands from multiple sources with Root prefix', async () => {
+    const logs = await captureLogs(() =>
+      multiSourceCli.RunWithConfig(
+        {
+          Name: 'Multi CLI',
+          Tokens: ['multi'],
+          Version: '1.0.0',
+          Commands: [
+            { Path: './commands' },
+            { Path: './external-commands', Root: 'ext' },
+          ],
+        },
+        ['ext/plugin/deploy'],
+        configPath,
+      )
+    );
+    const text = stripColor(logs);
+    assertMatch(text, /running "ext\/plugin\/deploy"/i);
+    assertMatch(text, /Deploying to production/); // Default target
+  });
+
+  await t.step('shows help for Root-prefixed group', async () => {
+    const logs = await captureLogs(() =>
+      multiSourceCli.RunWithConfig(
+        {
+          Name: 'Multi CLI',
+          Tokens: ['multi'],
+          Version: '1.0.0',
+          Commands: [
+            { Path: './commands' },
+            { Path: './external-commands', Root: 'ext' },
+          ],
+        },
+        ['ext', '--help'],
+        configPath,
+      )
+    );
+    const text = stripColor(logs);
+    assertMatch(text, /📘 Group: ext/);
+    assertMatch(text, /External commands loaded with Root prefix/);
+  });
+});
+
+Deno.test('CLI – Duplicate command key detection', async (t) => {
+  await t.step('throws error when duplicate keys across sources', async () => {
+    const duplicateCli = new CLI();
+
+    // Create a config that would produce duplicate keys
+    // Both sources will have 'hello' command if we don't use Root prefix
+    await assertRejects(
+      async () => {
+        await duplicateCli.RunWithConfig(
+          {
+            Name: 'Duplicate CLI',
+            Tokens: ['dup'],
+            Version: '1.0.0',
+            Commands: [
+              { Path: './commands' },
+              { Path: './commands' }, // Same path = duplicate keys
+            ],
+          },
+          ['hello'],
+          configPath,
+        );
+      },
+      Error,
+      'Duplicate command key',
+    );
   });
 });

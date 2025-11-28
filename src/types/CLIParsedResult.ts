@@ -1,4 +1,4 @@
-import type { CLIConfig } from './CLIConfig.ts';
+import type { CLIConfig, CLICommandSource } from './CLIConfig.ts';
 
 export type CLIParsedResult = {
   parsed: Record<string, unknown>;
@@ -7,6 +7,6 @@ export type CLIParsedResult = {
   initPath: string | undefined;
   key: string | undefined;
   config: CLIConfig;
-  baseCommandDir: string;
+  commandSources: CLICommandSource[];
   baseTemplatesDir: string;
 };

@@ -1,6 +1,6 @@
 import { IoCContainer, type TelemetryLogger, type WriterSync } from './.deps.ts';
 import { CLICommandExecutor } from './executor/CLICommandExecutor.ts';
-import type { CLIConfig } from './types/CLIConfig.ts';
+import type { CLIConfig, CLICommandSource } from './types/CLIConfig.ts';
 import type { CLIOptions } from './types/CLIOptions.ts';
 import { LocalDevCLIFileSystemHooks } from './hooks/LocalDevCLIFileSystemHooks.ts';
 import { CLICommandInvocationParser } from './parser/CLICommandInvocationParser.ts';
@@ -53,8 +53,9 @@ export class CLI {
 
     await this.initialize(parsed.initPath, parsed.config);
 
-    const commandMap = await this.resolver.ResolveCommandMap(
-      parsed.baseCommandDir,
+    // Resolve commands from all configured sources
+    const commandMap = await this.resolveAllCommandSources(
+      parsed.commandSources,
     );
 
     const mergedCommandMap = this.mergeCommandMaps(commandMap);
@@ -77,6 +78,41 @@ export class CLI {
       paramsCtor: Params,
       baseTemplatesDir: parsed.baseTemplatesDir,
     });
+  }
+
+  /**
+   * Resolves command entries from all configured command sources.
+   * Throws an error if duplicate command keys are detected across sources.
+   */
+  protected async resolveAllCommandSources(
+    sources: CLICommandSource[],
+  ): Promise<Map<string, CLICommandEntry>> {
+    const mergedMap = new Map<string, CLICommandEntry>();
+    const sourceMap = new Map<string, string>(); // Track which source each key came from
+
+    for (const source of sources) {
+      const sourceCommands = await this.resolver.ResolveCommandMap(source);
+
+      for (const [key, entry] of sourceCommands.entries()) {
+        if (mergedMap.has(key)) {
+          const existingSource = sourceMap.get(key);
+          throw new Error(
+            `Duplicate command key '${key}' detected.\n` +
+              `  - First defined in: ${existingSource}\n` +
+              `  - Also defined in: ${source.Path}${source.Root ? ` (root: ${source.Root})` : ''}\n` +
+              `\nPlease ensure each command key is unique across all command sources.`,
+          );
+        }
+
+        mergedMap.set(key, entry);
+        sourceMap.set(
+          key,
+          `${source.Path}${source.Root ? ` (root: ${source.Root})` : ''}`,
+        );
+      }
+    }
+
+    return mergedMap;
   }
 
   protected async initialize(initPath: string | undefined, config: CLIConfig) {

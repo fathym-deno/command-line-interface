@@ -1,8 +1,27 @@
 import { z } from '../.deps.ts';
 
 /**
+ * Represents a single command source configuration.
+ * Allows specifying a path to commands and an optional root prefix for command keys.
+ */
+export type CLICommandSource = {
+  /**
+   * Relative path to the commands directory.
+   * May be relative to the CLI config file location.
+   */
+  Path: string;
+
+  /**
+   * Optional prefix for command keys derived from this source.
+   * Can be nested using forward slashes (e.g., "plugins/v2").
+   * When specified, all command keys from this source will be prefixed with this value.
+   */
+  Root?: string;
+};
+
+/**
  * Represents the structure of the root CLI configuration (`.cli.json`).
- * This governs the CLI’s identity, entry tokens, command structure, and versioning.
+ * This governs the CLI's identity, entry tokens, command structure, and versioning.
  */
 export type CLIConfig = {
   /**
@@ -28,10 +47,12 @@ export type CLIConfig = {
   Description?: string;
 
   /**
-   * Root folder containing CLI commands and group definitions.
-   * May be absolute or relative. Defaults to `./commands`.
+   * Root folder(s) containing CLI commands and group definitions.
+   * Can be a single path string (for backward compatibility) or an array of CLICommandSource objects.
+   * Each source can specify a Path and an optional Root prefix for command keys.
+   * Defaults to `./commands` when undefined.
    */
-  Commands?: string;
+  Commands?: string | CLICommandSource[];
 
   /**
    * Root folder containing CLI templates.
@@ -39,6 +60,14 @@ export type CLIConfig = {
    */
   Templates?: string;
 };
+
+/**
+ * Zod schema for validating a CLICommandSource object.
+ */
+export const CLICommandSourceSchema = z.object({
+  Path: z.string().min(1, 'Command source path is required.'),
+  Root: z.string().optional(),
+});
 
 /**
  * Zod schema for validating a CLIConfig object.
@@ -67,10 +96,11 @@ export const CLIConfigSchema: z.ZodType<CLIConfig> = z.object({
     .describe('Optional description of what this CLI is for.'),
 
   Commands: z
-    .string()
+    .union([z.string(), z.array(CLICommandSourceSchema)])
     .optional()
-    .default('./commands')
-    .describe("Path to the CLI commands folder. Defaults to './commands'."),
+    .describe(
+      "Path(s) to CLI command folder(s). Can be a string or array of CLICommandSource objects. Defaults to './commands'.",
+    ),
 });
 
 /**

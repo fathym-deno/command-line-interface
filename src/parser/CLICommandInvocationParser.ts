@@ -2,6 +2,7 @@ import { parseArgs } from '../.deps.ts';
 import type { CLIParsedResult } from '../types/CLIParsedResult.ts';
 import type { CLIConfig } from '../types/CLIConfig.ts';
 import type { CLIDFSContextManager } from '../CLIDFSContextManager.ts';
+import { normalizeCommandSources } from '../utils/normalizeCommandSources.ts';
 
 export class CLICommandInvocationParser {
   constructor(protected readonly dfs: CLIDFSContextManager) {}
@@ -19,11 +20,8 @@ export class CLICommandInvocationParser {
     const positional = _.map(String);
     const key = positional.filter((p) => !p.startsWith('-')).join('/');
 
-    // Use DFS resolution rather than path join
-    const baseCommandDir = await this.dfs.ResolvePath(
-      'project',
-      config.Commands ?? './commands',
-    );
+    // Normalize command sources from config
+    const commandSources = normalizeCommandSources(config.Commands);
 
     const baseTemplatesDir = await this.dfs.ResolvePath(
       'project',
@@ -58,7 +56,7 @@ export class CLICommandInvocationParser {
       positional,
       key,
       config,
-      baseCommandDir,
+      commandSources,
       baseTemplatesDir,
       initPath,
     };

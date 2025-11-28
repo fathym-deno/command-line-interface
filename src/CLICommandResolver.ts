@@ -6,14 +6,16 @@ import { CommandParamConstructor, CommandParams } from './commands/CommandParams
 import { CommandRuntime } from './commands/CommandRuntime.ts';
 import type { TemplateLocator } from './templates/TemplateLocator.ts';
 import { CLICommandEntry } from './types/CLICommandEntry.ts';
-import { CLIConfig } from './types/CLIConfig.ts';
+import { CLIConfig, CLICommandSource } from './types/CLIConfig.ts';
 import { CLIInitFn } from './types/CLIInitFn.ts';
 
 export class CLICommandResolver {
   constructor(protected readonly hooks: CLIFileSystemHooks) {}
 
-  public ResolveCommandMap(dir: string): Promise<Map<string, CLICommandEntry>> {
-    return this.hooks.ResolveCommandEntryPaths(dir);
+  public ResolveCommandMap(
+    source: CLICommandSource,
+  ): Promise<Map<string, CLICommandEntry>> {
+    return this.hooks.ResolveCommandEntryPaths(source);
   }
 
   public async LoadCommandInstance(path: string): Promise<{
