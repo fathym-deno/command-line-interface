@@ -23,7 +23,11 @@
     "test": "npx rimraf cov && deno test -A ./tests/.tests.ts --coverage=cov",
     "version": "deno run -A jsr:@fathym/common@0.2.299/build/version"
   },
-  "imports": {},
+  "imports": {
+    "jsr:@fathym/dfs@0.0.16": "../distributed-file-system/src/_/.exports.ts",
+    "jsr:@fathym/dfs@0.0.16/handlers": "../distributed-file-system/src/handlers/.exports.ts",
+    "jsr:@fathym/dfs@0.0.16/utils": "../distributed-file-system/src/utils/.exports.ts"
+  },
   "exclude": ["**/_eac-runtime/*", "!src/**/.exports.ts", "!mod.ts"],
   "lint": {
     "include": ["apps/", "configs/", "src/", "tests/"],
