@@ -16,4 +16,4 @@ export {
   DFSFileHandler,
   LocalDFSFileHandler,
   type LocalDFSFileHandlerDetails,
-} from 'jsr:@fathym/dfs@0.0.15-integration';
+} from 'jsr:@fathym/dfs@0.0.16';
