@@ -233,14 +233,13 @@ Injected dependencies from the Services() method.
 #### Log
 
 ```typescript
-Log: CLILogger
+Log: CommandLog
 ```
 
 Logging facade with level-based methods.
 
 ```typescript
 .Run(({ Log }) => {
-  Log.Debug('Starting...');
   Log.Info('Processing...');
   Log.Warn('Caution!');
   Log.Error('Failed!');

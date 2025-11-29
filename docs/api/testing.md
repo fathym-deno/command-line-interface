@@ -296,63 +296,6 @@ CommandIntent('logs progress', BuildCommand, configPath)
   .Run();
 ```
 
-### ExpectLogsContaining
-
-```typescript
-ExpectLogsContaining(...substrings: string[]): CommandIntentBuilder
-```
-
-Assert log output contains substrings (in any order).
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `substrings` | `string[]` | Substrings to find |
-
-```typescript
-CommandIntent('shows version', VersionCommand, configPath)
-  .ExpectLogsContaining('v1.0.0', 'CLI')
-  .Run();
-```
-
-### ExpectError
-
-```typescript
-ExpectError(message?: string | RegExp): CommandIntentBuilder
-```
-
-Assert the command throws an error.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `message` | `string \| RegExp?` | Optional error message match |
-
-```typescript
-CommandIntent('throws on missing file', ReadCommand, configPath)
-  .Args(['nonexistent.txt'])
-  .ExpectError('File not found')
-  .Run();
-
-CommandIntent('validates input', ValidateCommand, configPath)
-  .Args(['invalid'])
-  .ExpectError(/Invalid.*format/)
-  .Run();
-```
-
-### ExpectNoError
-
-```typescript
-ExpectNoError(): CommandIntentBuilder
-```
-
-Assert the command completes without throwing.
-
-```typescript
-CommandIntent('runs without error', SafeCommand, configPath)
-  .ExpectNoError()
-  .ExpectExit(0)
-  .Run();
-```
-
 ---
 
 ## Execution
@@ -370,47 +313,6 @@ CommandIntent('test description', MyCommand, configPath)
   .Args(['test'])
   .ExpectExit(0)
   .Run();  // Registers and runs the test
-```
-
-### RunAsync
-
-```typescript
-async RunAsync(): Promise<IntentResult>
-```
-
-Execute the intent test asynchronously without registering with Deno.test.
-
-**Returns:** Test result object
-
-```typescript
-const result = await CommandIntent('test', MyCommand, configPath)
-  .Args(['test'])
-  .RunAsync();
-
-console.log(result.exitCode);
-console.log(result.logs);
-```
-
----
-
-## IntentResult
-
-The result of running an intent test.
-
-```typescript
-interface IntentResult {
-  /** Exit code from the command */
-  exitCode: number;
-
-  /** Captured log output */
-  logs: string[];
-
-  /** Error if command threw */
-  error?: Error;
-
-  /** Execution duration in ms */
-  duration: number;
-}
 ```
 
 ---
@@ -477,29 +379,6 @@ deno test -A ./tests/.tests.ts
 
 ## Testing Patterns
 
-### Testing Service Injection
-
-```typescript
-CommandIntent('uses injected service', MyCommand, configPath)
-  .WithServices({
-    myService: mockService,
-  })
-  .ExpectLogs('Service called')
-  .Run();
-```
-
-### Testing DFS Operations
-
-```typescript
-CommandIntent('reads config file', ConfigCommand, configPath)
-  .WithDFS(new MemoryDFSFileHandler({}))
-  .Setup(async (dfs) => {
-    await dfs.WriteFile('config.json', createStream('{"key": "value"}'));
-  })
-  .ExpectLogs('Config loaded')
-  .Run();
-```
-
 ### Testing Dry Run
 
 ```typescript
@@ -511,19 +390,29 @@ CommandIntent('dry run shows preview', DeleteCommand, configPath)
   .Run();
 ```
 
-### Testing Error Cases
+### Testing Different Input Combinations
 
 ```typescript
-CommandIntent('handles missing argument', RequiredArgCommand, configPath)
-  .Args([])  // Missing required arg
-  .ExpectError('Missing required argument')
-  .ExpectExit(1)
-  .Run();
-
-CommandIntent('handles invalid flag', TypedFlagCommand, configPath)
-  .Flags({ count: 'not-a-number' })
-  .ExpectError('Expected number')
-  .ExpectExit(1)
+CommandIntents('Deploy Command', DeployCommand.Build(), configPath)
+  .WithInit(initFn)
+  .Intent('deploys to default environment', (int) =>
+    int
+      .Args([])
+      .Flags({})
+      .ExpectLogs('Deploying to production...')
+      .ExpectExit(0))
+  .Intent('deploys to staging', (int) =>
+    int
+      .Args([])
+      .Flags({ env: 'staging' })
+      .ExpectLogs('Deploying to staging...')
+      .ExpectExit(0))
+  .Intent('forces deployment', (int) =>
+    int
+      .Args([])
+      .Flags({ force: true })
+      .ExpectLogs('Force deploying...')
+      .ExpectExit(0))
   .Run();
 ```
 
@@ -535,9 +424,6 @@ CommandIntent('handles invalid flag', TypedFlagCommand, configPath)
 |--------|-------------|
 | `ExpectExit(code)` | Assert exit code |
 | `ExpectLogs(...msgs)` | Assert log messages (ordered) |
-| `ExpectLogsContaining(...subs)` | Assert log contains substrings |
-| `ExpectError(msg?)` | Assert command throws |
-| `ExpectNoError()` | Assert no exception |
 
 ---
 

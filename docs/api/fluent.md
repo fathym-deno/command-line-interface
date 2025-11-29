@@ -199,7 +199,7 @@ Command('deploy', 'Deploy application')
 
 ```typescript
 Services<T>(
-  servicesFn: (ctx: PartialContext, ioc: IoCContainer) => Promise<T> | T
+  servicesFn: (ctx: CommandContext, ioc: IoCContainer) => Promise<T>
 ): CommandBuilder<TArgs, TFlags, T>
 ```
 
@@ -210,6 +210,8 @@ Inject dependencies from the IoC container.
 | `servicesFn` | `Function` | Async function returning services object |
 
 **Returns:** Updated builder with services type
+
+> **Note:** The services function must return a `Promise`. Use `async` for the function.
 
 ```typescript
 Command('build', 'Build project')
@@ -262,7 +264,7 @@ Define initialization logic.
 ```typescript
 Command('deploy', 'Deploy application')
   .Init(async ({ Params, Log, Services }) => {
-    Log.Debug('Validating prerequisites...');
+    Log.Info('Validating prerequisites...');
 
     if (Params.Flag('env') === 'production') {
       const ok = await Services.prompt.confirm('Deploy to production?');
@@ -361,11 +363,78 @@ Command('process', 'Process data')
   .Cleanup(async ({ Services, Log }) => {
     try {
       await Deno.remove(Services.tempFile);
-      Log.Debug('Temp file removed');
+      Log.Info('Temp file removed');
     } catch {
       Log.Warn('Could not remove temp file');
     }
   });
+```
+
+---
+
+### Commands
+
+```typescript
+Commands<T extends Record<string, CommandModule>>(
+  commands: T
+): CommandBuilder
+```
+
+Define subcommands that can be invoked from within the parent command.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `commands` | `Record<string, CommandModule>` | Map of subcommand keys to modules |
+
+**Returns:** Updated builder with subcommand invokers
+
+```typescript
+import SubCommandA from './commands/sub-a.ts';
+import SubCommandB from './commands/sub-b.ts';
+
+Command('parent', 'Parent command with subcommands')
+  .Commands({
+    'sub-a': SubCommandA,
+    'sub-b': SubCommandB,
+  })
+  .Run(async ({ Commands, Log }) => {
+    Log.Info('Running subcommand A...');
+    await Commands['sub-a']();
+
+    Log.Info('Running subcommand B with args...');
+    await Commands['sub-b'](['arg1'], { flag: true });
+  });
+```
+
+---
+
+## Build
+
+```typescript
+Build(): CommandModule
+```
+
+Build the command module from the fluent configuration. **Required when calling `.Build()` is needed.**
+
+> **Important:** `.Build()` validates that `Args`, `Flags`, `Params`, and `Run` are all configured.
+> If any are missing, it throws an error. This enforces a complete command definition.
+
+```typescript
+// Commands must have Args, Flags, Params, and Run configured
+export default Command('example', 'Example command')
+  .Args(ArgsSchema)
+  .Flags(FlagsSchema)
+  .Params(ExampleParams)
+  .Run(({ Log }) => Log.Info('Done!'))
+  .Build();  // Validates and builds the module
+```
+
+For testing, always call `.Build()` before passing to `CommandIntent` or `CommandIntents`:
+
+```typescript
+CommandIntents('Example Suite', ExampleCommand.Build(), configPath)
+  .Intent('test case', (int) => ...)
+  .Run();
 ```
 
 ---
@@ -386,26 +455,30 @@ constructor(key: string, description: string)
 
 ### Methods
 
+The `CommandModuleBuilder` has the same methods as the fluent API (PascalCase):
+
 | Method | Description |
 |--------|-------------|
-| `setArgsSchema(schema)` | Set arguments schema |
-| `setFlagsSchema(schema)` | Set flags schema |
-| `setParamsClass(cls)` | Set custom params class |
-| `setServices(fn)` | Set services function |
-| `setInit(fn)` | Set init function |
-| `setRun(fn)` | Set run function |
-| `setDryRun(fn)` | Set dry-run function |
-| `setCleanup(fn)` | Set cleanup function |
+| `Args(schema)` | Set arguments schema |
+| `Flags(schema)` | Set flags schema |
+| `Params(cls)` | Set custom params class |
+| `Services(fn)` | Set services function |
+| `Commands(cmds)` | Set subcommands |
+| `Init(fn)` | Set init function |
+| `Run(fn)` | Set run function |
+| `DryRun(fn)` | Set dry-run function |
+| `Cleanup(fn)` | Set cleanup function |
 | `Build()` | Build the command module |
 
 ```typescript
 const builder = new CommandModuleBuilder('advanced', 'Advanced command');
 
 builder
-  .setArgsSchema(ArgsSchema)
-  .setFlagsSchema(FlagsSchema)
-  .setServices(servicesFn)
-  .setRun(runFn);
+  .Args(ArgsSchema)
+  .Flags(FlagsSchema)
+  .Params(AdvancedParams)
+  .Services(servicesFn)
+  .Run(runFn);
 
 export default builder.Build();
 ```

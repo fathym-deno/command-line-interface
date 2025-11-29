@@ -29,160 +29,74 @@ import { CLI } from '@fathym/cli';
 ### Constructor
 
 ```typescript
-constructor(options: CLIOptions)
+constructor(options?: CLIOptions, ioc?: IoCContainer)
 ```
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `options` | `CLIOptions` | Configuration options for the CLI |
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `options` | `CLIOptions` | `{}` | Configuration options |
+| `ioc` | `IoCContainer` | `new IoCContainer()` | IoC container instance |
 
 ### CLIOptions
 
 ```typescript
-interface CLIOptions {
-  /** CLI name (shown in help) */
-  name: string;
+type CLIOptions = {
+  /** Custom DFS context manager */
+  dfsCtxMgr?: CLIDFSContextManager;
 
-  /** CLI version (shown in version command) */
-  version: string;
+  /** Custom command invocation parser */
+  parser?: CLICommandInvocationParser;
 
-  /** Path to .cli.json configuration file */
-  config: string | URL;
-
-  /** Optional custom command resolver */
+  /** Custom command resolver */
   resolver?: CLICommandResolver;
-
-  /** Optional IoC container configuration */
-  ioc?: IoCContainerOptions;
-
-  /** Optional DFS handler for file operations */
-  dfs?: DFSFileHandler<unknown>;
-}
+};
 ```
 
----
-
-## Properties
-
-### Name
-
-```typescript
-get Name(): string
-```
-
-Returns the CLI name from configuration.
-
-### Version
-
-```typescript
-get Version(): string
-```
-
-Returns the CLI version from configuration.
-
-### Config
-
-```typescript
-get Config(): CLIConfig
-```
-
-Returns the loaded CLI configuration object.
-
-### IoC
-
-```typescript
-get IoC(): IoCContainer
-```
-
-Returns the IoC container instance.
-
-### DFSContextManager
-
-```typescript
-get DFSContextManager(): CLIDFSContextManager
-```
-
-Returns the DFS context manager instance.
+All options are optional. When not provided, defaults are created automatically.
 
 ---
 
 ## Methods
 
-### Run
+### RunFromArgs
 
 ```typescript
-async Run(args: string[]): Promise<number>
+async RunFromArgs(args: string[]): Promise<void>
 ```
 
-Main entry point that parses arguments and executes the matched command.
+Primary entry point. Resolves configuration, parses arguments, and executes the matched command.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
 | `args` | `string[]` | Command-line arguments (typically `Deno.args`) |
 
-**Returns:** Exit code (0 for success, non-zero for errors)
-
 ```typescript
-const cli = new CLI({
-  name: 'mycli',
-  version: '1.0.0',
-  config: import.meta.resolve('./.cli.json'),
-});
-
-const exitCode = await cli.Run(Deno.args);
-Deno.exit(exitCode);
+const cli = new CLI();
+await cli.RunFromArgs(Deno.args);
 ```
 
-### RegisterCommand
+### RunWithConfig
 
 ```typescript
-RegisterCommand(key: string, command: CommandModule): void
+async RunWithConfig(
+  config: CLIConfig,
+  args: string[],
+  configPath: string
+): Promise<void>
 ```
 
-Programmatically registers a command.
+Run with a pre-loaded configuration. Used in compiled CLIs or testing.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `key` | `string` | Command key for matching |
-| `command` | `CommandModule` | Command module to register |
+| `config` | `CLIConfig` | The CLI configuration object |
+| `args` | `string[]` | Remaining command-line arguments |
+| `configPath` | `string` | Absolute path to the configuration file |
 
 ```typescript
-import MyCommand from './commands/my-command.ts';
-
-cli.RegisterCommand('my-command', MyCommand);
-```
-
-### GetCommand
-
-```typescript
-async GetCommand(key: string): Promise<CommandModule | undefined>
-```
-
-Retrieves a registered command by key.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `key` | `string` | Command key to look up |
-
-**Returns:** The command module if found, undefined otherwise
-
-### ListCommands
-
-```typescript
-async ListCommands(): Promise<CommandInfo[]>
-```
-
-Returns information about all registered commands.
-
-**Returns:** Array of command information objects
-
-```typescript
-interface CommandInfo {
-  key: string;
-  description: string;
-  args?: ArgInfo[];
-  flags?: FlagInfo[];
-}
+const cli = new CLI();
+const config = JSON.parse(await Deno.readTextFile('./.cli.json'));
+await cli.RunWithConfig(config, Deno.args, Deno.cwd() + '/.cli.json');
 ```
 
 ---
@@ -190,28 +104,30 @@ interface CommandInfo {
 ## Execution Flow
 
 ```
-Run(args)
+RunFromArgs(args)
     │
-    ├─▶ Parse argv into invocation
-    │       │
-    │       └─▶ CLICommandInvocationParser
+    ├─▶ resolver.ResolveConfig(args)
+    │       └─▶ Find and load .cli.json
     │
-    ├─▶ Match command key
-    │       │
-    │       └─▶ CLICommandMatcher
-    │
-    ├─▶ Resolve command module
-    │       │
-    │       └─▶ CLICommandResolver
-    │
-    └─▶ Execute command lifecycle
+    └─▶ RunWithConfig(config, args, path)
             │
-            └─▶ CLICommandExecutor
-                    │
-                    ├─▶ ConfigureContext
-                    ├─▶ Init
-                    ├─▶ Run / DryRun
-                    └─▶ Cleanup
+            ├─▶ registerTelemetry()
+            │
+            ├─▶ parser.ParseInvocation()
+            │       └─▶ Extract command key, flags, positional args
+            │
+            ├─▶ initialize()
+            │       ├─▶ RegisterExecutionDFS()
+            │       └─▶ Run init function (if configured)
+            │
+            ├─▶ resolveAllCommandSources()
+            │       └─▶ Load command modules from all sources
+            │
+            ├─▶ CLICommandMatcher.Resolve()
+            │       └─▶ Find matching command, validate params
+            │
+            └─▶ CLICommandExecutor.Execute()
+                    └─▶ Run command lifecycle
 ```
 
 ---
@@ -223,106 +139,46 @@ Run(args)
 ```typescript
 import { CLI } from '@fathym/cli';
 
-const cli = new CLI({
-  name: 'mycli',
-  version: '1.0.0',
-  config: import.meta.resolve('./.cli.json'),
-});
+const cli = new CLI();
 
 if (import.meta.main) {
-  const code = await cli.Run(Deno.args);
-  Deno.exit(code);
+  await cli.RunFromArgs(Deno.args);
 }
 ```
 
 ### With Custom Resolver
 
 ```typescript
-import { CLI, ProgrammaticCLICommandResolver } from '@fathym/cli';
-import GreetCommand from './commands/greet.ts';
-import DeployCommand from './commands/deploy.ts';
-
-const resolver = new ProgrammaticCLICommandResolver({
-  greet: GreetCommand,
-  deploy: DeployCommand,
-});
+import { CLI, CLICommandResolver } from '@fathym/cli';
+import { EmbeddedCLIFileSystemHooks } from './EmbeddedCLIFileSystemHooks.ts';
 
 const cli = new CLI({
-  name: 'mycli',
-  version: '1.0.0',
-  config: import.meta.resolve('./.cli.json'),
-  resolver,
+  resolver: new CLICommandResolver(new EmbeddedCLIFileSystemHooks()),
 });
+
+await cli.RunFromArgs(Deno.args);
 ```
 
 ### Programmatic Command Registration
 
-```typescript
-import { CLI, Command } from '@fathym/cli';
-
-const cli = new CLI({
-  name: 'mycli',
-  version: '1.0.0',
-  config: import.meta.resolve('./.cli.json'),
-});
-
-// Register commands programmatically
-cli.RegisterCommand('hello', Command('hello', 'Say hello')
-  .Run(({ Log }) => Log.Info('Hello!')));
-
-cli.RegisterCommand('goodbye', Command('goodbye', 'Say goodbye')
-  .Run(({ Log }) => Log.Info('Goodbye!')));
-
-await cli.Run(Deno.args);
-```
-
-### With Custom DFS
+Commands can be registered programmatically via `CLICommandRegistry`:
 
 ```typescript
-import { CLI } from '@fathym/cli';
-import { MemoryDFSFileHandler } from '@fathym/dfs/handlers';
+import { CLI, CLICommandRegistry, Command } from '@fathym/cli';
 
-const memoryDfs = new MemoryDFSFileHandler({});
+const cli = new CLI();
 
-const cli = new CLI({
-  name: 'mycli',
-  version: '1.0.0',
-  config: import.meta.resolve('./.cli.json'),
-  dfs: memoryDfs,
-});
-```
+// Get the registry from IoC
+const registry = await cli.ioc.Resolve(CLICommandRegistry);
 
----
+// Register commands
+registry.Register('greet', Command('greet', 'Say hello')
+  .Params(...)
+  .Run(({ Log }) => Log.Info('Hello!'))
+  .Build()
+);
 
-## Error Handling
-
-### Command Not Found
-
-```typescript
-// When no command matches, help is shown
-mycli unknown-command
-// Error: Unknown command 'unknown-command'
-// Run 'mycli --help' for available commands
-```
-
-### Argument Validation
-
-```typescript
-// Zod validation errors are formatted for CLI
-mycli deploy --replicas=abc
-// Error: Invalid value for --replicas: Expected number, got string
-```
-
-### Execution Errors
-
-```typescript
-// Errors thrown in commands set exit code to 1
-try {
-  await cli.Run(Deno.args);
-} catch (error) {
-  console.error(`CLI error: ${error.message}`);
-  Deno.exit(1);
-}
+await cli.RunFromArgs(Deno.args);
 ```
 
 ---
@@ -333,33 +189,26 @@ try {
 
 ```json
 {
-  "name": "mycli",
-  "version": "1.0.0",
-  "commands": {
+  "Name": "mycli",
+  "Version": "1.0.0",
+  "Commands": {
     "greet": "./commands/greet.ts",
-    "deploy": "./commands/deploy.ts",
-    "init": "./commands/init.ts"
+    "deploy": "./commands/deploy.ts"
   },
-  "ioc": {
-    "ConfigService": {
-      "Type": "Singleton",
-      "Module": "./services/ConfigService.ts"
-    }
-  },
-  "templates": "./templates",
-  "build": {
-    "outDir": "./.build"
-  }
+  "Init": "./.cli.init.ts",
+  "Templates": "./templates"
 }
 ```
 
-### Environment Variables
+### Configuration Fields
 
-| Variable | Description |
-|----------|-------------|
-| `LOG_LEVEL` | Logging verbosity (debug, info, warn, error) |
-| `CLI_DRY_RUN` | Enable dry-run mode globally |
-| `NO_COLOR` | Disable colored output |
+| Field | Type | Description |
+|-------|------|-------------|
+| `Name` | `string` | CLI name (shown in help) |
+| `Version` | `string` | CLI version |
+| `Commands` | `Record<string, string>` | Command key to module path mapping |
+| `Init` | `string?` | Path to init function module |
+| `Templates` | `string?` | Path to templates directory |
 
 ---
 

@@ -440,7 +440,7 @@ Factory file:
 
 ```typescript
 // services/createTemplateLocator.ts
-import { DFSTemplateLocator } from '@fathym/cli';
+import { DFSTemplateLocator, TemplateLocator } from '@fathym/cli';
 import { LocalDFSFileHandler } from '@fathym/dfs/handlers';
 
 export function createTemplateLocator(): TemplateLocator {
@@ -448,7 +448,7 @@ export function createTemplateLocator(): TemplateLocator {
     FileRoot: import.meta.resolve('../'),
   });
 
-  return new DFSTemplateLocator(dfs, 'templates');
+  return new DFSTemplateLocator(dfs);
 }
 ```
 
