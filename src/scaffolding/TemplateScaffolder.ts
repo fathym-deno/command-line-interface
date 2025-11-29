@@ -34,8 +34,8 @@ export class TemplateScaffolder {
       const relPath = normalizedFullPath.startsWith(templateRoot + '/')
         ? normalizedFullPath.substring(templateRoot.length + 1)
         : normalizedFullPath.startsWith(templateRoot)
-          ? normalizedFullPath.substring(templateRoot.length)
-          : normalizedFullPath;
+        ? normalizedFullPath.substring(templateRoot.length)
+        : normalizedFullPath;
 
       // Skip if relPath is empty (would be the template directory itself)
       if (!relPath) continue;
