@@ -40,10 +40,22 @@ function Command(key: string, description: string): CommandBuilder
 **Returns:** A `CommandBuilder` for method chaining
 
 ```typescript
+import { Command, CommandParams } from '@fathym/cli';
+import { z } from 'zod';
+
+const ArgsSchema = z.tuple([z.string().describe('Name to greet')]);
+
+class GreetParams extends CommandParams<z.infer<typeof ArgsSchema>, {}> {
+  get Name(): string {
+    return this.Arg(0) ?? 'World';
+  }
+}
+
 export default Command('greet', 'Greet someone by name')
-  .Args(z.tuple([z.string()]))
+  .Args(ArgsSchema)
+  .Params(GreetParams)
   .Run(({ Params, Log }) => {
-    Log.Info(`Hello, ${Params.Arg(0)}!`);
+    Log.Info(`Hello, ${Params.Name}!`);
   });
 ```
 
@@ -66,14 +78,22 @@ Define positional arguments using a Zod tuple schema.
 **Returns:** Updated builder with argument types
 
 ```typescript
+const ArgsSchema = z.tuple([
+  z.string().describe('Source path').meta({ argName: 'source' }),
+  z.string().describe('Destination path').meta({ argName: 'dest' }),
+]);
+
+class CopyParams extends CommandParams<z.infer<typeof ArgsSchema>, {}> {
+  get Source(): string { return this.Arg(0)!; }
+  get Dest(): string { return this.Arg(1)!; }
+}
+
 Command('copy', 'Copy files')
-  .Args(z.tuple([
-    z.string().describe('Source path').meta({ argName: 'source' }),
-    z.string().describe('Destination path').meta({ argName: 'dest' }),
-  ]))
+  .Args(ArgsSchema)
+  .Params(CopyParams)
   .Run(({ Params }) => {
-    const source = Params.Arg(0);  // string
-    const dest = Params.Arg(1);    // string
+    // Access via getters
+    copyFile(Params.Source, Params.Dest);
   });
 ```
 
@@ -113,18 +133,26 @@ Define flags/options using a Zod object schema.
 **Returns:** Updated builder with flag types
 
 ```typescript
+const FlagsSchema = z.object({
+  env: z.string().default('production').describe('Target environment'),
+  force: z.boolean().optional().describe('Skip confirmation'),
+  replicas: z.number().min(1).max(10).default(1).describe('Instance count'),
+  tags: z.array(z.string()).optional().describe('Resource tags'),
+});
+
+class DeployParams extends CommandParams<[], z.infer<typeof FlagsSchema>> {
+  get Environment(): string { return this.Flag('env') ?? 'production'; }
+  get Force(): boolean { return this.Flag('force') ?? false; }
+  get Replicas(): number { return this.Flag('replicas') ?? 1; }
+  get Tags(): string[] { return this.Flag('tags') ?? []; }
+}
+
 Command('deploy', 'Deploy application')
-  .Flags(z.object({
-    env: z.string().default('production').describe('Target environment'),
-    force: z.boolean().optional().describe('Skip confirmation'),
-    replicas: z.number().min(1).max(10).default(1).describe('Instance count'),
-    tags: z.array(z.string()).optional().describe('Resource tags'),
-  }))
+  .Flags(FlagsSchema)
+  .Params(DeployParams)
   .Run(({ Params }) => {
-    const env = Params.Flag('env');        // string
-    const force = Params.Flag('force');    // boolean | undefined
-    const replicas = Params.Flag('replicas');  // number
-    const tags = Params.Flag('tags');      // string[] | undefined
+    // Access via getters - types are inferred
+    deploy(Params.Environment, Params.Replicas);
   });
 ```
 
@@ -215,10 +243,12 @@ Inject dependencies from the IoC container.
 
 ```typescript
 Command('build', 'Build project')
+  .Flags(FlagsSchema)
+  .Params(BuildParams)  // Has .Target getter
   .Services(async (ctx, ioc) => ({
     dfs: await ioc.Resolve(CLIDFSContextManager),
     config: await ioc.Resolve(ConfigService),
-    builder: new ProjectBuilder(ctx.Params.Flag('target')),
+    builder: new ProjectBuilder(ctx.Params.Target),  // Access via getter
   }))
   .Run(async ({ Services }) => {
     await Services.builder.build();
@@ -263,10 +293,12 @@ Define initialization logic.
 
 ```typescript
 Command('deploy', 'Deploy application')
+  .Flags(FlagsSchema)
+  .Params(DeployParams)  // Has .IsProduction getter
   .Init(async ({ Params, Log, Services }) => {
     Log.Info('Validating prerequisites...');
 
-    if (Params.Flag('env') === 'production') {
+    if (Params.IsProduction) {  // Access via getter
       const ok = await Services.prompt.confirm('Deploy to production?');
       if (!ok) throw new Error('Cancelled');
     }
@@ -296,10 +328,10 @@ Define the main execution logic.
 
 ```typescript
 Command('greet', 'Greet someone')
-  .Args(z.tuple([z.string()]))
+  .Args(ArgsSchema)
+  .Params(GreetParams)  // Has .Name getter
   .Run(({ Params, Log }) => {
-    const name = Params.Arg(0);
-    Log.Info(`Hello, ${name}!`);
+    Log.Info(`Hello, ${Params.Name}!`);  // Access via getter
   });
 ```
 
@@ -313,7 +345,7 @@ DryRun(
 ): CommandBuilder
 ```
 
-Define preview/simulation logic.
+Define preview/simulation logic for when `--dry-run` flag is passed.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
@@ -321,15 +353,26 @@ Define preview/simulation logic.
 
 **Returns:** Same builder (for chaining)
 
+> **Note:** If `DryRun` is not defined and the user passes `--dry-run`, the command
+> will fall back to calling `Run()` instead. Define `DryRun` explicitly when you want
+> to show a preview without side effects.
+
 ```typescript
+class DeleteParams extends CommandParams<TArgs, TFlags> {
+  get Path(): string {
+    return this.Arg(0) ?? '.';
+  }
+}
+
 Command('delete', 'Delete files')
   .Args(z.tuple([z.string()]))
+  .Params(DeleteParams)
   .Run(async ({ Params }) => {
-    await Deno.remove(Params.Arg(0), { recursive: true });
+    await Deno.remove(Params.Path, { recursive: true });
   })
   .DryRun(async ({ Params, Log }) => {
-    Log.Info(`Would delete: ${Params.Arg(0)}`);
-    const files = await listFiles(Params.Arg(0));
+    Log.Info(`Would delete: ${Params.Path}`);
+    const files = await listFiles(Params.Path);
     files.forEach(f => Log.Info(`  - ${f}`));
   });
 ```
@@ -487,7 +530,7 @@ export default builder.Build();
 
 ## Type Inference
 
-The fluent API provides full type inference:
+The fluent API provides full type inference through your custom Params class:
 
 ```typescript
 const ArgsSchema = z.tuple([z.string(), z.number().optional()]);
@@ -496,19 +539,27 @@ const FlagsSchema = z.object({
   count: z.number().default(1),
 });
 
+// Types are inferred from schemas in your Params class getters
+class ExampleParams extends CommandParams<
+  z.infer<typeof ArgsSchema>,
+  z.infer<typeof FlagsSchema>
+> {
+  get Name(): string { return this.Arg(0)!; }           // string
+  get Num(): number | undefined { return this.Arg(1); } // number | undefined
+  get Verbose(): boolean { return this.Flag('verbose') ?? false; }
+  get Count(): number { return this.Flag('count') ?? 1; }
+}
+
 Command('example', 'Example')
   .Args(ArgsSchema)
   .Flags(FlagsSchema)
+  .Params(ExampleParams)
   .Run(({ Params }) => {
-    // Types are inferred from schemas
-    const name = Params.Arg(0);     // string
-    const num = Params.Arg(1);      // number | undefined
-    const verbose = Params.Flag('verbose');  // boolean | undefined
-    const count = Params.Flag('count');      // number
-
-    // Compile-time errors for invalid access
-    Params.Arg(5);           // Error: Index out of bounds
-    Params.Flag('unknown');  // Error: Property doesn't exist
+    // Access via type-safe getters
+    console.log(Params.Name);    // string
+    console.log(Params.Num);     // number | undefined
+    console.log(Params.Verbose); // boolean
+    console.log(Params.Count);   // number
   });
 ```
 

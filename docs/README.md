@@ -71,20 +71,40 @@ A powerful, type-safe CLI framework for Deno with fluent command building, depen
 Define commands with a chainable, type-safe API:
 
 ```typescript
-import { Command } from '@fathym/cli';
+import { Command, CommandParams } from '@fathym/cli';
 import { z } from 'zod';
 
+// Define schemas
+const ArgsSchema = z.tuple([
+  z.string().optional().describe('Name to greet').meta({ argName: 'name' }),
+]);
+
+const FlagsSchema = z.object({
+  loud: z.boolean().optional().describe('Shout the greeting'),
+});
+
+// Custom Params class with typed getters
+class GreetParams extends CommandParams<
+  z.infer<typeof ArgsSchema>,
+  z.infer<typeof FlagsSchema>
+> {
+  get Name(): string {
+    return this.Arg(0) ?? 'World';
+  }
+
+  get IsLoud(): boolean {
+    return this.Flag('loud') ?? false;
+  }
+}
+
+// Build the command
 export default Command('greet', 'Greet someone by name')
-  .Args(z.tuple([
-    z.string().describe('Name to greet').meta({ argName: 'name' })
-  ]))
-  .Flags(z.object({
-    loud: z.boolean().optional().describe('Shout the greeting'),
-  }))
+  .Args(ArgsSchema)
+  .Flags(FlagsSchema)
+  .Params(GreetParams)
   .Run(({ Params, Log }) => {
-    const name = Params.Arg(0) ?? 'World';
-    const msg = `Hello, ${name}!`;
-    Log.Info(Params.Flag('loud') ? msg.toUpperCase() : msg);
+    const msg = `Hello, ${Params.Name}!`;
+    Log.Info(Params.IsLoud ? msg.toUpperCase() : msg);
   });
 ```
 
@@ -106,17 +126,21 @@ export default Command('deploy', 'Deploy the project')
 
 ### Intent-Based Testing
 
-Test commands declaratively:
+Test commands declaratively with suite-based organization:
 
 ```typescript
-import { CommandIntent } from '@fathym/cli';
+import { CommandIntents } from '@fathym/cli';
 import GreetCommand from '../commands/greet.ts';
 
-CommandIntent('greets loudly', GreetCommand, import.meta.resolve('../.cli.json'))
-  .Args(['World'])
-  .Flags({ loud: true })
-  .ExpectLogs('HELLO, WORLD!')
-  .ExpectExit(0)
+const configPath = import.meta.resolve('../.cli.json');
+
+CommandIntents('Greet Command', GreetCommand.Build(), configPath)
+  .Intent('greets with default name', (int) =>
+    int.Args([undefined]).Flags({}).ExpectLogs('Hello, World!').ExpectExit(0))
+  .Intent('greets by name', (int) =>
+    int.Args(['Alice']).Flags({}).ExpectLogs('Hello, Alice!').ExpectExit(0))
+  .Intent('greets loudly', (int) =>
+    int.Args(['World']).Flags({ loud: true }).ExpectLogs('HELLO, WORLD!').ExpectExit(0))
   .Run();
 ```
 
@@ -125,19 +149,38 @@ CommandIntent('greets loudly', GreetCommand, import.meta.resolve('../.cli.json')
 Generate projects from Handlebars templates:
 
 ```typescript
+import { Command, CommandParams, CLIDFSContextManager, TemplateLocator, TemplateScaffolder } from '@fathym/cli';
+import { z } from 'zod';
+
+const ArgsSchema = z.tuple([
+  z.string().optional().describe('Project name').meta({ argName: 'name' }),
+]);
+
+class InitParams extends CommandParams<z.infer<typeof ArgsSchema>, z.ZodObject<{}>> {
+  get ProjectName(): string {
+    return this.Arg(0) ?? 'my-project';
+  }
+}
+
 export default Command('init', 'Initialize a new project')
-  .Services(async (ctx, ioc) => ({
-    scaffolder: new TemplateScaffolder(
-      await ioc.Resolve<TemplateLocator>(ioc.Symbol('TemplateLocator')),
-      await dfsCtxMgr.GetExecutionDFS(),
-      { projectName: ctx.Params.Arg(0) }
-    ),
-  }))
-  .Run(async ({ Services }) => {
+  .Args(ArgsSchema)
+  .Params(InitParams)
+  .Services(async (ctx, ioc) => {
+    const dfsCtxMgr = await ioc.Resolve(CLIDFSContextManager);
+    return {
+      scaffolder: new TemplateScaffolder(
+        await ioc.Resolve<TemplateLocator>(ioc.Symbol('TemplateLocator')),
+        await dfsCtxMgr.GetExecutionDFS(),
+        { projectName: ctx.Params.ProjectName },
+      ),
+    };
+  })
+  .Run(async ({ Services, Log }) => {
     await Services.scaffolder.Scaffold({
       templateName: 'init',
       outputDir: '.',
     });
+    Log.Success('Project initialized!');
   });
 ```
 

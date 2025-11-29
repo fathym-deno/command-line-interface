@@ -366,10 +366,20 @@ my-cli/
 ### Basic Template Command
 
 ```typescript
-import { Command, CLIDFSContextManager, TemplateLocator, TemplateScaffolder } from '@fathym/cli';
+import { Command, CommandParams, CLIDFSContextManager, TemplateLocator, TemplateScaffolder } from '@fathym/cli';
+import { z } from 'zod';
+
+const ArgsSchema = z.tuple([z.string().optional().describe('Project name')]);
+
+class InitParams extends CommandParams<z.infer<typeof ArgsSchema>, {}> {
+  get ProjectName(): string {
+    return this.Arg(0) ?? 'my-project';
+  }
+}
 
 export default Command('init', 'Initialize a new project')
-  .Args(z.tuple([z.string().optional()]))
+  .Args(ArgsSchema)
+  .Params(InitParams)
   .Services(async (ctx, ioc) => {
     const dfsCtxMgr = await ioc.Resolve(CLIDFSContextManager);
 
@@ -377,14 +387,14 @@ export default Command('init', 'Initialize a new project')
       scaffolder: new TemplateScaffolder(
         await ioc.Resolve<TemplateLocator>(ioc.Symbol('TemplateLocator')),
         await dfsCtxMgr.GetExecutionDFS(),
-        { name: ctx.Params.Arg(0) ?? 'my-project' },
+        { name: ctx.Params.ProjectName },
       ),
     };
   })
   .Run(async ({ Params, Services, Log }) => {
     await Services.scaffolder.Scaffold({
       templateName: 'init',
-      outputDir: Params.Arg(0) ?? '.',
+      outputDir: Params.ProjectName,
     });
 
     Log.Success('Project initialized!');
@@ -394,28 +404,40 @@ export default Command('init', 'Initialize a new project')
 ### With Template Selection
 
 ```typescript
-export default Command('generate', 'Generate from template')
-  .Args(z.tuple([z.string().describe('Template name')]))
-  .Flags(z.object({
-    name: z.string().describe('Output name'),
-  }))
-  .Services(async (ctx, ioc) => ({
-    scaffolder: new TemplateScaffolder(
-      await ioc.Resolve<TemplateLocator>(ioc.Symbol('TemplateLocator')),
-      await dfsCtxMgr.GetExecutionDFS(),
-      { name: ctx.Params.Flag('name') },
-    ),
-  }))
-  .Run(async ({ Params, Services, Log }) => {
-    const template = Params.Arg(0);
-    const name = Params.Flag('name');
+const ArgsSchema = z.tuple([z.string().describe('Template name')]);
+const FlagsSchema = z.object({
+  name: z.string().describe('Output name'),
+});
 
+class GenerateParams extends CommandParams<
+  z.infer<typeof ArgsSchema>,
+  z.infer<typeof FlagsSchema>
+> {
+  get Template(): string { return this.Arg(0)!; }
+  get OutputName(): string { return this.Flag('name')!; }
+}
+
+export default Command('generate', 'Generate from template')
+  .Args(ArgsSchema)
+  .Flags(FlagsSchema)
+  .Params(GenerateParams)
+  .Services(async (ctx, ioc) => {
+    const dfsCtxMgr = await ioc.Resolve(CLIDFSContextManager);
+    return {
+      scaffolder: new TemplateScaffolder(
+        await ioc.Resolve<TemplateLocator>(ioc.Symbol('TemplateLocator')),
+        await dfsCtxMgr.GetExecutionDFS(),
+        { name: ctx.Params.OutputName },
+      ),
+    };
+  })
+  .Run(async ({ Params, Services, Log }) => {
     await Services.scaffolder.Scaffold({
-      templateName: template,
-      outputDir: name,
+      templateName: Params.Template,
+      outputDir: Params.OutputName,
     });
 
-    Log.Success(`Generated ${name} from ${template} template`);
+    Log.Success(`Generated ${Params.OutputName} from ${Params.Template} template`);
   });
 ```
 

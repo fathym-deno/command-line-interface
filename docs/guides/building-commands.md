@@ -20,21 +20,65 @@ References:
 
 This guide covers patterns and best practices for building CLI commands with the Fathym CLI framework.
 
+## The Params Pattern
+
+**Every command must have a custom Params class.** This is the fundamental pattern:
+
+```typescript
+import { Command, CommandParams } from '@fathym/cli';
+import { z } from 'zod';
+
+// 1. Define schemas
+const ArgsSchema = z.tuple([
+  z.string().optional().describe('Name').meta({ argName: 'name' }),
+]);
+
+const FlagsSchema = z.object({
+  loud: z.boolean().optional().describe('Shout'),
+});
+
+// 2. Create Params class with getters
+class GreetParams extends CommandParams<
+  z.infer<typeof ArgsSchema>,
+  z.infer<typeof FlagsSchema>
+> {
+  get Name(): string {
+    return this.Arg(0) ?? 'World';  // Protected method in getter
+  }
+
+  get IsLoud(): boolean {
+    return this.Flag('loud') ?? false;  // Protected method in getter
+  }
+}
+
+// 3. Build command with all parts
+export default Command('greet', 'Greet someone')
+  .Args(ArgsSchema)
+  .Flags(FlagsSchema)
+  .Params(GreetParams)  // REQUIRED!
+  .Run(({ Params, Log }) => {
+    const msg = `Hello, ${Params.Name}!`;
+    Log.Info(Params.IsLoud ? msg.toUpperCase() : msg);
+  });
+```
+
+> **Important:** The `Arg()` and `Flag()` methods are **protected**. They can only be
+> called from within your Params class getters, not directly in command handlers.
+
+---
+
 ## Command Anatomy
 
 Every command has these components:
 
 ```typescript
-import { Command } from '@fathym/cli';
-import { z } from 'zod';
-
 export default Command('deploy', 'Deploy the application')
   // 1. Define what the command accepts
-  .Args(z.tuple([...]))       // Positional arguments
-  .Flags(z.object({...}))     // Named flags/options
+  .Args(ArgsSchema)         // Positional arguments (Zod tuple)
+  .Flags(FlagsSchema)       // Named flags/options (Zod object)
 
-  // 2. Optionally customize params access
-  .Params(DeployParams)       // Custom params class
+  // 2. Custom params accessor (REQUIRED)
+  .Params(DeployParams)
 
   // 3. Inject dependencies
   .Services(async (ctx, ioc) => ({...}))
@@ -53,55 +97,83 @@ export default Command('deploy', 'Deploy the application')
 ### Required Arguments
 
 ```typescript
+const ArgsSchema = z.tuple([
+  z.string().describe('Source file').meta({ argName: 'source' }),
+  z.string().describe('Destination').meta({ argName: 'dest' }),
+]);
+
+class CopyParams extends CommandParams<z.infer<typeof ArgsSchema>, {}> {
+  get Source(): string { return this.Arg(0)!; }
+  get Dest(): string { return this.Arg(1)!; }
+}
+
 Command('copy', 'Copy a file')
-  .Args(z.tuple([
-    z.string().describe('Source file').meta({ argName: 'source' }),
-    z.string().describe('Destination').meta({ argName: 'dest' }),
-  ]))
+  .Args(ArgsSchema)
+  .Params(CopyParams)
   .Run(({ Params, Log }) => {
-    const source = Params.Arg(0);  // Required - string
-    const dest = Params.Arg(1);    // Required - string
-    Log.Info(`Copying ${source} to ${dest}`);
+    Log.Info(`Copying ${Params.Source} to ${Params.Dest}`);
   });
 ```
 
 ### Optional Arguments
 
 ```typescript
+const ArgsSchema = z.tuple([
+  z.string().optional().describe('Name').meta({ argName: 'name' }),
+]);
+
+class GreetParams extends CommandParams<z.infer<typeof ArgsSchema>, {}> {
+  get Name(): string {
+    return this.Arg(0) ?? 'World';  // Default in getter
+  }
+}
+
 Command('greet', 'Greet someone')
-  .Args(z.tuple([
-    z.string().optional().describe('Name').meta({ argName: 'name' }),
-  ]))
+  .Args(ArgsSchema)
+  .Params(GreetParams)
   .Run(({ Params, Log }) => {
-    const name = Params.Arg(0) ?? 'World';  // Optional with default
-    Log.Info(`Hello, ${name}!`);
+    Log.Info(`Hello, ${Params.Name}!`);
   });
 ```
 
 ### Arguments with Defaults
 
 ```typescript
+const ArgsSchema = z.tuple([
+  z.coerce.number().default(3000).describe('Port').meta({ argName: 'port' }),
+]);
+
+class ServeParams extends CommandParams<z.infer<typeof ArgsSchema>, {}> {
+  get Port(): number {
+    return this.Arg(0) ?? 3000;
+  }
+}
+
 Command('serve', 'Start a server')
-  .Args(z.tuple([
-    z.coerce.number().default(3000).describe('Port').meta({ argName: 'port' }),
-  ]))
+  .Args(ArgsSchema)
+  .Params(ServeParams)
   .Run(({ Params, Log }) => {
-    const port = Params.Arg(0);  // number, defaults to 3000
-    Log.Info(`Starting on port ${port}`);
+    Log.Info(`Starting on port ${Params.Port}`);
   });
 ```
 
 ### Variadic Arguments
 
 ```typescript
+const ArgsSchema = z.tuple([
+  z.string().describe('Output file').meta({ argName: 'output' }),
+]).rest(z.string());
+
+class ConcatParams extends CommandParams<z.infer<typeof ArgsSchema>, {}> {
+  get Output(): string { return this.Arg(0)!; }
+  get Inputs(): string[] { return this.Args.slice(1) as string[]; }
+}
+
 Command('concat', 'Concatenate files')
-  .Args(z.tuple([
-    z.string().describe('Output file').meta({ argName: 'output' }),
-  ]).rest(z.string()))
+  .Args(ArgsSchema)
+  .Params(ConcatParams)
   .Run(({ Params, Log }) => {
-    const output = Params.Arg(0);
-    const inputs = Params.Args.slice(1);  // Remaining args
-    Log.Info(`Concatenating ${inputs.length} files to ${output}`);
+    Log.Info(`Concatenating ${Params.Inputs.length} files to ${Params.Output}`);
   });
 ```
 
@@ -112,26 +184,37 @@ Command('concat', 'Concatenate files')
 ### Boolean Flags
 
 ```typescript
-.Flags(z.object({
+const FlagsSchema = z.object({
   verbose: z.boolean().optional().describe('Enable verbose output'),
   force: z.boolean().optional().describe('Skip confirmation'),
   quiet: z.boolean().optional().describe('Suppress output'),
-}))
+});
+
+class BuildParams extends CommandParams<[], z.infer<typeof FlagsSchema>> {
+  get Verbose(): boolean { return this.Flag('verbose') ?? false; }
+  get Force(): boolean { return this.Flag('force') ?? false; }
+  get Quiet(): boolean { return this.Flag('quiet') ?? false; }
+}
 ```
 
 Usage:
 ```bash
-mycli deploy --verbose --force
-mycli deploy --no-verbose  # Explicitly false
+mycli build --verbose --force
+mycli build --no-verbose  # Explicitly false
 ```
 
 ### String Flags
 
 ```typescript
-.Flags(z.object({
+const FlagsSchema = z.object({
   env: z.string().default('development').describe('Environment'),
   config: z.string().optional().describe('Config file path'),
-}))
+});
+
+class DeployParams extends CommandParams<[], z.infer<typeof FlagsSchema>> {
+  get Environment(): string { return this.Flag('env') ?? 'development'; }
+  get ConfigPath(): string | undefined { return this.Flag('config'); }
+}
 ```
 
 Usage:
@@ -144,29 +227,45 @@ mycli deploy --config ./config.json
 ### Number Flags
 
 ```typescript
-.Flags(z.object({
+const FlagsSchema = z.object({
   port: z.coerce.number().default(3000).describe('Server port'),
   timeout: z.coerce.number().optional().describe('Timeout in seconds'),
   retries: z.coerce.number().min(0).max(10).default(3).describe('Retry count'),
-}))
+});
+
+class ServerParams extends CommandParams<[], z.infer<typeof FlagsSchema>> {
+  get Port(): number { return this.Flag('port') ?? 3000; }
+  get Timeout(): number | undefined { return this.Flag('timeout'); }
+  get Retries(): number { return this.Flag('retries') ?? 3; }
+}
 ```
 
 ### Enum Flags
 
 ```typescript
-.Flags(z.object({
+const FlagsSchema = z.object({
   level: z.enum(['debug', 'info', 'warn', 'error']).default('info'),
   format: z.enum(['json', 'text', 'table']).optional(),
-}))
+});
+
+class OutputParams extends CommandParams<[], z.infer<typeof FlagsSchema>> {
+  get Level(): string { return this.Flag('level') ?? 'info'; }
+  get Format(): string { return this.Flag('format') ?? 'text'; }
+}
 ```
 
 ### Array Flags
 
 ```typescript
-.Flags(z.object({
+const FlagsSchema = z.object({
   include: z.array(z.string()).optional().describe('Files to include'),
   exclude: z.array(z.string()).optional().describe('Files to exclude'),
-}))
+});
+
+class FilterParams extends CommandParams<[], z.infer<typeof FlagsSchema>> {
+  get Includes(): string[] { return this.Flag('include') ?? []; }
+  get Excludes(): string[] { return this.Flag('exclude') ?? []; }
+}
 ```
 
 Usage:
@@ -184,7 +283,6 @@ For complex argument logic, create a custom params class:
 import { CommandParams } from '@fathym/cli';
 import { z } from 'zod';
 
-// Define schemas
 const ArgsSchema = z.tuple([
   z.string().optional().describe('Project name'),
 ]);
@@ -195,7 +293,6 @@ const FlagsSchema = z.object({
   outputDir: z.string().optional(),
 });
 
-// Create custom params class
 class InitParams extends CommandParams<
   z.infer<typeof ArgsSchema>,
   z.infer<typeof FlagsSchema>
@@ -226,7 +323,6 @@ class InitParams extends CommandParams<
   }
 }
 
-// Use in command
 export default Command('init', 'Initialize a new project')
   .Args(ArgsSchema)
   .Flags(FlagsSchema)
@@ -246,7 +342,10 @@ export default Command('init', 'Initialize a new project')
 ```typescript
 import { CLIDFSContextManager } from '@fathym/cli';
 
+class InfoParams extends CommandParams<[], {}> {}
+
 Command('info', 'Show project info')
+  .Params(InfoParams)
   .Services(async (ctx, ioc) => ({
     dfs: await ioc.Resolve(CLIDFSContextManager),
   }))
@@ -269,32 +368,47 @@ Command('info', 'Show project info')
 ### Conditional Services
 
 ```typescript
-.Services(async (ctx, ioc) => {
-  const provider = ctx.Params.Flag('provider');
+class DeployParams extends CommandParams<[], TFlags> {
+  get Provider(): string { return this.Flag('provider') ?? 'local'; }
+}
 
-  return {
-    deployer: provider === 'aws'
-      ? await ioc.Resolve(AWSDeployer)
-      : provider === 'gcp'
-      ? await ioc.Resolve(GCPDeployer)
-      : await ioc.Resolve(LocalDeployer),
-  };
-})
+Command('deploy', 'Deploy')
+  .Flags(FlagsSchema)
+  .Params(DeployParams)
+  .Services(async (ctx, ioc) => {
+    const provider = ctx.Params.Provider;
+
+    return {
+      deployer: provider === 'aws'
+        ? await ioc.Resolve(AWSDeployer)
+        : provider === 'gcp'
+        ? await ioc.Resolve(GCPDeployer)
+        : await ioc.Resolve(LocalDeployer),
+    };
+  })
 ```
 
 ### Inline Services
 
 ```typescript
-.Services(async (ctx) => ({
-  // Create service with params
-  builder: new ProjectBuilder({
-    target: ctx.Params.Flag('target'),
-    minify: ctx.Params.Flag('minify'),
-  }),
+class BuildParams extends CommandParams<[], TFlags> {
+  get Target(): string { return this.Flag('target') ?? 'web'; }
+  get Minify(): boolean { return this.Flag('minify') ?? false; }
+}
 
-  // Create temp resources
-  tempDir: await Deno.makeTempDir(),
-}))
+Command('build', 'Build project')
+  .Flags(FlagsSchema)
+  .Params(BuildParams)
+  .Services(async (ctx) => ({
+    // Create service with params
+    builder: new ProjectBuilder({
+      target: ctx.Params.Target,
+      minify: ctx.Params.Minify,
+    }),
+
+    // Create temp resources
+    tempDir: await Deno.makeTempDir(),
+  }))
 ```
 
 ---
@@ -306,25 +420,32 @@ Command('info', 'Show project info')
 Use for validation and setup before the main logic:
 
 ```typescript
-.Init(async ({ Params, Services, Log }) => {
-  Log.Debug('Validating configuration...');
+class DeployParams extends CommandParams<[], TFlags> {
+  get Environment(): string { return this.Flag('env') ?? 'development'; }
+  get Force(): boolean { return this.Flag('force') ?? false; }
+  get IsProduction(): boolean { return this.Environment === 'production'; }
+}
 
-  // Check preconditions
-  const config = await Services.config.load();
-  if (!config.isValid) {
-    throw new Error('Invalid configuration');
-  }
+Command('deploy', 'Deploy')
+  .Flags(FlagsSchema)
+  .Params(DeployParams)
+  .Init(async ({ Params, Services, Log }) => {
+    Log.Info('Validating configuration...');
 
-  // Confirm destructive operations
-  if (Params.Flag('env') === 'production' && !Params.Flag('force')) {
-    const confirmed = await Services.prompt.confirm(
-      'Deploy to production?'
-    );
-    if (!confirmed) {
-      throw new Error('Deployment cancelled');
+    // Check preconditions
+    const config = await Services.config.load();
+    if (!config.isValid) {
+      throw new Error('Invalid configuration');
     }
-  }
-})
+
+    // Confirm destructive operations
+    if (Params.IsProduction && !Params.Force) {
+      const confirmed = await Services.prompt.confirm('Deploy to production?');
+      if (!confirmed) {
+        throw new Error('Deployment cancelled');
+      }
+    }
+  })
 ```
 
 ### Run Phase
@@ -333,13 +454,11 @@ The main execution logic:
 
 ```typescript
 .Run(async ({ Params, Services, Log }) => {
-  const env = Params.Flag('env');
-
-  Log.Info(`Deploying to ${env}...`);
+  Log.Info(`Deploying to ${Params.Environment}...`);
 
   const result = await Services.deployer.deploy({
-    environment: env,
-    force: Params.Flag('force'),
+    environment: Params.Environment,
+    force: Params.Force,
   });
 
   Log.Success(`Deployed version ${result.version}`);
@@ -352,15 +471,16 @@ Preview mode that shows what would happen:
 
 ```typescript
 .DryRun(async ({ Params, Services, Log }) => {
-  const env = Params.Flag('env');
-
-  Log.Info(`Would deploy to ${env}`);
+  Log.Info(`Would deploy to ${Params.Environment}`);
 
   const changes = await Services.deployer.preview();
   Log.Info('Changes that would be made:');
   changes.forEach(c => Log.Info(`  - ${c.type}: ${c.path}`));
 })
 ```
+
+> **Note:** If `DryRun` is not defined and the user passes `--dry-run`, the command
+> will fall back to calling `Run()`.
 
 ### Cleanup Phase
 
@@ -372,7 +492,7 @@ Resource cleanup (runs even on error):
   if (Services.tempDir) {
     try {
       await Deno.remove(Services.tempDir, { recursive: true });
-      Log.Debug('Cleaned up temp directory');
+      Log.Info('Cleaned up temp directory');
     } catch {
       Log.Warn('Could not clean up temp directory');
     }
@@ -392,52 +512,68 @@ Resource cleanup (runs even on error):
 ### Throwing Errors
 
 ```typescript
-.Run(async ({ Params, Log }) => {
-  const file = Params.Arg(0);
+class ReadParams extends CommandParams<z.infer<typeof ArgsSchema>, {}> {
+  get FilePath(): string { return this.Arg(0)!; }
+}
 
-  if (!await fileExists(file)) {
-    throw new Error(`File not found: ${file}`);
-  }
+Command('read', 'Read a file')
+  .Args(ArgsSchema)
+  .Params(ReadParams)
+  .Run(async ({ Params, Log }) => {
+    if (!await fileExists(Params.FilePath)) {
+      throw new Error(`File not found: ${Params.FilePath}`);
+    }
 
-  // Continue processing...
-})
+    // Continue processing...
+  })
 ```
 
 ### Error Recovery
 
 ```typescript
-.Run(async ({ Params, Log, Services }) => {
-  const maxRetries = Params.Flag('retries');
-  let lastError: Error | undefined;
+class ApiParams extends CommandParams<[], TFlags> {
+  get MaxRetries(): number { return this.Flag('retries') ?? 3; }
+}
 
-  for (let i = 0; i < maxRetries; i++) {
-    try {
-      await Services.api.deploy();
-      Log.Success('Deployment successful');
-      return;
-    } catch (error) {
-      lastError = error;
-      Log.Warn(`Attempt ${i + 1} failed: ${error.message}`);
-      await delay(1000 * (i + 1));  // Exponential backoff
+Command('sync', 'Sync data')
+  .Flags(FlagsSchema)
+  .Params(ApiParams)
+  .Run(async ({ Params, Log, Services }) => {
+    let lastError: Error | undefined;
+
+    for (let i = 0; i < Params.MaxRetries; i++) {
+      try {
+        await Services.api.sync();
+        Log.Success('Sync successful');
+        return;
+      } catch (error) {
+        lastError = error;
+        Log.Warn(`Attempt ${i + 1} failed: ${error.message}`);
+        await delay(1000 * (i + 1));  // Exponential backoff
+      }
     }
-  }
 
-  throw new Error(`Failed after ${maxRetries} attempts: ${lastError?.message}`);
-})
+    throw new Error(`Failed after ${Params.MaxRetries} attempts: ${lastError?.message}`);
+  })
 ```
 
 ### Validation Errors
 
 ```typescript
-.Run(({ Params, Log }) => {
-  const email = Params.Flag('email');
+class SendParams extends CommandParams<[], TFlags> {
+  get Email(): string { return this.Flag('email') ?? ''; }
+}
 
-  if (!email?.includes('@')) {
-    throw new Error('Invalid email format');
-  }
+Command('send', 'Send notification')
+  .Flags(FlagsSchema)
+  .Params(SendParams)
+  .Run(({ Params, Log }) => {
+    if (!Params.Email.includes('@')) {
+      throw new Error('Invalid email format');
+    }
 
-  // Process valid email...
-})
+    // Process valid email...
+  })
 ```
 
 ---
@@ -448,7 +584,10 @@ Resource cleanup (runs even on error):
 
 ```typescript
 // commands/db.ts
+class DbParams extends CommandParams<[], {}> {}
+
 export default Command('db', 'Database operations')
+  .Params(DbParams)
   .Run(({ Log }) => {
     Log.Info('Available commands:');
     Log.Info('  db migrate    Run migrations');
@@ -461,17 +600,27 @@ export default Command('db', 'Database operations')
 
 ```typescript
 // commands/db-migrate.ts
+const FlagsSchema = z.object({
+  steps: z.number().optional().describe('Number of migrations'),
+});
+
+class MigrateParams extends CommandParams<[], z.infer<typeof FlagsSchema>> {
+  get Steps(): number | undefined { return this.Flag('steps'); }
+}
+
 export default Command('db migrate', 'Run database migrations')
-  .Flags(z.object({
-    steps: z.number().optional().describe('Number of migrations'),
-  }))
+  .Flags(FlagsSchema)
+  .Params(MigrateParams)
   .Run(async ({ Params, Log }) => {
-    const steps = Params.Flag('steps');
+    const steps = Params.Steps;
     Log.Info(`Running ${steps ?? 'all'} migrations...`);
   });
 
 // commands/db-seed.ts
+class SeedParams extends CommandParams<[], {}> {}
+
 export default Command('db seed', 'Seed the database')
+  .Params(SeedParams)
   .Run(({ Log }) => {
     Log.Info('Seeding database...');
   });
@@ -494,7 +643,24 @@ export default Command('db seed', 'Seed the database')
 
 ## Best Practices
 
-### 1. Keep Commands Focused
+### 1. Always Use Custom Params Classes
+
+```typescript
+// Required - always create a Params class
+class MyParams extends CommandParams<TArgs, TFlags> {
+  get Name(): string { return this.Arg(0) ?? 'default'; }
+}
+
+Command('my-cmd', 'Description')
+  .Args(ArgsSchema)
+  .Flags(FlagsSchema)
+  .Params(MyParams)  // Required!
+  .Run(({ Params }) => {
+    console.log(Params.Name);  // Access via getter
+  });
+```
+
+### 2. Keep Commands Focused
 
 Each command should do one thing well:
 
@@ -508,56 +674,70 @@ Command('deploy', 'Deploy the application')
 Command('build-test-deploy', 'Do everything')
 ```
 
-### 2. Use Descriptive Names
+### 3. Use Descriptive Names
 
 ```typescript
 // Good
-.Flags(z.object({
+const FlagsSchema = z.object({
   outputPath: z.string().describe('Output file path'),
   skipTests: z.boolean().describe('Skip running tests'),
-}))
+});
 
 // Avoid
-.Flags(z.object({
+const FlagsSchema = z.object({
   o: z.string(),
   s: z.boolean(),
-}))
+});
 ```
 
-### 3. Provide Defaults
+### 4. Provide Defaults in Params Class
 
 ```typescript
-.Flags(z.object({
-  env: z.string().default('development'),
-  port: z.number().default(3000),
-  retries: z.number().default(3),
-}))
+class ConfigParams extends CommandParams<[], TFlags> {
+  get Environment(): string { return this.Flag('env') ?? 'development'; }
+  get Port(): number { return this.Flag('port') ?? 3000; }
+  get Retries(): number { return this.Flag('retries') ?? 3; }
+}
 ```
 
-### 4. Validate Early
+### 5. Validate Early
 
 ```typescript
-.Init(async ({ Params }) => {
+.Init(async ({ Params, Services }) => {
   // Validate before expensive operations
-  const config = await loadConfig();
+  const config = await Services.config.load();
   if (!config.apiKey) {
     throw new Error('API key not configured. Run: mycli config set apiKey');
   }
 })
 ```
 
-### 5. Use Dry Run
+### 6. Use Dry Run
 
 ```typescript
-.DryRun(async ({ Log }) => {
+.DryRun(async ({ Params, Log }) => {
   Log.Info('Would perform the following actions:');
   // Show what would happen
 })
-.Run(async ({ Log }) => {
+.Run(async ({ Params, Log }) => {
   Log.Info('Performing actions...');
   // Actually do it
 })
 ```
+
+### 7. Use Correct Logging Methods
+
+```typescript
+.Run(({ Log }) => {
+  Log.Info('Standard output');   // Default level
+  Log.Warn('Warning message');   // Highlighted
+  Log.Error('Error message');    // Error output
+  Log.Success('Success!');       // Success indicator
+});
+```
+
+> **Note:** There is no `Log.Debug` method. For debug output, use a verbose flag
+> and conditional logging.
 
 ---
 

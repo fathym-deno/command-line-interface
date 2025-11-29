@@ -20,18 +20,30 @@ This guide covers the intent-based testing framework for CLI commands.
 
 ## Overview
 
-The CLI framework provides `CommandIntent`, a declarative testing API that lets you test commands without invoking the full CLI.
+The CLI framework provides `CommandIntents` (suite-based) and `CommandIntent` (single test) for declarative testing without invoking the full CLI.
+
+**Use `CommandIntents` for most cases** - it provides better organization, shared setup, and groups related tests.
 
 ```typescript
-import { CommandIntent } from '@fathym/cli';
+import { CommandIntents } from '@fathym/cli';
 import GreetCommand from '../commands/greet.ts';
+import initFn from '../.cli.init.ts';
 
-CommandIntent('greets by name', GreetCommand, import.meta.resolve('../.cli.json'))
-  .Args(['Alice'])
-  .ExpectLogs('Hello, Alice!')
-  .ExpectExit(0)
+const cmd = GreetCommand.Build();  // Important: call .Build()
+const configPath = import.meta.resolve('../.cli.json');
+
+CommandIntents('Greet Command', cmd, configPath)
+  .WithInit(initFn)
+  .Intent('greets with default name', (int) =>
+    int.Args([undefined]).Flags({}).ExpectLogs('Hello, World!').ExpectExit(0))
+  .Intent('greets by name', (int) =>
+    int.Args(['Alice']).Flags({}).ExpectLogs('Hello, Alice!').ExpectExit(0))
+  .Intent('greets loudly', (int) =>
+    int.Args(['World']).Flags({ loud: true }).ExpectLogs('HELLO, WORLD!').ExpectExit(0))
   .Run();
 ```
+
+---
 
 ## Setting Up Tests
 
@@ -48,6 +60,7 @@ my-cli/
 │   │   └── deploy.intents.ts
 │   └── .tests.ts
 ├── .cli.json
+├── .cli.init.ts
 └── deno.json
 ```
 
@@ -81,74 +94,103 @@ deno task test
 
 ---
 
-## Writing Intent Tests
+## Suite-Based Testing with CommandIntents
 
-### Basic Test
+### Basic Suite
 
 ```typescript
 // tests/intents/greet.intents.ts
-import { CommandIntent } from '@fathym/cli';
+import { CommandIntents } from '@fathym/cli';
 import GreetCommand from '../../commands/greet.ts';
+import initFn from '../../.cli.init.ts';
 
+const cmd = GreetCommand.Build();
 const configPath = import.meta.resolve('../../.cli.json');
 
-CommandIntent('greets with default', GreetCommand, configPath)
-  .ExpectLogs('Hello, World!')
-  .ExpectExit(0)
+CommandIntents('Greet Command', cmd, configPath)
+  .WithInit(initFn)
+  .Intent('greets with default', (int) =>
+    int.Args([undefined]).Flags({}).ExpectLogs('Hello, World!').ExpectExit(0))
+  .Intent('greets by name', (int) =>
+    int.Args(['Alice']).Flags({}).ExpectLogs('Hello, Alice!').ExpectExit(0))
   .Run();
 ```
 
-### With Arguments
+### With Setup
+
+Use `.BeforeAll()` for setup that runs before all tests in the suite:
 
 ```typescript
-CommandIntent('greets by name', GreetCommand, configPath)
-  .Args(['Alice'])
-  .ExpectLogs('Hello, Alice!')
-  .ExpectExit(0)
-  .Run();
-
-CommandIntent('handles multiple names', GreetCommand, configPath)
-  .Args(['Alice', 'Bob'])
-  .ExpectLogs('Hello, Alice and Bob!')
-  .ExpectExit(0)
+CommandIntents('Init Command', InitCommand.Build(), configPath)
+  .WithInit(initFn)
+  .BeforeAll(async () => {
+    // Clean up temp directory before tests
+    await Deno.remove('./tests/.temp', { recursive: true }).catch(() => {});
+  })
+  .Intent('creates project structure', (int) =>
+    int.Args(['my-project']).Flags({}).ExpectLogs('Project initialized!').ExpectExit(0))
+  .Intent('fails on existing directory', (int) =>
+    int.Args(['existing-project']).Flags({}).ExpectExit(1))
   .Run();
 ```
 
 ### With Flags
 
 ```typescript
-CommandIntent('greets loudly', GreetCommand, configPath)
-  .Args(['World'])
-  .Flags({ loud: true })
-  .ExpectLogs('HELLO, WORLD!')
-  .ExpectExit(0)
-  .Run();
-
-CommandIntent('respects quiet mode', GreetCommand, configPath)
-  .Flags({ quiet: true })
-  .ExpectLogs()  // No output expected
-  .ExpectExit(0)
+CommandIntents('Deploy Command', DeployCommand.Build(), configPath)
+  .WithInit(initFn)
+  .Intent('deploys to development by default', (int) =>
+    int.Args([]).Flags({}).ExpectLogs('Deploying to development...').ExpectExit(0))
+  .Intent('deploys to staging', (int) =>
+    int.Args([]).Flags({ env: 'staging' }).ExpectLogs('Deploying to staging...').ExpectExit(0))
+  .Intent('deploys to production with force', (int) =>
+    int
+      .Args([])
+      .Flags({ env: 'production', force: true })
+      .ExpectLogs('Deploying to production...', 'Deployment complete!')
+      .ExpectExit(0))
+  .Intent('sets replica count', (int) =>
+    int.Args([]).Flags({ replicas: 3 }).ExpectLogs('Replicas: 3').ExpectExit(0))
   .Run();
 ```
 
-### With Combined Args and Flags
+### Testing Error Cases
+
+Test failure scenarios using `ExpectExit(1)`:
 
 ```typescript
-CommandIntent('deploys to staging', DeployCommand, configPath)
-  .Args(['my-app'])
-  .Flags({
-    env: 'staging',
-    force: true,
-    replicas: 3,
-  })
-  .ExpectLogs(
-    'Deploying my-app to staging...',
-    'Replicas: 3',
-    'Deployment complete!',
-  )
+CommandIntents('Validate Command', ValidateCommand.Build(), configPath)
+  .WithInit(initFn)
+  .Intent('succeeds with valid input', (int) =>
+    int.Args(['valid-input']).Flags({}).ExpectLogs('Validation passed').ExpectExit(0))
+  .Intent('fails with empty input', (int) =>
+    int.Args(['']).Flags({}).ExpectExit(1))
+  .Intent('fails with invalid format', (int) =>
+    int.Args(['invalid@#$']).Flags({}).ExpectExit(1))
+  .Run();
+```
+
+---
+
+## Single Test with CommandIntent
+
+Use `CommandIntent` when you only need one test case:
+
+```typescript
+import { CommandIntent } from '@fathym/cli';
+import VersionCommand from '../../commands/version.ts';
+
+const configPath = import.meta.resolve('../../.cli.json');
+
+CommandIntent('shows version info', VersionCommand.Build(), configPath)
+  .Args([])
+  .Flags({})
+  .ExpectLogs('v1.0.0')
   .ExpectExit(0)
   .Run();
 ```
+
+> **Important:** Always call `.Build()` on fluent commands before passing to `CommandIntent`.
 
 ---
 
@@ -160,15 +202,12 @@ Assert the expected exit code:
 
 ```typescript
 // Success
-CommandIntent('succeeds', MyCommand, configPath)
-  .ExpectExit(0)
-  .Run();
+.Intent('succeeds', (int) =>
+  int.Args([]).Flags({}).ExpectExit(0))
 
 // Failure
-CommandIntent('fails on error', MyCommand, configPath)
-  .Args(['invalid'])
-  .ExpectExit(1)
-  .Run();
+.Intent('fails on error', (int) =>
+  int.Args(['invalid']).Flags({}).ExpectExit(1))
 ```
 
 ### ExpectLogs
@@ -176,57 +215,20 @@ CommandIntent('fails on error', MyCommand, configPath)
 Assert log output contains messages in order:
 
 ```typescript
-CommandIntent('logs progress', BuildCommand, configPath)
-  .ExpectLogs(
-    'Starting build...',
-    'Compiling TypeScript...',
-    'Bundling...',
-    'Build complete!',
-  )
-  .ExpectExit(0)
-  .Run();
+.Intent('logs progress', (int) =>
+  int
+    .Args([])
+    .Flags({})
+    .ExpectLogs(
+      'Starting build...',
+      'Compiling TypeScript...',
+      'Bundling...',
+      'Build complete!',
+    )
+    .ExpectExit(0))
 ```
 
-### ExpectLogsContaining
-
-Assert log output contains substrings (any order):
-
-```typescript
-CommandIntent('shows version info', VersionCommand, configPath)
-  .ExpectLogsContaining('v1.0.0', 'CLI', 'Deno')
-  .ExpectExit(0)
-  .Run();
-```
-
-### ExpectError
-
-Assert the command throws an error:
-
-```typescript
-// Match exact message
-CommandIntent('throws on missing file', ReadCommand, configPath)
-  .Args(['nonexistent.txt'])
-  .ExpectError('File not found')
-  .Run();
-
-// Match with regex
-CommandIntent('validates email format', SendCommand, configPath)
-  .Flags({ email: 'invalid' })
-  .ExpectError(/Invalid email/)
-  .Run();
-```
-
-### ExpectNoError
-
-Assert no exception is thrown:
-
-```typescript
-CommandIntent('handles edge case', EdgeCaseCommand, configPath)
-  .Args(['edge-input'])
-  .ExpectNoError()
-  .ExpectExit(0)
-  .Run();
-```
+Multiple messages are checked in sequence within the log output.
 
 ---
 
@@ -235,110 +237,73 @@ CommandIntent('handles edge case', EdgeCaseCommand, configPath)
 ### Testing Default Values
 
 ```typescript
-CommandIntent('uses default port', ServeCommand, configPath)
-  // No port flag provided
-  .ExpectLogs('Starting on port 3000')
-  .ExpectExit(0)
-  .Run();
-
-CommandIntent('uses custom port', ServeCommand, configPath)
-  .Flags({ port: 8080 })
-  .ExpectLogs('Starting on port 8080')
-  .ExpectExit(0)
-  .Run();
-```
-
-### Testing Validation
-
-```typescript
-CommandIntent('rejects invalid input', ValidateCommand, configPath)
-  .Args([''])
-  .ExpectError('Input cannot be empty')
-  .Run();
-
-CommandIntent('rejects out of range', CountCommand, configPath)
-  .Flags({ count: 100 })
-  .ExpectError('Count must be between 1 and 10')
+CommandIntents('Serve Command', ServeCommand.Build(), configPath)
+  .WithInit(initFn)
+  .Intent('uses default port', (int) =>
+    int.Args([]).Flags({}).ExpectLogs('Starting on port 3000').ExpectExit(0))
+  .Intent('uses custom port', (int) =>
+    int.Args([]).Flags({ port: 8080 }).ExpectLogs('Starting on port 8080').ExpectExit(0))
   .Run();
 ```
 
 ### Testing Dry Run
 
 ```typescript
-CommandIntent('dry run shows preview', DeleteCommand, configPath)
-  .Args(['important-file.txt'])
-  .Flags({ dryRun: true })
-  .ExpectLogs('Would delete: important-file.txt')
-  .ExpectNoError()
-  .ExpectExit(0)
+CommandIntents('Delete Command', DeleteCommand.Build(), configPath)
+  .WithInit(initFn)
+  .Intent('dry run shows preview', (int) =>
+    int
+      .Args(['important-file.txt'])
+      .Flags({ dryRun: true })
+      .ExpectLogs('Would delete: important-file.txt')
+      .ExpectExit(0))
+  .Intent('actually deletes', (int) =>
+    int
+      .Args(['temp-file.txt'])
+      .Flags({})
+      .ExpectLogs('Deleted: temp-file.txt')
+      .ExpectExit(0))
   .Run();
 ```
 
 ### Testing Subcommands
 
 ```typescript
-// Parent command
-CommandIntent('shows subcommand help', DbCommand, configPath)
-  .ExpectLogs('Available commands:', 'db migrate', 'db seed')
-  .ExpectExit(0)
+// Test parent command shows help
+CommandIntents('Db Command', DbCommand.Build(), configPath)
+  .WithInit(initFn)
+  .Intent('shows subcommand help', (int) =>
+    int
+      .Args([])
+      .Flags({})
+      .ExpectLogs('Available commands:', 'db migrate', 'db seed')
+      .ExpectExit(0))
   .Run();
 
-// Subcommand
-CommandIntent('runs migrations', DbMigrateCommand, configPath)
-  .Flags({ steps: 5 })
-  .ExpectLogs('Running 5 migrations')
-  .ExpectExit(0)
-  .Run();
-```
-
----
-
-## Testing with Mocks
-
-### Mocking Services
-
-For commands that use injected services, you may need to mock them:
-
-```typescript
-// Create mock service
-const mockDeployer = {
-  deploy: () => Promise.resolve({ version: '1.0.0' }),
-  preview: () => Promise.resolve([
-    { type: 'create', path: '/app/new.ts' },
-  ]),
-};
-
-CommandIntent('uses mock deployer', DeployCommand, configPath)
-  .WithServices({ deployer: mockDeployer })
-  .Flags({ env: 'staging' })
-  .ExpectLogs('Deployed version 1.0.0')
-  .Run();
-```
-
-### Mocking DFS
-
-For file system operations:
-
-```typescript
-import { MemoryDFSFileHandler } from '@fathym/dfs/handlers';
-
-const mockDfs = new MemoryDFSFileHandler({});
-
-// Pre-populate files
-await mockDfs.WriteFile(
-  'config.json',
-  createStream('{"key": "value"}'),
-);
-
-CommandIntent('reads config', ConfigCommand, configPath)
-  .WithDFS(mockDfs)
-  .ExpectLogs('Config loaded: key=value')
+// Test subcommand separately
+CommandIntents('Db Migrate Command', DbMigrateCommand.Build(), configPath)
+  .WithInit(initFn)
+  .Intent('runs migrations', (int) =>
+    int.Args([]).Flags({ steps: 5 }).ExpectLogs('Running 5 migrations').ExpectExit(0))
+  .Intent('runs all migrations by default', (int) =>
+    int.Args([]).Flags({}).ExpectLogs('Running all migrations').ExpectExit(0))
   .Run();
 ```
 
 ---
 
 ## Test Organization
+
+### By Command (Recommended)
+
+```
+tests/intents/
+├── greet.intents.ts
+├── deploy.intents.ts
+├── init.intents.ts
+├── db-migrate.intents.ts
+└── db-seed.intents.ts
+```
 
 ### By Feature
 
@@ -356,31 +321,18 @@ tests/intents/
     └── set.intents.ts
 ```
 
-### By Command
-
-```
-tests/intents/
-├── greet.intents.ts
-├── deploy.intents.ts
-├── config-get.intents.ts
-├── config-set.intents.ts
-└── init.intents.ts
-```
-
 ### Entry Point
 
 ```typescript
 // tests/.tests.ts
-// Auth commands
+// Group by feature
 import './intents/auth/login.intents.ts';
 import './intents/auth/logout.intents.ts';
 import './intents/auth/register.intents.ts';
 
-// Deploy commands
 import './intents/deploy/deploy.intents.ts';
 import './intents/deploy/rollback.intents.ts';
 
-// Config commands
 import './intents/config/get.intents.ts';
 import './intents/config/set.intents.ts';
 ```
@@ -391,60 +343,68 @@ import './intents/config/set.intents.ts';
 
 ```typescript
 // tests/intents/deploy.intents.ts
-import { CommandIntent } from '@fathym/cli';
+import { CommandIntents } from '@fathym/cli';
 import DeployCommand from '../../commands/deploy.ts';
+import initFn from '../../.cli.init.ts';
 
+const cmd = DeployCommand.Build();
 const configPath = import.meta.resolve('../../.cli.json');
 
-// Happy path tests
-CommandIntent('deploys to development by default', DeployCommand, configPath)
-  .ExpectLogs('Deploying to development...')
-  .ExpectExit(0)
-  .Run();
-
-CommandIntent('deploys to staging', DeployCommand, configPath)
-  .Flags({ env: 'staging' })
-  .ExpectLogs('Deploying to staging...')
-  .ExpectExit(0)
-  .Run();
-
-CommandIntent('deploys to production with force', DeployCommand, configPath)
-  .Flags({ env: 'production', force: true })
-  .ExpectLogs(
-    'Deploying to production...',
-    'Deployment complete!',
-  )
-  .ExpectExit(0)
-  .Run();
-
-// Dry run tests
-CommandIntent('dry run shows changes', DeployCommand, configPath)
-  .Flags({ env: 'staging', dryRun: true })
-  .ExpectLogs('Would deploy to staging')
-  .ExpectExit(0)
-  .Run();
-
-// Error cases
-CommandIntent('fails without confirmation for production', DeployCommand, configPath)
-  .Flags({ env: 'production' })  // No force flag
-  .ExpectError('Production deployment requires --force flag')
-  .Run();
-
-CommandIntent('fails with invalid environment', DeployCommand, configPath)
-  .Flags({ env: 'invalid' })
-  .ExpectError('Unknown environment: invalid')
-  .Run();
-
-// Edge cases
-CommandIntent('handles empty app name', DeployCommand, configPath)
-  .Args([''])
-  .ExpectError('App name required')
-  .Run();
-
-CommandIntent('handles special characters in app name', DeployCommand, configPath)
-  .Args(['my-app_v2.0'])
-  .ExpectLogs('Deploying my-app_v2.0')
-  .ExpectExit(0)
+CommandIntents('Deploy Command', cmd, configPath)
+  .WithInit(initFn)
+  .BeforeAll(async () => {
+    // Setup: ensure clean state
+    await Deno.remove('./tests/.deploy-temp', { recursive: true }).catch(() => {});
+  })
+  // Happy path tests
+  .Intent('deploys to development by default', (int) =>
+    int
+      .Args([])
+      .Flags({})
+      .ExpectLogs('Deploying to development...')
+      .ExpectExit(0))
+  .Intent('deploys to staging', (int) =>
+    int
+      .Args([])
+      .Flags({ env: 'staging' })
+      .ExpectLogs('Deploying to staging...')
+      .ExpectExit(0))
+  .Intent('deploys to production with force', (int) =>
+    int
+      .Args([])
+      .Flags({ env: 'production', force: true })
+      .ExpectLogs('Deploying to production...', 'Deployment complete!')
+      .ExpectExit(0))
+  // Dry run tests
+  .Intent('dry run shows changes', (int) =>
+    int
+      .Args([])
+      .Flags({ env: 'staging', dryRun: true })
+      .ExpectLogs('Would deploy to staging')
+      .ExpectExit(0))
+  // Error cases
+  .Intent('fails without confirmation for production', (int) =>
+    int
+      .Args([])
+      .Flags({ env: 'production' })  // No force flag
+      .ExpectExit(1))
+  .Intent('fails with invalid environment', (int) =>
+    int
+      .Args([])
+      .Flags({ env: 'invalid' })
+      .ExpectExit(1))
+  // Edge cases
+  .Intent('handles empty app name', (int) =>
+    int
+      .Args([''])
+      .Flags({})
+      .ExpectExit(1))
+  .Intent('handles special characters in app name', (int) =>
+    int
+      .Args(['my-app_v2.0'])
+      .Flags({})
+      .ExpectLogs('Deploying my-app_v2.0')
+      .ExpectExit(0))
   .Run();
 ```
 
@@ -452,29 +412,39 @@ CommandIntent('handles special characters in app name', DeployCommand, configPat
 
 ## Debugging Tests
 
-### View Test Output
-
-```bash
-# Run with verbose output
-LOG_LEVEL=debug deno task test
-```
-
-### Run Single Test
+### Run Single Test File
 
 ```bash
 deno test -A ./tests/intents/greet.intents.ts
 ```
 
-### Filter Tests
+### Filter Tests by Name
 
 ```bash
 deno test -A --filter "greets loudly" ./tests/.tests.ts
 ```
 
+### Verbose Output
+
+```bash
+deno test -A --allow-env ./tests/.tests.ts
+```
+
+---
+
+## When to Use Each API
+
+| Scenario | API | Reason |
+|----------|-----|--------|
+| Multiple tests for one command | `CommandIntents` | Shared setup, organized suite |
+| Single smoke test | `CommandIntent` | Simple, standalone |
+| Tests need shared initialization | `CommandIntents` | `.WithInit()` and `.BeforeAll()` |
+| Quick sanity check | `CommandIntent` | Minimal boilerplate |
+
 ---
 
 ## Related
 
-- [Testing API Reference](../api/testing.md) - Full API
+- [Testing API Reference](../api/testing.md) - Full API details
 - [Building Commands](./building-commands.md) - Command patterns
 - [Commands Concept](../concepts/commands.md) - Lifecycle

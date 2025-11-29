@@ -69,27 +69,52 @@ Create `.cli.json`:
 Create `commands/greet.ts`:
 
 ```typescript
-import { Command } from '@fathym/cli';
+import { Command, CommandParams } from '@fathym/cli';
 import { z } from 'zod';
 
-export default Command('greet', 'Greet someone by name')
-  .Args(z.tuple([
-    z.string().optional().describe('Name to greet').meta({ argName: 'name' }),
-  ]))
-  .Flags(z.object({
-    loud: z.boolean().optional().describe('Shout the greeting'),
-  }))
-  .Run(({ Params, Log }) => {
-    const name = Params.Arg(0) ?? 'World';
-    const message = `Hello, ${name}!`;
+// 1. Define schemas for arguments and flags
+const ArgsSchema = z.tuple([
+  z.string().optional().describe('Name to greet').meta({ argName: 'name' }),
+]);
 
-    if (Params.Flag('loud')) {
+const FlagsSchema = z.object({
+  loud: z.boolean().optional().describe('Shout the greeting'),
+});
+
+// 2. Create a custom Params class with getters
+// This encapsulates defaults and business logic
+class GreetParams extends CommandParams<
+  z.infer<typeof ArgsSchema>,
+  z.infer<typeof FlagsSchema>
+> {
+  get Name(): string {
+    return this.Arg(0) ?? 'World';
+  }
+
+  get IsLoud(): boolean {
+    return this.Flag('loud') ?? false;
+  }
+}
+
+// 3. Build the command with all required parts
+export default Command('greet', 'Greet someone by name')
+  .Args(ArgsSchema)
+  .Flags(FlagsSchema)
+  .Params(GreetParams)
+  .Run(({ Params, Log }) => {
+    const message = `Hello, ${Params.Name}!`;
+
+    if (Params.IsLoud) {
       Log.Info(message.toUpperCase());
     } else {
       Log.Info(message);
     }
   });
 ```
+
+> **Important:** The `Arg()` and `Flag()` methods are **protected** and can only be
+> called from within your Params class getters. Access values via the public getters
+> (`Params.Name`, `Params.IsLoud`) in your command handlers.
 
 ## Step 3: Create the Entry Point
 
@@ -98,15 +123,10 @@ Create `main.ts`:
 ```typescript
 import { CLI } from '@fathym/cli';
 
-const cli = new CLI({
-  name: 'my-cli',
-  version: '1.0.0',
-  config: import.meta.resolve('./.cli.json'),
-});
+const cli = new CLI();
 
 if (import.meta.main) {
-  const exitCode = await cli.Run(Deno.args);
-  Deno.exit(exitCode);
+  await cli.RunFromArgs(Deno.args);
 }
 ```
 
@@ -187,18 +207,27 @@ export default (async (ioc, _config) => {
 Use services in commands:
 
 ```typescript
-import { Command } from '@fathym/cli';
+import { Command, CommandParams } from '@fathym/cli';
+import { z } from 'zod';
 import type { ConfigService } from '../.cli.init.ts';
 
+const ArgsSchema = z.tuple([z.string().describe('Variable name')]);
+
+class EnvParams extends CommandParams<z.infer<typeof ArgsSchema>, {}> {
+  get Key(): string {
+    return this.Arg(0)!;
+  }
+}
+
 export default Command('env', 'Show environment variable')
-  .Args(z.tuple([z.string().describe('Variable name')]))
+  .Args(ArgsSchema)
+  .Params(EnvParams)
   .Services(async (ctx, ioc) => ({
     config: await ioc.Resolve<ConfigService>(ioc.Symbol('ConfigService')),
   }))
   .Run(({ Params, Services, Log }) => {
-    const key = Params.Arg(0);
-    const value = Services.config.Get(key) ?? '(not set)';
-    Log.Info(`${key}=${value}`);
+    const value = Services.config.Get(Params.Key) ?? '(not set)';
+    Log.Info(`${Params.Key}=${value}`);
   });
 ```
 
@@ -214,9 +243,13 @@ export default Command('env', 'Show environment variable')
 Create `commands/info.ts`:
 
 ```typescript
-import { Command, CLIDFSContextManager } from '@fathym/cli';
+import { Command, CommandParams, CLIDFSContextManager } from '@fathym/cli';
+
+// No args or flags needed for this command
+class InfoParams extends CommandParams<[], {}> {}
 
 export default Command('info', 'Show project information')
+  .Params(InfoParams)
   .Services(async (ctx, ioc) => ({
     dfs: await ioc.Resolve(CLIDFSContextManager),
   }))
@@ -246,9 +279,12 @@ Update `.cli.json`:
 Create `commands/config.ts`:
 
 ```typescript
-import { Command } from '@fathym/cli';
+import { Command, CommandParams } from '@fathym/cli';
+
+class ConfigParams extends CommandParams<[], {}> {}
 
 export default Command('config', 'Manage configuration')
+  .Params(ConfigParams)
   .Run(({ Log }) => {
     Log.Info('Available subcommands:');
     Log.Info('  config get <key>    Get a config value');
@@ -259,15 +295,23 @@ export default Command('config', 'Manage configuration')
 Create `commands/config-get.ts`:
 
 ```typescript
-import { Command } from '@fathym/cli';
+import { Command, CommandParams } from '@fathym/cli';
 import { z } from 'zod';
 
+const ArgsSchema = z.tuple([z.string().describe('Config key')]);
+
+class ConfigGetParams extends CommandParams<z.infer<typeof ArgsSchema>, {}> {
+  get Key(): string {
+    return this.Arg(0)!;
+  }
+}
+
 export default Command('config get', 'Get a configuration value')
-  .Args(z.tuple([z.string().describe('Config key')]))
+  .Args(ArgsSchema)
+  .Params(ConfigGetParams)
   .Run(({ Params, Log }) => {
-    const key = Params.Arg(0);
-    const value = Deno.env.get(key) ?? '(not set)';
-    Log.Info(`${key}=${value}`);
+    const value = Deno.env.get(Params.Key) ?? '(not set)';
+    Log.Info(`${Params.Key}=${value}`);
   });
 ```
 
@@ -295,11 +339,13 @@ Create `tests/intents/greet.intents.ts`:
 ```typescript
 import { CommandIntents } from '@fathym/cli';
 import GreetCommand from '../../commands/greet.ts';
+import initFn from '../../.cli.init.ts';
 
 const cmd = GreetCommand.Build();  // Important: call .Build() for fluent commands
 const configPath = import.meta.resolve('../../.cli.json');
 
 CommandIntents('Greet Command', cmd, configPath)
+  .WithInit(initFn)  // Optional: register services for testing
   .Intent('greets with default name', (int) =>
     int
       .Args([undefined])
@@ -351,10 +397,10 @@ deno task test
 
 ## Next Steps
 
-1. **Learn command patterns** → [Building Commands Guide](./building-commands.md)
-2. **Add template scaffolding** → [Template Scaffolding Guide](./scaffolding.md)
-3. **Test your commands** → [Testing Commands Guide](./testing-commands.md)
-4. **Compile for distribution** → [Compiling CLIs Guide](./embedded-cli.md)
+1. **Learn command patterns** -> [Building Commands Guide](./building-commands.md)
+2. **Add template scaffolding** -> [Template Scaffolding Guide](./scaffolding.md)
+3. **Test your commands** -> [Testing Commands Guide](./testing-commands.md)
+4. **Compile for distribution** -> [Compiling CLIs Guide](./embedded-cli.md)
 
 ---
 
@@ -364,14 +410,45 @@ deno task test
 
 ```typescript
 Command('key', 'description')
-  .Args(argsSchema)        // Positional arguments
-  .Flags(flagsSchema)      // Flags/options
-  .Params(ParamsClass)     // Custom params accessor
+  .Args(argsSchema)        // Positional arguments (Zod tuple)
+  .Flags(flagsSchema)      // Flags/options (Zod object)
+  .Params(ParamsClass)     // Custom params accessor (REQUIRED)
   .Services(servicesFn)    // Dependency injection
   .Init(initFn)            // Initialization
   .Run(runFn)              // Main logic
   .DryRun(dryRunFn)        // Preview mode
   .Cleanup(cleanupFn);     // Cleanup
+```
+
+### The Params Pattern
+
+```typescript
+// 1. Define schemas
+const ArgsSchema = z.tuple([z.string().optional()]);
+const FlagsSchema = z.object({ verbose: z.boolean().optional() });
+
+// 2. Create Params class with getters
+class MyParams extends CommandParams<
+  z.infer<typeof ArgsSchema>,
+  z.infer<typeof FlagsSchema>
+> {
+  get Name(): string {
+    return this.Arg(0) ?? 'default';  // Protected method in getter
+  }
+  get Verbose(): boolean {
+    return this.Flag('verbose') ?? false;  // Protected method in getter
+  }
+}
+
+// 3. Use in command
+Command('my-cmd', 'Description')
+  .Args(ArgsSchema)
+  .Flags(FlagsSchema)
+  .Params(MyParams)          // REQUIRED!
+  .Run(({ Params }) => {
+    console.log(Params.Name);     // Access via getter
+    console.log(Params.Verbose);  // Access via getter
+  });
 ```
 
 ### Flag Types

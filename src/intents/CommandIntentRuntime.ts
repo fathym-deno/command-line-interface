@@ -11,6 +11,7 @@ import {
 import type { CommandRuntime } from '../commands/CommandRuntime.ts';
 import type { CommandModule } from '../commands/CommandModule.ts';
 import type { CommandParams } from '../commands/CommandParams.ts';
+import type { CommandInvokerMap } from '../commands/CommandContext.ts';
 import { CLICommandInvocationParser } from '../parser/CLICommandInvocationParser.ts';
 import { CLIDFSContextManager } from '../CLIDFSContextManager.ts';
 import { LocalDevCLIFileSystemHooks } from '../hooks/LocalDevCLIFileSystemHooks.ts';
@@ -23,6 +24,19 @@ import { LocalDevCLIFileSystemHooks } from '../hooks/LocalDevCLIFileSystemHooks.
  * - Running the command with captured output
  * - Intercepting Deno.exit calls
  * - Validating log output and exit codes
+ * - Injecting mock services for testing
+ *
+ * ## Type-Safe Service Mocking
+ *
+ * The runtime accepts mock services typed as `Partial<S>` where `S` is the
+ * command's services type. Mock services are merged with real services,
+ * allowing partial mocking where only specific services are replaced.
+ *
+ * @typeParam A - Positional arguments tuple type
+ * @typeParam F - Flags record type
+ * @typeParam P - CommandParams subclass
+ * @typeParam S - Services record type for type-safe mocking
+ * @typeParam C - CommandInvokerMap for subcommands
  *
  * @internal Used by CommandIntentBuilder - not intended for direct use
  */
@@ -30,6 +44,8 @@ export class CommandIntentRuntime<
   A extends unknown[],
   F extends Record<string, unknown>,
   P extends CommandParams<A, F>,
+  S extends Record<string, unknown> = Record<string, unknown>,
+  C extends CommandInvokerMap = CommandInvokerMap,
 > {
   protected dfsCtxMgr: CLIDFSContextManager;
   protected expectedLogs: string[] = [];
@@ -37,7 +53,7 @@ export class CommandIntentRuntime<
   protected capturedOutput = '';
   protected actualExitCode: number | null = null;
 
-  protected runtime: CommandRuntime<P>;
+  protected runtime: CommandRuntime<P, S, C>;
   protected ioc: IoCContainer;
 
   public get Output(): string {
@@ -52,13 +68,25 @@ export class CommandIntentRuntime<
     return this.actualExitCode;
   }
 
+  /**
+   * Creates a new intent runtime.
+   *
+   * @param testName - Test description
+   * @param module - Command module to test
+   * @param args - Positional arguments
+   * @param flags - Flag values
+   * @param cliConfigUrl - Path to .cli.json
+   * @param initFn - Optional init function for IoC registration
+   * @param mockServices - Optional mock services to inject
+   */
   constructor(
     protected testName: string,
-    protected module: CommandModule<A, F, P>,
+    protected module: CommandModule<A, F, P, S, C>,
     protected args: A,
     protected flags: F,
     protected cliConfigUrl: string,
     protected initFn?: CLIInitFn,
+    protected mockServices?: Partial<S>,
   ) {
     this.ioc = new IoCContainer();
     this.runtime = new module.Command();

@@ -52,23 +52,27 @@ Human-readable description shown in help.
 
 ```typescript
 async ConfigureContext(
-  ctx: CommandContext<TArgs, TFlags, TServices>,
+  ctx: CommandContext<TParams, TServices, TCommands>,
   ioc: IoCContainer,
-): Promise<void>
+): Promise<CommandContext<TParams, TServices, TCommands>>
 ```
 
 Called by the executor to set up IoC and services. Override to add custom service resolution.
+Returns the configured context (may be the same or a modified context).
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
 | `ctx` | `CommandContext` | The command context |
 | `ioc` | `IoCContainer` | The IoC container |
 
+**Returns:** The configured `CommandContext` (with services populated)
+
 ```typescript
-class DeployCommand extends CommandRuntime<TArgs, TFlags, TServices> {
-  public override async ConfigureContext(ctx, ioc): Promise<void> {
-    await super.ConfigureContext(ctx, ioc);
+class DeployCommand extends CommandRuntime<TParams, TServices, TCommands> {
+  public override async ConfigureContext(ctx, ioc): Promise<CommandContext> {
+    const configuredCtx = await super.ConfigureContext(ctx, ioc);
     this.deployer = await ioc.Resolve(DeployerService);
+    return configuredCtx;
   }
 }
 ```
@@ -102,8 +106,8 @@ Main execution logic. Must be implemented.
 
 ```typescript
 public override async Run(ctx): Promise<void> {
-  const target = ctx.Params.Flag('env');
-  await this.deployer.deploy(target);
+  // Access via custom Params class getters (see CommandParams section)
+  await this.deployer.deploy(ctx.Params.Environment);
   ctx.Log.Success('Deployment complete!');
 }
 ```
@@ -115,11 +119,12 @@ async DryRun(ctx: CommandContext<TArgs, TFlags, TServices>): Promise<void>
 ```
 
 Preview mode execution. Override to show what would happen without side effects.
+If not overridden, defaults to calling `Run()`.
 
 ```typescript
 public override async DryRun(ctx): Promise<void> {
-  const target = ctx.Params.Flag('env');
-  ctx.Log.Info(`Would deploy to: ${target}`);
+  // Access via custom Params class getters (see CommandParams section)
+  ctx.Log.Info(`Would deploy to: ${ctx.Params.Environment}`);
   ctx.Log.Info('Files that would be deployed:');
   const files = await this.deployer.listFiles();
   files.forEach(f => ctx.Log.Info(`  - ${f}`));
@@ -204,12 +209,13 @@ interface CommandContext<TArgs, TFlags, TServices> {
 Params: CommandParams<TArgs, TFlags>
 ```
 
-Provides type-safe access to parsed arguments and flags.
+Provides type-safe access to parsed arguments and flags via your custom Params class getters.
 
 ```typescript
 .Run(({ Params }) => {
-  const name = Params.Arg(0);
-  const force = Params.Flag('force');
+  // Access via public getters defined in your Params class
+  const name = Params.Name;      // getter calls this.Arg(0)
+  const force = Params.Force;    // getter calls this.Flag('force')
 });
 ```
 

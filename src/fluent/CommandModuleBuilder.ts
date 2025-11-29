@@ -231,7 +231,7 @@ export class CommandModuleBuilder<
     return this as any;
   }
 
-  public Build(): CommandModule<TArgs, TFlags, TParams> {
+  public Build(): CommandModule<TArgs, TFlags, TParams, TServices, TCommands> {
     const {
       name,
       description,
