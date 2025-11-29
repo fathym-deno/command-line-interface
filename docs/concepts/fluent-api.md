@@ -76,8 +76,8 @@ const cmd = Command('hello', 'Say hello');
 // With namespace
 const cmd = Command('git:commit', 'Commit changes');
 
-// Subcommand style
-const cmd = Command('db migrate', 'Run database migrations');
+// Command group style (directory-based)
+const cmd = Command('db/migrate', 'Run database migrations');
 ```
 
 ### .Args(schema)

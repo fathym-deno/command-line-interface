@@ -251,30 +251,47 @@ export default Command('init', 'Initialize a new project')
   });
 ```
 
-## Subcommands
+## Command Groups
 
-Commands can be organized hierarchically:
+Commands can be organized hierarchically using directory structure with `.metadata.ts` files:
+
+```
+commands/
+├── git/
+│   ├── .metadata.ts    → mycli git (shows help)
+│   ├── commit.ts       → mycli git commit
+│   └── push.ts         → mycli git push
+```
 
 ```typescript
-// commands/git.ts - Parent command
-export default Command('git', 'Git operations')
-  .Run(({ Log }) => {
-    Log.Info('Use: git commit, git push, git status');
-  });
+// commands/git/.metadata.ts
+import { CommandModuleMetadata } from '@fathym/cli';
 
-// commands/git-commit.ts - Subcommand
-export default Command('git commit', 'Commit changes')
-  .Flags(z.object({
-    message: z.string().describe('Commit message'),
-  }))
+export default {
+  Name: 'git',
+  Description: 'Git operations',
+} as CommandModuleMetadata;
+
+// commands/git/commit.ts
+const FlagsSchema = z.object({
+  message: z.string().describe('Commit message'),
+});
+
+class CommitParams extends CommandParams<[], z.infer<typeof FlagsSchema>> {
+  get Message(): string { return this.Flag('message')!; }
+}
+
+export default Command('git/commit', 'Commit changes')
+  .Flags(FlagsSchema)
+  .Params(CommitParams)
   .Run(({ Params, Log }) => {
-    Log.Info(`Committing: ${Params.Flag('message')}`);
+    Log.Info(`Committing: ${Params.Message}`);
   });
 ```
 
-Subcommand matching:
-- `mycli git commit -m "msg"` → matches `git-commit` or `git commit`
-- `mycli git` → matches `git` parent command
+Command matching:
+- `mycli git commit -m "msg"` → matches `git/commit`
+- `mycli git --help` → shows git group commands
 
 ## Error Handling
 

@@ -115,7 +115,7 @@ The `CLICommandMatcher` resolves a command key to a registered command:
 
 Matching rules:
 - Exact key match first
-- Subcommand patterns (e.g., `git commit` → `git-commit`)
+- Command group patterns (e.g., `git commit` → `git/commit`)
 - Fallback to help command
 
 ### Argument Parsing

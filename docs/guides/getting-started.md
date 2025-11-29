@@ -274,7 +274,12 @@ Update `.cli.json`:
 }
 ```
 
-### A Command with Subcommands
+### Organizing Related Commands
+
+Group related commands under a common prefix (e.g., `config get`, `config set`).
+
+> For larger projects, use directory-based [Command Groups](./building-commands.md#command-groups)
+> with `.metadata.ts` files instead of config-based registration.
 
 Create `commands/config.ts`:
 
@@ -286,7 +291,7 @@ class ConfigParams extends CommandParams<[], {}> {}
 export default Command('config', 'Manage configuration')
   .Params(ConfigParams)
   .Run(({ Log }) => {
-    Log.Info('Available subcommands:');
+    Log.Info('Available commands:');
     Log.Info('  config get <key>    Get a config value');
     Log.Info('  config set <key>    Set a config value');
   });

@@ -423,31 +423,50 @@ Commands<T extends Record<string, CommandModule>>(
 ): CommandBuilder
 ```
 
-Define subcommands that can be invoked from within the parent command.
+Register commands that can be programmatically invoked from within the current command's Run handler.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `commands` | `Record<string, CommandModule>` | Map of subcommand keys to modules |
+| `commands` | `Record<string, CommandModule>` | Map of command names to built modules |
 
-**Returns:** Updated builder with subcommand invokers
+**Returns:** Updated builder with command invokers accessible via `Commands` in the run context
+
+> **Note:** This is for **programmatic invocation** of other commands from within a command.
+> For organizing commands into groups (like `mycli db migrate`), use directory structure
+> with `.metadata.ts` files - see [Command Groups](../guides/building-commands.md#command-groups).
+
+**Real-world example (from fathym-cli's compile command):**
 
 ```typescript
-import SubCommandA from './commands/sub-a.ts';
-import SubCommandB from './commands/sub-b.ts';
+import { join } from '@std/path/join';
+import BuildCommand from './build.ts';
 
-Command('parent', 'Parent command with subcommands')
+Command('compile', 'Compile the CLI into a native binary')
+  .Args(CompileArgsSchema)
+  .Flags(CompileFlagsSchema)
+  .Params(CompileParams)
   .Commands({
-    'sub-a': SubCommandA,
-    'sub-b': SubCommandB,
+    Build: BuildCommand.Build(),  // PascalCase key, call .Build()
   })
-  .Run(async ({ Commands, Log }) => {
-    Log.Info('Running subcommand A...');
-    await Commands['sub-a']();
+  .Services(async (ctx, ioc) => ({
+    CLIDFS: await dfsCtx.GetDFS('CLI'),
+    CLIRoot: cliRoot,
+  }))
+  .Run(async ({ Params, Log, Commands, Services }) => {
+    // Invoke the Build command programmatically before compiling
+    const { Build } = Commands!;
+    await Build([], { config: join(Services.CLIRoot, '.cli.json') });
 
-    Log.Info('Running subcommand B with args...');
-    await Commands['sub-b'](['arg1'], { flag: true });
+    Log.Info('Build complete, now compiling...');
+    // ... compilation logic
   });
 ```
+
+**Key points:**
+- Use **PascalCase** keys (e.g., `Build`, `Deploy`, `Test`)
+- Call `.Build()` on the command module when registering
+- Access via destructuring: `const { Build } = Commands!`
+- Invoke with args array and flags object: `await Build(args, flags)`
 
 ---
 
@@ -506,7 +525,7 @@ The `CommandModuleBuilder` has the same methods as the fluent API (PascalCase):
 | `Flags(schema)` | Set flags schema |
 | `Params(cls)` | Set custom params class |
 | `Services(fn)` | Set services function |
-| `Commands(cmds)` | Set subcommands |
+| `Commands(cmds)` | Register commands for programmatic invocation |
 | `Init(fn)` | Set init function |
 | `Run(fn)` | Set run function |
 | `DryRun(fn)` | Set dry-run function |

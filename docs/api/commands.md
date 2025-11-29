@@ -437,7 +437,7 @@ interface CommandMetadata {
   /** Whether --dry-run was specified */
   IsDryRun: boolean;
 
-  /** Parent command key (for subcommands) */
+  /** Parent command group key (for nested commands) */
   ParentCommand?: string;
 }
 ```

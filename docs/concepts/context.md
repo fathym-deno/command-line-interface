@@ -361,7 +361,7 @@ The `Metadata` object provides invocation details.
 | `InvokedAt` | `Date` | Invocation timestamp |
 | `RawArgs` | `string[]` | Original argv |
 | `IsDryRun` | `boolean` | Dry-run mode active |
-| `ParentCommand` | `string?` | Parent command (subcommands) |
+| `ParentCommand` | `string?` | Parent command group (for nested commands) |
 
 ## IoC Container
 

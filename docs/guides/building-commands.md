@@ -578,28 +578,57 @@ Command('send', 'Send notification')
 
 ---
 
-## Subcommands
+## Command Groups
 
-### Parent Command
+Command groups let you organize related commands under a common prefix (e.g., `mycli scaffold cloud init`). Use directory structure with `.metadata.ts` files.
 
-```typescript
-// commands/db.ts
-class DbParams extends CommandParams<[], {}> {}
+### Directory Structure
 
-export default Command('db', 'Database operations')
-  .Params(DbParams)
-  .Run(({ Log }) => {
-    Log.Info('Available commands:');
-    Log.Info('  db migrate    Run migrations');
-    Log.Info('  db seed       Seed the database');
-    Log.Info('  db reset      Reset the database');
-  });
+```
+commands/
+├── deploy.ts                    → mycli deploy
+├── scaffold/
+│   ├── .metadata.ts             → mycli scaffold (group metadata)
+│   ├── component.ts             → mycli scaffold component
+│   └── cloud/
+│       ├── .metadata.ts         → mycli scaffold cloud (nested group)
+│       └── init.ts              → mycli scaffold cloud init
+└── db/
+    ├── .metadata.ts             → mycli db (group metadata)
+    ├── migrate.ts               → mycli db migrate
+    └── seed.ts                  → mycli db seed
 ```
 
-### Subcommands
+### Group Metadata File
+
+Create a `.metadata.ts` file in each group directory:
 
 ```typescript
-// commands/db-migrate.ts
+// commands/scaffold/.metadata.ts
+import { CommandModuleMetadata } from '@fathym/cli';
+
+export default {
+  Name: 'scaffold',
+  Description: 'Generate new project components',
+} as CommandModuleMetadata;
+```
+
+```typescript
+// commands/scaffold/cloud/.metadata.ts
+import { CommandModuleMetadata } from '@fathym/cli';
+
+export default {
+  Name: 'scaffold/cloud',
+  Description: 'Scaffold cloud infrastructure components',
+} as CommandModuleMetadata;
+```
+
+### Commands in Groups
+
+Commands in a group directory work the same as regular commands:
+
+```typescript
+// commands/db/migrate.ts
 const FlagsSchema = z.object({
   steps: z.number().optional().describe('Number of migrations'),
 });
@@ -608,36 +637,26 @@ class MigrateParams extends CommandParams<[], z.infer<typeof FlagsSchema>> {
   get Steps(): number | undefined { return this.Flag('steps'); }
 }
 
-export default Command('db migrate', 'Run database migrations')
+export default Command('db/migrate', 'Run database migrations')
   .Flags(FlagsSchema)
   .Params(MigrateParams)
   .Run(async ({ Params, Log }) => {
-    const steps = Params.Steps;
-    Log.Info(`Running ${steps ?? 'all'} migrations...`);
-  });
-
-// commands/db-seed.ts
-class SeedParams extends CommandParams<[], {}> {}
-
-export default Command('db seed', 'Seed the database')
-  .Params(SeedParams)
-  .Run(({ Log }) => {
-    Log.Info('Seeding database...');
+    Log.Info(`Running ${Params.Steps ?? 'all'} migrations...`);
   });
 ```
 
-### Configuration
+### CLI Configuration
+
+Point to the commands directory:
 
 ```json
 {
-  "commands": {
-    "db": "./commands/db.ts",
-    "db migrate": "./commands/db-migrate.ts",
-    "db seed": "./commands/db-seed.ts",
-    "db reset": "./commands/db-reset.ts"
-  }
+  "Tokens": ["mycli"],
+  "Commands": "./commands"
 }
 ```
+
+The framework automatically discovers commands from the directory structure.
 
 ---
 
@@ -839,20 +858,19 @@ mycli --help           # Shows CLI root help
 
 ### Group Metadata Files
 
-Create `.metadata.ts` files for command groups:
+Create `.metadata.ts` files for command groups (simple object format):
 
 ```typescript
 // commands/db/.metadata.ts
-import { Command, CommandParams } from '@fathym/cli';
+import { CommandModuleMetadata } from '@fathym/cli';
 
-class DbGroupParams extends CommandParams<[], {}> {}
-
-export default Command('db', 'Database management commands')
-  .Params(DbGroupParams)
-  .Run(({ Log }) => {
-    Log.Info('Use --help to see available database commands');
-  });
+export default {
+  Name: 'db',
+  Description: 'Database management commands',
+} as CommandModuleMetadata;
 ```
+
+See [Command Groups](#command-groups) for more details on organizing commands with directories.
 
 ### Custom Examples
 

@@ -266,27 +266,22 @@ CommandIntents('Delete Command', DeleteCommand.Build(), configPath)
   .Run();
 ```
 
-### Testing Subcommands
+### Testing Command Groups
 
 ```typescript
-// Test parent command shows help
-CommandIntents('Db Command', DbCommand.Build(), configPath)
-  .WithInit(initFn)
-  .Intent('shows subcommand help', (int) =>
-    int
-      .Args([])
-      .Flags({})
-      .ExpectLogs('Available commands:', 'db migrate', 'db seed')
-      .ExpectExit(0))
-  .Run();
-
-// Test subcommand separately
+// Test each command in a group separately
 CommandIntents('Db Migrate Command', DbMigrateCommand.Build(), configPath)
   .WithInit(initFn)
   .Intent('runs migrations', (int) =>
     int.Args([]).Flags({ steps: 5 }).ExpectLogs('Running 5 migrations').ExpectExit(0))
   .Intent('runs all migrations by default', (int) =>
     int.Args([]).Flags({}).ExpectLogs('Running all migrations').ExpectExit(0))
+  .Run();
+
+CommandIntents('Db Seed Command', DbSeedCommand.Build(), configPath)
+  .WithInit(initFn)
+  .Intent('seeds database', (int) =>
+    int.Args([]).Flags({}).ExpectLogs('Seeding database').ExpectExit(0))
   .Run();
 ```
 
