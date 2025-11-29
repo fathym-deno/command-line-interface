@@ -12,6 +12,74 @@ import { CLICommandRegistry } from './CLICommandRegistry.ts';
 
 type TelemetryWriterGlobal = { __telemetryWriter?: WriterSync };
 
+/**
+ * Main CLI runtime orchestrator.
+ *
+ * The CLI class coordinates all aspects of command-line application execution:
+ * configuration loading, command resolution, argument parsing, and command
+ * execution. It serves as the primary entry point for CLI applications.
+ *
+ * ## Execution Flow
+ *
+ * ```
+ * ┌─────────────────────────────────────────────────────────────────────┐
+ * │  1. RunFromArgs(args)                                               │
+ * │     └── ResolveConfig() → Load .cli.json                            │
+ * ├─────────────────────────────────────────────────────────────────────┤
+ * │  2. RunWithConfig(config, args, path)                               │
+ * │     ├── registerTelemetry() → Setup logging                         │
+ * │     ├── ParseInvocation() → Extract command key, flags, args        │
+ * │     ├── initialize() → Run init function, register DFS contexts     │
+ * │     ├── resolveAllCommandSources() → Load command modules           │
+ * │     └── CLICommandMatcher.Resolve() → Find matching command         │
+ * ├─────────────────────────────────────────────────────────────────────┤
+ * │  3. CLICommandExecutor.Execute()                                    │
+ * │     └── Run the matched command through its lifecycle               │
+ * └─────────────────────────────────────────────────────────────────────┘
+ * ```
+ *
+ * ## Features
+ * - Automatic `.cli.json` configuration discovery
+ * - Multiple command source support (filesystem, in-memory)
+ * - Duplicate command detection with detailed error messages
+ * - IoC container integration for dependency injection
+ * - Telemetry and structured logging
+ * - DFS context management for file operations
+ *
+ * @example Basic CLI setup
+ * ```typescript
+ * import { CLI } from '@fathym/cli';
+ *
+ * const cli = new CLI();
+ * await cli.RunFromArgs(Deno.args);
+ * ```
+ *
+ * @example CLI with custom resolver (for compiled/embedded CLIs)
+ * ```typescript
+ * import { CLI, CLICommandResolver } from '@fathym/cli';
+ * import { EmbeddedCLIFileSystemHooks } from './EmbeddedCLIFileSystemHooks.ts';
+ *
+ * const cli = new CLI({
+ *   resolver: new CLICommandResolver(new EmbeddedCLIFileSystemHooks()),
+ * });
+ *
+ * await cli.RunFromArgs(Deno.args);
+ * ```
+ *
+ * @example CLI with programmatic commands
+ * ```typescript
+ * import { CLI, CLICommandRegistry, Command } from '@fathym/cli';
+ *
+ * const cli = new CLI();
+ * const registry = await cli.ioc.Resolve(CLICommandRegistry);
+ *
+ * registry.Register('greet', Command('Greet', 'Say hello')
+ *   .Run(({ Log }) => Log.Info('Hello!'))
+ * );
+ *
+ * await cli.RunFromArgs(Deno.args);
+ * ```
+ */
 export class CLI {
   protected dfsCtxMgr: CLIDFSContextManager;
   protected resolver: CLICommandResolver;
@@ -35,6 +103,20 @@ export class CLI {
     this.ioc.Register(CLICommandRegistry, () => this.registry);
   }
 
+  /**
+   * Run the CLI from raw command-line arguments.
+   *
+   * This is the primary entry point for CLI applications. It resolves
+   * the configuration file, parses arguments, and executes the matched command.
+   *
+   * @param args - Command-line arguments (typically `Deno.args`)
+   *
+   * @example
+   * ```typescript
+   * const cli = new CLI();
+   * await cli.RunFromArgs(Deno.args);
+   * ```
+   */
   async RunFromArgs(args: string[]): Promise<void> {
     const { config, resolvedPath, remainingArgs } = await this.resolver
       .ResolveConfig(args);
@@ -42,6 +124,16 @@ export class CLI {
     return await this.RunWithConfig(config, remainingArgs, resolvedPath);
   }
 
+  /**
+   * Run the CLI with a pre-loaded configuration.
+   *
+   * Use this when you already have the configuration object, such as
+   * in compiled CLIs or testing scenarios.
+   *
+   * @param config - The CLI configuration object
+   * @param args - Remaining command-line arguments after config resolution
+   * @param configPath - Absolute path to the configuration file
+   */
   public async RunWithConfig(
     config: CLIConfig,
     args: string[],

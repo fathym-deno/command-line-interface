@@ -1,0 +1,388 @@
+---
+FrontmatterVersion: 1
+DocumentType: Concept
+Title: Fluent API
+Summary: Deep-dive into the fluent builder pattern for defining CLI commands.
+Created: 2025-11-29
+Updated: 2025-11-29
+Owners:
+  - fathym-platform
+References:
+  - Label: Documentation Index
+    Path: ../README.md
+  - Label: Commands Concept
+    Path: ./commands.md
+  - Label: Fluent API Reference
+    Path: ../api/fluent.md
+---
+
+# Fluent API
+
+The fluent API provides a chainable, type-safe builder pattern for defining CLI commands. It emphasizes readability and discoverability while maintaining full type inference.
+
+## Overview
+
+```typescript
+import { Command } from '@fathym/cli';
+import { z } from 'zod';
+
+export default Command('deploy', 'Deploy the application')
+  .Args(z.tuple([z.string().describe('Target environment')]))
+  .Flags(z.object({ force: z.boolean().optional() }))
+  .Services(async (ctx, ioc) => ({ deployer: await ioc.Resolve(Deployer) }))
+  .Init(async ({ Log }) => { Log.Debug('Initializing...'); })
+  .Run(async ({ Params, Services }) => { await Services.deployer.deploy(); })
+  .Cleanup(async ({ Log }) => { Log.Debug('Cleanup complete'); });
+```
+
+## Builder Chain
+
+The fluent API uses a progressive builder pattern. Each method returns a new builder with accumulated configuration:
+
+```
+Command(key, description)
+    │
+    ├──▶ .Args(schema)         Define positional arguments
+    │         │
+    │         ├──▶ .Flags(schema)      Define flags/options
+    │         │         │
+    │         │         ├──▶ .Params(class)    Custom params accessor
+    │         │         │         │
+    │         │         │         ├──▶ .Services(fn)   Inject dependencies
+    │         │         │         │         │
+    │         │         │         │         ├──▶ .Init(fn)      Init phase
+    │         │         │         │         │         │
+    │         │         │         │         │         ├──▶ .Run(fn)       Main logic
+    │         │         │         │         │         │         │
+    │         │         │         │         │         │         ├──▶ .DryRun(fn)   Preview mode
+    │         │         │         │         │         │         │         │
+    │         │         │         │         │         │         │         └──▶ .Cleanup(fn)  Cleanup
+```
+
+Methods can be called in any order (except `Command()` must be first), but the above order is conventional.
+
+## Core Methods
+
+### Command(key, description)
+
+Entry point that creates a new command builder:
+
+```typescript
+import { Command } from '@fathym/cli';
+
+// Simple command
+const cmd = Command('hello', 'Say hello');
+
+// With namespace
+const cmd = Command('git:commit', 'Commit changes');
+
+// Subcommand style
+const cmd = Command('db migrate', 'Run database migrations');
+```
+
+### .Args(schema)
+
+Define positional arguments using a Zod tuple schema:
+
+```typescript
+import { z } from 'zod';
+
+Command('greet', 'Greet users')
+  .Args(z.tuple([
+    z.string().describe('First name').meta({ argName: 'firstName' }),
+    z.string().optional().describe('Last name').meta({ argName: 'lastName' }),
+  ]))
+  .Run(({ Params }) => {
+    const first = Params.Arg(0);  // string
+    const last = Params.Arg(1);   // string | undefined
+  });
+```
+
+Schema requirements:
+- Must be a Zod tuple (`z.tuple([...])`)
+- Each element describes one positional argument
+- Use `.optional()` for optional arguments
+- Use `.meta({ argName: 'name' })` for help display
+
+### .Flags(schema)
+
+Define flags/options using a Zod object schema:
+
+```typescript
+Command('deploy', 'Deploy application')
+  .Flags(z.object({
+    env: z.string().default('production').describe('Target environment'),
+    force: z.boolean().optional().describe('Skip confirmation'),
+    replicas: z.number().min(1).max(10).default(1).describe('Instance count'),
+    tags: z.array(z.string()).optional().describe('Resource tags'),
+  }))
+  .Run(({ Params }) => {
+    const env = Params.Flag('env');      // string (has default)
+    const force = Params.Flag('force');  // boolean | undefined
+    const replicas = Params.Flag('replicas');  // number (has default)
+  });
+```
+
+Flag features:
+- Boolean flags: `--force` or `--no-force`
+- Value flags: `--env=staging` or `--env staging`
+- Short flags: `-f` (mapped via configuration)
+- Array flags: `--tag=one --tag=two`
+
+### .Params(ParamsClass)
+
+Provide a custom params class for complex argument access:
+
+```typescript
+import { CommandParams } from '@fathym/cli';
+
+class DeployParams extends CommandParams<typeof ArgsSchema, typeof FlagsSchema> {
+  get Environment(): string {
+    return this.Flag('env') ?? 'production';
+  }
+
+  get IsProduction(): boolean {
+    return this.Environment === 'production';
+  }
+
+  get Target(): string {
+    return this.Arg(0) ?? (this.IsProduction ? 'prod-cluster' : 'dev-cluster');
+  }
+}
+
+Command('deploy', 'Deploy application')
+  .Args(ArgsSchema)
+  .Flags(FlagsSchema)
+  .Params(DeployParams)
+  .Run(({ Params }) => {
+    // Type-safe access to computed properties
+    console.log(Params.Environment);   // string
+    console.log(Params.IsProduction);  // boolean
+    console.log(Params.Target);        // string
+  });
+```
+
+### .Services(servicesFn)
+
+Inject dependencies from the IoC container:
+
+```typescript
+import { CLIDFSContextManager } from '@fathym/cli';
+
+Command('build', 'Build project')
+  .Services(async (ctx, ioc) => ({
+    dfs: await ioc.Resolve(CLIDFSContextManager),
+    config: await ioc.Resolve(ConfigService),
+    builder: new ProjectBuilder(ctx.Params.Flag('target')),
+  }))
+  .Run(async ({ Services, Log }) => {
+    const root = await Services.dfs.GetProjectDFS();
+    Log.Info(`Building from ${root.Root}`);
+    await Services.builder.build();
+  });
+```
+
+Service function parameters:
+- `ctx`: Partial command context (has Params, Config, etc.)
+- `ioc`: IoC container for dependency resolution
+
+### .Init(initFn)
+
+Define initialization logic:
+
+```typescript
+Command('deploy', 'Deploy application')
+  .Init(async ({ Params, Log, Services }) => {
+    Log.Debug('Validating deployment configuration...');
+
+    if (Params.Flag('env') === 'production') {
+      const confirmed = await Services.prompt.confirm('Deploy to production?');
+      if (!confirmed) {
+        throw new Error('Deployment cancelled');
+      }
+    }
+  })
+  .Run(async ({ Services }) => {
+    await Services.deployer.deploy();
+  });
+```
+
+### .Run(runFn)
+
+Define the main execution logic:
+
+```typescript
+Command('greet', 'Greet someone')
+  .Args(z.tuple([z.string()]))
+  .Run(({ Params, Log }) => {
+    const name = Params.Arg(0);
+    Log.Info(`Hello, ${name}!`);
+  });
+```
+
+The run function receives the full `CommandContext`:
+- `Params` - Argument and flag access
+- `Services` - Injected dependencies
+- `Log` - Logging facade
+- `Config` - CLI configuration
+- `Metadata` - Invocation metadata
+
+### .DryRun(dryRunFn)
+
+Define preview/simulation logic:
+
+```typescript
+Command('delete', 'Delete files')
+  .Args(z.tuple([z.string()]))
+  .Run(async ({ Params, Log }) => {
+    await Deno.remove(Params.Arg(0), { recursive: true });
+    Log.Success('Files deleted');
+  })
+  .DryRun(async ({ Params, Log }) => {
+    const path = Params.Arg(0);
+    const files = await listFilesRecursive(path);
+    Log.Info('Would delete the following files:');
+    files.forEach(f => Log.Info(`  - ${f}`));
+  });
+```
+
+Dry-run is activated via `--dry-run` flag or `CLI_DRY_RUN` env var.
+
+### .Cleanup(cleanupFn)
+
+Define cleanup logic (runs even on error):
+
+```typescript
+Command('process', 'Process data')
+  .Services(async () => ({
+    tempFile: await Deno.makeTempFile(),
+  }))
+  .Run(async ({ Services }) => {
+    await processWithTempFile(Services.tempFile);
+  })
+  .Cleanup(async ({ Services, Log }) => {
+    try {
+      await Deno.remove(Services.tempFile);
+    } catch {
+      Log.Warn('Could not remove temp file');
+    }
+  });
+```
+
+## Type Inference
+
+The fluent API provides full type inference through the chain:
+
+```typescript
+const ArgsSchema = z.tuple([z.string(), z.number().optional()]);
+const FlagsSchema = z.object({ verbose: z.boolean().optional() });
+
+Command('example', 'Example command')
+  .Args(ArgsSchema)
+  .Flags(FlagsSchema)
+  .Run(({ Params }) => {
+    // Types are inferred from schemas
+    const name = Params.Arg(0);     // string
+    const count = Params.Arg(1);    // number | undefined
+    const verbose = Params.Flag('verbose');  // boolean | undefined
+
+    // Type errors caught at compile time
+    Params.Arg(5);           // Error: Index out of bounds
+    Params.Flag('unknown');  // Error: Property doesn't exist
+  });
+```
+
+## Advanced Patterns
+
+### Conditional Services
+
+Services can be conditionally created based on params:
+
+```typescript
+Command('deploy', 'Deploy application')
+  .Flags(z.object({ provider: z.enum(['aws', 'gcp', 'azure']) }))
+  .Services(async (ctx, ioc) => {
+    const provider = ctx.Params.Flag('provider');
+
+    return {
+      deployer: provider === 'aws'
+        ? await ioc.Resolve(AWSDeployer)
+        : provider === 'gcp'
+        ? await ioc.Resolve(GCPDeployer)
+        : await ioc.Resolve(AzureDeployer),
+    };
+  })
+  .Run(async ({ Services }) => {
+    await Services.deployer.deploy();
+  });
+```
+
+### Composable Builders
+
+Create reusable command configurations:
+
+```typescript
+// Shared configuration
+function withVerboseFlag<T extends CommandBuilder>(builder: T) {
+  return builder.Flags(z.object({
+    verbose: z.boolean().optional().describe('Enable verbose output'),
+  }));
+}
+
+// Apply to commands
+Command('build', 'Build project')
+  .use(withVerboseFlag)
+  .Run(({ Params, Log }) => {
+    if (Params.Flag('verbose')) {
+      Log.Debug('Verbose mode enabled');
+    }
+  });
+```
+
+### Async Initialization
+
+Services and Init can be async for complex setup:
+
+```typescript
+Command('sync', 'Sync data')
+  .Services(async (ctx, ioc) => {
+    const client = await createDatabaseClient(ctx.Params.Flag('db'));
+    await client.connect();
+    return { client };
+  })
+  .Init(async ({ Services, Log }) => {
+    Log.Info('Checking database schema...');
+    await Services.client.validateSchema();
+  })
+  .Run(async ({ Services }) => {
+    await Services.client.sync();
+  })
+  .Cleanup(async ({ Services }) => {
+    await Services.client.disconnect();
+  });
+```
+
+## Module Builder
+
+For more control, use `CommandModuleBuilder` directly:
+
+```typescript
+import { CommandModuleBuilder } from '@fathym/cli';
+
+const builder = new CommandModuleBuilder('advanced', 'Advanced command');
+
+builder
+  .setArgsSchema(ArgsSchema)
+  .setFlagsSchema(FlagsSchema)
+  .setServices(servicesFn)
+  .setRun(runFn);
+
+export default builder.Build();
+```
+
+## Related
+
+- [Commands Concept](./commands.md) - Command lifecycle
+- [Execution Context](./context.md) - Context object
+- [Fluent API Reference](../api/fluent.md) - Detailed API
+- [Building Commands Guide](../guides/building-commands.md) - Patterns and examples

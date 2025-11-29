@@ -1,0 +1,383 @@
+---
+FrontmatterVersion: 1
+DocumentType: Concept
+Title: Commands
+Summary: Command lifecycle, patterns, and best practices for CLI commands.
+Created: 2025-11-29
+Updated: 2025-11-29
+Owners:
+  - fathym-platform
+References:
+  - Label: Documentation Index
+    Path: ../README.md
+  - Label: Fluent API Concept
+    Path: ./fluent-api.md
+  - Label: Commands API
+    Path: ../api/commands.md
+---
+
+# Commands
+
+Commands are the core building blocks of a CLI application. Each command represents a distinct action the user can invoke.
+
+## Command Lifecycle
+
+Every command follows a predictable lifecycle:
+
+```
+┌─────────────────────────────────────────────────────────────────────────┐
+│                         Command Lifecycle                                │
+├─────────────────────────────────────────────────────────────────────────┤
+│                                                                         │
+│  ┌───────────────────┐                                                  │
+│  │ ConfigureContext  │  Setup IoC, register services                    │
+│  │    (automatic)    │  Called by executor before Init                  │
+│  └─────────┬─────────┘                                                  │
+│            ▼                                                            │
+│  ┌───────────────────┐                                                  │
+│  │       Init        │  Initialize command state                        │
+│  │    (optional)     │  Prepare resources, validate preconditions       │
+│  └─────────┬─────────┘                                                  │
+│            ▼                                                            │
+│  ┌───────────────────┐                                                  │
+│  │   Run / DryRun    │  Execute main logic                              │
+│  │    (required)     │  DryRun shows what would happen                  │
+│  └─────────┬─────────┘                                                  │
+│            ▼                                                            │
+│  ┌───────────────────┐                                                  │
+│  │      Cleanup      │  Release resources                               │
+│  │    (optional)     │  Called even if Run throws                       │
+│  └───────────────────┘                                                  │
+│                                                                         │
+└─────────────────────────────────────────────────────────────────────────┘
+```
+
+### ConfigureContext
+
+Called automatically by the executor to set up the command's IoC container and services.
+
+```typescript
+// Fluent API: defined via .Services()
+Command('deploy', 'Deploy the project')
+  .Services(async (ctx, ioc) => ({
+    config: await ioc.Resolve(ConfigService),
+    dfs: await ioc.Resolve(CLIDFSContextManager),
+  }));
+
+// Class-based: override ConfigureContext()
+class DeployCommand extends CommandRuntime {
+  public override async ConfigureContext(
+    ctx: CommandContext,
+    ioc: IoCContainer,
+  ): Promise<void> {
+    await super.ConfigureContext(ctx, ioc);
+    this.config = await ioc.Resolve(ConfigService);
+  }
+}
+```
+
+### Init
+
+Optional initialization phase for setting up state or validating preconditions.
+
+```typescript
+// Fluent API: use .Init()
+Command('deploy', 'Deploy the project')
+  .Init(async ({ Log, Services }) => {
+    Log.Debug('Checking deployment prerequisites...');
+    if (!await Services.config.IsConfigured()) {
+      throw new Error('Project not configured');
+    }
+  });
+
+// Class-based: override Init()
+class DeployCommand extends CommandRuntime {
+  public override async Init(ctx: CommandContext): Promise<void> {
+    this.deployTarget = await this.loadDeployTarget();
+  }
+}
+```
+
+### Run / DryRun
+
+The main execution phase. `Run` performs the action; `DryRun` shows what would happen.
+
+```typescript
+Command('deploy', 'Deploy the project')
+  .Run(async ({ Params, Log, Services }) => {
+    const env = Params.Flag('env') ?? 'production';
+    Log.Info(`Deploying to ${env}...`);
+    await Services.deployer.Deploy(env);
+    Log.Success('Deployment complete!');
+  })
+  .DryRun(async ({ Params, Log }) => {
+    const env = Params.Flag('env') ?? 'production';
+    Log.Info(`Would deploy to ${env}`);
+    Log.Info('Files that would be deployed:');
+    // List files without actually deploying
+  });
+```
+
+### Cleanup
+
+Optional cleanup phase, called even if `Run` throws an error.
+
+```typescript
+Command('process', 'Process files')
+  .Services(async (ctx, ioc) => ({
+    tempDir: await createTempDir(),
+  }))
+  .Run(async ({ Services }) => {
+    await processFiles(Services.tempDir);
+  })
+  .Cleanup(async ({ Services, Log }) => {
+    await Deno.remove(Services.tempDir, { recursive: true });
+    Log.Debug('Temporary files cleaned up');
+  });
+```
+
+## Command Patterns
+
+### Simple Command
+
+A minimal command with no arguments or flags:
+
+```typescript
+import { Command } from '@fathym/cli';
+
+export default Command('version', 'Show version information')
+  .Run(({ Log, Config }) => {
+    Log.Info(`${Config.name} v${Config.version}`);
+  });
+```
+
+### Command with Arguments
+
+Positional arguments are defined with Zod tuple schemas:
+
+```typescript
+import { Command } from '@fathym/cli';
+import { z } from 'zod';
+
+export default Command('greet', 'Greet someone')
+  .Args(z.tuple([
+    z.string().describe('Name to greet').meta({ argName: 'name' }),
+    z.string().optional().describe('Custom greeting').meta({ argName: 'greeting' }),
+  ]))
+  .Run(({ Params, Log }) => {
+    const name = Params.Arg(0);
+    const greeting = Params.Arg(1) ?? 'Hello';
+    Log.Info(`${greeting}, ${name}!`);
+  });
+```
+
+### Command with Flags
+
+Flags are defined with Zod object schemas:
+
+```typescript
+import { Command } from '@fathym/cli';
+import { z } from 'zod';
+
+export default Command('deploy', 'Deploy the project')
+  .Flags(z.object({
+    env: z.string().default('production').describe('Target environment'),
+    force: z.boolean().optional().describe('Force deployment'),
+    replicas: z.number().default(1).describe('Number of replicas'),
+  }))
+  .Run(({ Params, Log }) => {
+    const env = Params.Flag('env');
+    const force = Params.Flag('force');
+    const replicas = Params.Flag('replicas');
+    Log.Info(`Deploying to ${env} with ${replicas} replicas`);
+  });
+```
+
+### Command with Services
+
+Inject dependencies via the IoC container:
+
+```typescript
+import { Command, CLIDFSContextManager } from '@fathym/cli';
+
+export default Command('build', 'Build the project')
+  .Services(async (ctx, ioc) => ({
+    dfs: await ioc.Resolve(CLIDFSContextManager),
+    builder: await ioc.Resolve(ProjectBuilder),
+  }))
+  .Run(async ({ Services, Log }) => {
+    const projectDfs = await Services.dfs.GetProjectDFS();
+    Log.Info(`Building from: ${projectDfs.Root}`);
+    await Services.builder.Build(projectDfs);
+  });
+```
+
+### Command with Custom Params
+
+Create a custom params class for complex argument access:
+
+```typescript
+import { Command, CommandParams } from '@fathym/cli';
+import { z } from 'zod';
+
+const ArgsSchema = z.tuple([
+  z.string().optional().describe('Project name'),
+]);
+
+const FlagsSchema = z.object({
+  template: z.string().optional().describe('Template to use'),
+});
+
+class InitParams extends CommandParams<
+  z.infer<typeof ArgsSchema>,
+  z.infer<typeof FlagsSchema>
+> {
+  get ProjectName(): string {
+    const arg = this.Arg(0);
+    return !arg || arg === '.' ? Deno.cwd().split('/').pop()! : arg;
+  }
+
+  get Template(): string {
+    return this.Flag('template') ?? 'default';
+  }
+}
+
+export default Command('init', 'Initialize a new project')
+  .Args(ArgsSchema)
+  .Flags(FlagsSchema)
+  .Params(InitParams)
+  .Run(({ Params, Log }) => {
+    Log.Info(`Creating ${Params.ProjectName} from ${Params.Template} template`);
+  });
+```
+
+## Subcommands
+
+Commands can be organized hierarchically:
+
+```typescript
+// commands/git.ts - Parent command
+export default Command('git', 'Git operations')
+  .Run(({ Log }) => {
+    Log.Info('Use: git commit, git push, git status');
+  });
+
+// commands/git-commit.ts - Subcommand
+export default Command('git commit', 'Commit changes')
+  .Flags(z.object({
+    message: z.string().describe('Commit message'),
+  }))
+  .Run(({ Params, Log }) => {
+    Log.Info(`Committing: ${Params.Flag('message')}`);
+  });
+```
+
+Subcommand matching:
+- `mycli git commit -m "msg"` → matches `git-commit` or `git commit`
+- `mycli git` → matches `git` parent command
+
+## Error Handling
+
+Commands can throw errors to indicate failure:
+
+```typescript
+Command('deploy', 'Deploy the project')
+  .Run(async ({ Params, Log }) => {
+    const env = Params.Flag('env');
+
+    if (!['staging', 'production'].includes(env)) {
+      throw new Error(`Invalid environment: ${env}`);
+    }
+
+    try {
+      await performDeployment(env);
+    } catch (error) {
+      Log.Error(`Deployment failed: ${error.message}`);
+      throw error; // Re-throw to set exit code
+    }
+  });
+```
+
+Exit codes:
+- `0` - Success (no errors)
+- `1` - General error (thrown exception)
+- Custom codes via `Deno.exit(code)`
+
+## Best Practices
+
+### Keep Commands Focused
+
+Each command should do one thing well:
+
+```typescript
+// Good: Single responsibility
+Command('build', 'Build the project').Run(...);
+Command('deploy', 'Deploy the project').Run(...);
+
+// Avoid: Too many responsibilities
+Command('build-and-deploy-and-notify', '...').Run(...);
+```
+
+### Use Descriptive Names
+
+Command and flag names should be self-documenting:
+
+```typescript
+// Good: Clear intent
+Command('generate-config', 'Generate configuration file')
+  .Flags(z.object({
+    outputPath: z.string().describe('Output file path'),
+    overwrite: z.boolean().describe('Overwrite existing file'),
+  }));
+
+// Avoid: Cryptic names
+Command('gc', 'gc')
+  .Flags(z.object({
+    o: z.string(),
+    w: z.boolean(),
+  }));
+```
+
+### Provide Helpful Descriptions
+
+All commands, arguments, and flags should have descriptions:
+
+```typescript
+Command('deploy', 'Deploy the application to a target environment')
+  .Args(z.tuple([
+    z.string()
+      .describe('Deployment target (e.g., staging, production)')
+      .meta({ argName: 'target' }),
+  ]))
+  .Flags(z.object({
+    dryRun: z.boolean()
+      .optional()
+      .describe('Preview changes without deploying'),
+    timeout: z.number()
+      .default(300)
+      .describe('Deployment timeout in seconds'),
+  }));
+```
+
+### Handle Async Operations
+
+Use async/await properly and handle cleanup:
+
+```typescript
+Command('process', 'Process files')
+  .Run(async ({ Log }) => {
+    const handle = await openResource();
+    try {
+      await processWithHandle(handle);
+    } finally {
+      await handle.close();
+    }
+  });
+```
+
+## Related
+
+- [Fluent API Concept](./fluent-api.md) - Builder pattern details
+- [Execution Context](./context.md) - Context object
+- [Commands API](../api/commands.md) - API reference
+- [Testing Commands Guide](../guides/testing-commands.md) - Testing with intents
