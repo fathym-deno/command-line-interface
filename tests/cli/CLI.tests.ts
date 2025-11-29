@@ -75,6 +75,20 @@ Deno.test('CLI – Help Coverage', async (t) => {
     assertMatch(text, /Examples:/);
   });
 
+  await t.step('Command Help: hello (with arg/flag descriptions)', async () => {
+    const logs = await captureLogs(() => cli.RunFromArgs([configPath, 'hello', '--help']));
+    const text = stripColor(logs);
+    assertMatch(text, /📘 Command: Hello/);
+    assertMatch(text, /Prints a friendly greeting\./);
+    // Args should show description from .describe()
+    assertMatch(text, /Args:/);
+    assertMatch(text, /Name to greet/);
+    // Flags should show name and description from .describe()
+    assertMatch(text, /Flags:/);
+    assertMatch(text, /--loud - Shout the greeting/);
+    assertMatch(text, /--dry-run - Show the message without printing/);
+  });
+
   await t.step('Unknown Command Help: scaffold/clod', async () => {
     const logs = await captureLogs(() => cli.RunFromArgs([configPath, 'scaffold/clod']));
     const text = stripColor(logs);

@@ -111,13 +111,17 @@ export abstract class CommandRuntime<
 
     if ((argsSchema as any)?._def?.items?.length) {
       (argsSchema as any)._def.items.forEach((item: any, i: number) => {
-        const name = item._def?.meta?.argName ?? `arg${i + 1}`;
+        // Zod 4: meta is accessed via .meta() method, fallback to _def.meta for older versions
+        const meta = typeof item.meta === 'function' ? item.meta() : item._def?.meta;
+        const argName = meta?.argName ?? `arg${i + 1}`;
         const optional = typeof item.isOptional === 'function'
           ? item.isOptional()
-          : item._def?.typeName === 'ZodOptional';
+          : item._def?.typeName === 'ZodOptional' || item._def?.type === 'optional';
+        // Zod 4: description is a direct property, fallback to _def for older versions
+        const itemDescription = item.description ?? item._def?.description;
         argsMeta.push({
-          Name: name,
-          Description: item._def?.description,
+          Name: argName,
+          Description: itemDescription,
           Optional: optional,
         });
       });
@@ -130,14 +134,22 @@ export abstract class CommandRuntime<
       typeof flagsSchema === 'object' &&
       'shape' in flagsSchema
     ) {
-      Object.entries((flagsSchema as any).shape).forEach(([name, schema]) => {
-        const displayName = (schema as any)._def?.meta?.flagName ?? name;
+      Object.entries((flagsSchema as any).shape).forEach(([flagKey, schema]) => {
+        // Zod 4: meta is accessed via .meta() method, fallback to _def.meta for older versions
+        const meta = typeof (schema as any).meta === 'function'
+          ? (schema as any).meta()
+          : (schema as any)._def?.meta;
+        const displayName = meta?.flagName ?? flagKey;
         const optional = typeof (schema as any).isOptional === 'function'
           ? (schema as any).isOptional()
-          : (schema as any)._def?.typeName === 'ZodOptional';
+          : (schema as any)._def?.typeName === 'ZodOptional' ||
+            (schema as any)._def?.type === 'optional';
+        // Zod 4: description is a direct property, fallback to _def for older versions
+        const flagDescription = (schema as any).description ??
+          (schema as any)._def?.description;
         flagsMeta.push({
           Name: displayName,
-          Description: (schema as any)._def?.description,
+          Description: flagDescription,
           Optional: optional,
         });
       });
