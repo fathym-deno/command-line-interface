@@ -75,18 +75,35 @@ Deno.test('CLI – Help Coverage', async (t) => {
     assertMatch(text, /Examples:/);
   });
 
-  await t.step('Command Help: hello (with arg/flag descriptions)', async () => {
+  await t.step('Command Help: hello (with custom arg name)', async () => {
     const logs = await captureLogs(() => cli.RunFromArgs([configPath, 'hello', '--help']));
     const text = stripColor(logs);
     assertMatch(text, /📘 Command: Hello/);
     assertMatch(text, /Prints a friendly greeting\./);
-    // Args should show description from .describe()
+    // Args should show custom argName <name> from .meta({ argName: 'name' }), NOT <arg1>
     assertMatch(text, /Args:/);
-    assertMatch(text, /Name to greet/);
+    assertMatch(text, /<name> - Name to greet/);
     // Flags should show name and description from .describe()
     assertMatch(text, /Flags:/);
     assertMatch(text, /--loud - Shout the greeting/);
     assertMatch(text, /--dry-run - Show the message without printing/);
+  });
+
+  await t.step('Command Help: copy (mixed arg/flag names)', async () => {
+    const logs = await captureLogs(() => cli.RunFromArgs([configPath, 'copy', '--help']));
+    const text = stripColor(logs);
+    assertMatch(text, /📘 Command: Copy/);
+    assertMatch(text, /Copies a file to a destination\./);
+    // Args: custom, default, custom (all use <> in display)
+    assertMatch(text, /Args:/);
+    assertMatch(text, /<source> - Source file/);
+    assertMatch(text, /<arg2> - Destination/);
+    assertMatch(text, /<mode> - Copy mode/);
+    // Flags: default, custom (v -> verbose), default
+    assertMatch(text, /Flags:/);
+    assertMatch(text, /--force - Overwrite existing files/);
+    assertMatch(text, /--verbose - Verbose output/); // not --v
+    assertMatch(text, /--dry-run - Show what would happen/);
   });
 
   await t.step('Unknown Command Help: scaffold/clod', async () => {

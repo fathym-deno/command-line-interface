@@ -19,7 +19,7 @@ function createMockResolver(
   commandInstances: Map<string, CommandRuntime>,
 ): CLICommandResolver {
   return {
-    LoadCommandInstance: async (path: string) => {
+    LoadCommandInstance: (path: string) => {
       const cmd = commandInstances.get(path);
       return cmd ? { Command: cmd } : { Command: createMockCommand({ Name: 'Unknown' }) };
     },
@@ -58,7 +58,10 @@ Deno.test('CLIHelpBuilder – builds root help when no key provided', async (t) 
     ]);
 
     const instances = new Map<string, CommandRuntime>([
-      ['/commands/build.ts', createMockCommand({ Name: 'Build', Description: 'Build the project' })],
+      [
+        '/commands/build.ts',
+        createMockCommand({ Name: 'Build', Description: 'Build the project' }),
+      ],
       ['/commands/test.ts', createMockCommand({ Name: 'Test', Description: 'Run tests' })],
     ]);
 
@@ -85,8 +88,14 @@ Deno.test('CLIHelpBuilder – builds root help when no key provided', async (t) 
     ]);
 
     const instances = new Map<string, CommandRuntime>([
-      ['/commands/scaffold/.group.ts', createMockCommand({ Name: 'Scaffold', Description: 'Scaffolding commands' })],
-      ['/commands/config/.group.ts', createMockCommand({ Name: 'Config', Description: 'Configuration commands' })],
+      [
+        '/commands/scaffold/.group.ts',
+        createMockCommand({ Name: 'Scaffold', Description: 'Scaffolding commands' }),
+      ],
+      [
+        '/commands/config/.group.ts',
+        createMockCommand({ Name: 'Config', Description: 'Configuration commands' }),
+      ],
     ]);
 
     const resolver = createMockResolver(instances);
@@ -191,8 +200,14 @@ Deno.test('CLIHelpBuilder – builds group help when key matches group', async (
     ]);
 
     const instances = new Map<string, CommandRuntime>([
-      ['/commands/scaffold/cloud.ts', createMockCommand({ Name: 'Cloud', Description: 'Scaffold cloud project' })],
-      ['/commands/scaffold/local.ts', createMockCommand({ Name: 'Local', Description: 'Scaffold local project' })],
+      [
+        '/commands/scaffold/cloud.ts',
+        createMockCommand({ Name: 'Cloud', Description: 'Scaffold cloud project' }),
+      ],
+      [
+        '/commands/scaffold/local.ts',
+        createMockCommand({ Name: 'Local', Description: 'Scaffold local project' }),
+      ],
     ]);
 
     const grpInst = createMockCommand({
@@ -223,8 +238,14 @@ Deno.test('CLIHelpBuilder – builds group help when key matches group', async (
     ]);
 
     const instances = new Map<string, CommandRuntime>([
-      ['/commands/scaffold/aws/.group.ts', createMockCommand({ Name: 'AWS', Description: 'AWS scaffolding' })],
-      ['/commands/scaffold/azure/.group.ts', createMockCommand({ Name: 'Azure', Description: 'Azure scaffolding' })],
+      [
+        '/commands/scaffold/aws/.group.ts',
+        createMockCommand({ Name: 'AWS', Description: 'AWS scaffolding' }),
+      ],
+      [
+        '/commands/scaffold/azure/.group.ts',
+        createMockCommand({ Name: 'Azure', Description: 'Azure scaffolding' }),
+      ],
     ]);
 
     const grpInst = createMockCommand({
