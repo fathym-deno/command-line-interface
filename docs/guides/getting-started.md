@@ -186,7 +186,8 @@ For CLIs that need shared services (API clients, configuration, utilities), crea
 Create `.cli.init.ts`:
 
 ```typescript
-import { CLIInitFn } from '@fathym/cli';
+import type { IoCContainer } from '@fathym/cli';
+import type { CLIInitFn } from '@fathym/cli';
 
 // Define your service interface
 export interface ConfigService {
@@ -201,7 +202,7 @@ class EnvConfigService implements ConfigService {
 }
 
 // Export the init function as default
-export default (async (ioc, _config) => {
+export default ((ioc: IoCContainer, _config) => {
   // Register services in the IoC container
   ioc.Register(() => new EnvConfigService(), {
     Type: ioc.Symbol('ConfigService'),
@@ -213,12 +214,14 @@ Use services in commands:
 
 ```typescript
 import { Command, CommandParams } from '@fathym/cli';
+import type { IoCContainer } from '@fathym/cli';
 import { z } from 'zod';
 import type { ConfigService } from '../.cli.init.ts';
 
 const ArgsSchema = z.tuple([z.string().describe('Variable name')]);
+const FlagsSchema = z.object({});
 
-class EnvParams extends CommandParams<z.infer<typeof ArgsSchema>, {}> {
+class EnvParams extends CommandParams<z.infer<typeof ArgsSchema>, z.infer<typeof FlagsSchema>> {
   get Key(): string {
     return this.Arg(0)!;
   }
@@ -226,8 +229,9 @@ class EnvParams extends CommandParams<z.infer<typeof ArgsSchema>, {}> {
 
 export default Command('env', 'Show environment variable')
   .Args(ArgsSchema)
+  .Flags(FlagsSchema)
   .Params(EnvParams)
-  .Services(async (ctx, ioc) => ({
+  .Services(async (_ctx, ioc: IoCContainer) => ({
     config: await ioc.Resolve<ConfigService>(ioc.Symbol('ConfigService')),
   }))
   .Run(({ Params, Services, Log }) => {
@@ -249,13 +253,19 @@ Create `commands/info.ts`:
 
 ```typescript
 import { Command, CommandParams, CLIDFSContextManager } from '@fathym/cli';
+import type { IoCContainer } from '@fathym/cli';
+import { z } from 'zod';
 
-// No args or flags needed for this command
-class InfoParams extends CommandParams<[], {}> {}
+const ArgsSchema = z.tuple([]);
+const FlagsSchema = z.object({});
+
+class InfoParams extends CommandParams<z.infer<typeof ArgsSchema>, z.infer<typeof FlagsSchema>> {}
 
 export default Command('info', 'Show project information')
+  .Args(ArgsSchema)
+  .Flags(FlagsSchema)
   .Params(InfoParams)
-  .Services(async (ctx, ioc) => ({
+  .Services(async (_ctx, ioc: IoCContainer) => ({
     dfs: await ioc.Resolve(CLIDFSContextManager),
   }))
   .Run(async ({ Services, Log, Config }) => {
@@ -270,43 +280,48 @@ Since commands are auto-discovered from the `./commands` directory, you don't ne
 
 ### Organizing Related Commands
 
-Group related commands under a common prefix (e.g., `config get`, `config set`).
+Group related commands using directory structure. The command key is derived from the file path:
 
-> For larger projects, use directory-based [Command Groups](./building-commands.md#command-groups)
-> with `.metadata.ts` files instead of config-based registration.
-
-Create `commands/config.ts`:
-
-```typescript
-import { Command, CommandParams } from '@fathym/cli';
-
-class ConfigParams extends CommandParams<[], {}> {}
-
-export default Command('config', 'Manage configuration')
-  .Params(ConfigParams)
-  .Run(({ Log }) => {
-    Log.Info('Available commands:');
-    Log.Info('  config get <key>    Get a config value');
-    Log.Info('  config set <key>    Set a config value');
-  });
+```
+commands/
+├── greet.ts           → mycli greet
+├── info.ts            → mycli info
+└── config/
+    ├── .metadata.ts   → Group help for "config"
+    ├── get.ts         → mycli config get
+    └── set.ts         → mycli config set
 ```
 
-Create `commands/config-get.ts`:
+Create `commands/config/.metadata.ts` for group help:
+
+```typescript
+import { CommandModuleMetadata } from '@fathym/cli';
+
+export default {
+  Name: 'config',
+  Description: 'Manage configuration settings',
+} as CommandModuleMetadata;
+```
+
+Create `commands/config/get.ts`:
 
 ```typescript
 import { Command, CommandParams } from '@fathym/cli';
 import { z } from 'zod';
 
 const ArgsSchema = z.tuple([z.string().describe('Config key')]);
+const FlagsSchema = z.object({});
 
-class ConfigGetParams extends CommandParams<z.infer<typeof ArgsSchema>, {}> {
+class ConfigGetParams extends CommandParams<z.infer<typeof ArgsSchema>, z.infer<typeof FlagsSchema>> {
   get Key(): string {
     return this.Arg(0)!;
   }
 }
 
-export default Command('config get', 'Get a configuration value')
+// Display name is 'get', command key is 'config/get' (from file path)
+export default Command('get', 'Get a configuration value')
   .Args(ArgsSchema)
+  .Flags(FlagsSchema)
   .Params(ConfigGetParams)
   .Run(({ Params, Log }) => {
     const value = Deno.env.get(Params.Key) ?? '(not set)';
@@ -314,29 +329,8 @@ export default Command('config get', 'Get a configuration value')
   });
 ```
 
-For hierarchical commands like `config get`, use directory structure instead:
-
-```
-commands/
-├── greet.ts          → mycli greet
-├── info.ts           → mycli info
-└── config/
-    ├── .metadata.ts  → Group help for "config"
-    ├── get.ts        → mycli config get
-    └── set.ts        → mycli config set
-```
-
-The `.metadata.ts` file provides help text for the command group:
-
-```typescript
-// commands/config/.metadata.ts
-import { CommandModuleMetadata } from '@fathym/cli';
-
-export default {
-  Name: 'config',
-  Description: 'Manage configuration',
-} as CommandModuleMetadata;
-```
+> **Important:** The command key (`config/get`) comes from the file path, not the
+> first parameter to `Command()`. The first parameter is the display name shown in help.
 
 ---
 
@@ -377,6 +371,9 @@ CommandIntents('Greet Command', cmd, configPath)
 
 > **Note:** When testing fluent commands created with `Command()`, you must call
 > `.Build()` to get the CommandModule before passing it to `CommandIntents`.
+>
+> **Tip:** If you encounter type errors with the testing API, you may need to use
+> type assertions (e.g., `cmd as any`) due to TypeScript's strict generic inference.
 
 Create `tests/.tests.ts`:
 
@@ -417,7 +414,9 @@ deno task test
 ### Command Structure
 
 ```typescript
-Command('key', 'description')
+// First param is display name (shown in help), NOT the command key
+// Command key comes from file path: commands/deploy.ts → 'deploy'
+Command('name', 'description')
   .Args(argsSchema)        // Positional arguments (Zod tuple)
   .Flags(flagsSchema)      // Flags/options (Zod object)
   .Params(ParamsClass)     // Custom params accessor (REQUIRED)
