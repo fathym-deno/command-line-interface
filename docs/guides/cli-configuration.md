@@ -302,20 +302,26 @@ export default async function init(ioc: IoCContainer) {
 Services registered in `.cli.init.ts` are available via the `.Services()` method:
 
 ```typescript
-import { Command } from '@fathym/cli';
+import { Command, CommandParams } from '@fathym/cli';
+import type { IoCContainer } from '@fathym/cli';
 import { z } from 'zod';
 import { DeployService } from '../services/DeployService.ts';
 
+const ArgsSchema = z.tuple([z.string().describe('Target to deploy')]);
+
+class DeployParams extends CommandParams<z.infer<typeof ArgsSchema>, {}> {
+  get Target(): string { return this.Arg(0)!; }
+}
+
 export default Command('deploy', 'Deploy application')
-  .Params(z.object({
-    Args: z.tuple([z.string()]),
-    Flags: z.object({}),
-  }))
-  .Services(async (ctx, ioc) => ({
+  .Args(ArgsSchema)
+  .Flags(z.object({}))
+  .Params(DeployParams)
+  .Services(async (_ctx, ioc: IoCContainer) => ({
     deployer: await ioc.Resolve(DeployService),
   }))
   .Run(async ({ Params, Services }) => {
-    await Services.deployer.deploy(Params.Args[0]);
+    await Services.deployer.deploy(Params.Target);
   });
 ```
 

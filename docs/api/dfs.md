@@ -258,31 +258,37 @@ const config = await projectDfs.GetFileInfo('.cli.json');
 Commands often accept a `--config` flag to override the default project location:
 
 ```typescript
-import { Command } from '@fathym/cli';
+import { Command, CommandParams, CLIDFSContextManager } from '@fathym/cli';
+import type { IoCContainer } from '@fathym/cli';
+import { z } from 'zod';
+
+const FlagsSchema = z.object({
+  config: z.string().optional().describe('Path to .cli.json'),
+});
+
+class BuildParams extends CommandParams<[], z.infer<typeof FlagsSchema>> {
+  get ConfigPath(): string | undefined { return this.Flag('config'); }
+}
 
 export default Command('build', 'Build the project')
-  .Params(
-    z.object({
-      Args: z.tuple([]),
-      Flags: z.object({
-        config: z.string().optional().describe('Path to .cli.json'),
-      }),
-    })
-  )
-  .Run(async ({ Params, ioc }) => {
+  .Flags(FlagsSchema)
+  .Params(BuildParams)
+  .Services(async (ctx, ioc: IoCContainer) => {
     const dfsCtx = await ioc.Resolve(CLIDFSContextManager);
 
     // Use config override if provided
-    if (Params.Flags.config) {
-      dfsCtx.RegisterProjectDFS(Params.Flags.config, 'CLI');
+    if (ctx.Params.ConfigPath) {
+      await dfsCtx.RegisterProjectDFS(ctx.Params.ConfigPath, 'CLI');
     }
 
-    // Select appropriate DFS based on override
-    const buildDFS = Params.Flags.config
-      ? await dfsCtx.GetDFS('CLI')
-      : await dfsCtx.GetExecutionDFS();
-
-    // Use buildDFS for file operations...
+    return {
+      buildDFS: ctx.Params.ConfigPath
+        ? await dfsCtx.GetDFS('CLI')
+        : await dfsCtx.GetExecutionDFS(),
+    };
+  })
+  .Run(async ({ Services }) => {
+    // Use Services.buildDFS for file operations...
   });
 ```
 

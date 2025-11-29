@@ -263,7 +263,7 @@ Access to .cli.json configuration.
 
 ```typescript
 .Run(({ Config }) => {
-  console.log(`${Config.name} v${Config.version}`);
+  console.log(`${Config.Name} v${Config.Version}`);
 });
 ```
 
@@ -525,31 +525,30 @@ Configuration loaded from .cli.json.
 
 ```typescript
 interface CLIConfig {
-  /** CLI name */
-  name: string;
+  /** CLI display name */
+  Name: string;
+
+  /** Command tokens (e.g., ["mycli"]) */
+  Tokens: string[];
 
   /** CLI version */
-  version: string;
+  Version: string;
 
-  /** Command mappings */
-  commands: Record<string, string>;
+  /** Commands directory path or source array */
+  Commands: string | CLICommandSource[];
 
-  /** IoC registrations */
-  ioc?: Record<string, IoCRegistration>;
+  /** Init file path (optional, default: .cli.init.ts) */
+  Init?: string;
 
-  /** Template directory */
-  templates?: string;
-
-  /** Build configuration */
-  build?: {
-    outDir?: string;
-    embeddedTemplates?: string;
-  };
+  /** Template directory (optional) */
+  Templates?: string;
 
   /** Custom properties */
   [key: string]: unknown;
 }
 ```
+
+> **Note:** Service registration is done in `.cli.init.ts`, not in `.cli.json`.
 
 ---
 

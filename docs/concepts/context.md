@@ -48,20 +48,25 @@ The `Params` object provides type-safe access to parsed arguments and flags.
 ### Accessing Arguments
 
 ```typescript
-import { Command } from '@fathym/cli';
+import { Command, CommandParams } from '@fathym/cli';
 import { z } from 'zod';
 
-Command('greet', 'Greet users')
-  .Args(z.tuple([
-    z.string().describe('Name'),
-    z.number().optional().describe('Times to greet'),
-  ]))
-  .Run(({ Params }) => {
-    const name = Params.Arg(0);   // string
-    const times = Params.Arg(1);  // number | undefined
+const ArgsSchema = z.tuple([
+  z.string().describe('Name'),
+  z.number().optional().describe('Times to greet'),
+]);
 
-    for (let i = 0; i < (times ?? 1); i++) {
-      console.log(`Hello, ${name}!`);
+class GreetParams extends CommandParams<z.infer<typeof ArgsSchema>, {}> {
+  get Name(): string { return this.Arg(0)!; }
+  get Times(): number { return this.Arg(1) ?? 1; }
+}
+
+Command('greet', 'Greet users')
+  .Args(ArgsSchema)
+  .Params(GreetParams)
+  .Run(({ Params }) => {
+    for (let i = 0; i < Params.Times; i++) {
+      console.log(`Hello, ${Params.Name}!`);
     }
   });
 ```
@@ -69,18 +74,23 @@ Command('greet', 'Greet users')
 ### Accessing Flags
 
 ```typescript
-Command('deploy', 'Deploy application')
-  .Flags(z.object({
-    env: z.string().default('production'),
-    force: z.boolean().optional(),
-    replicas: z.number().default(1),
-  }))
-  .Run(({ Params }) => {
-    const env = Params.Flag('env');        // string
-    const force = Params.Flag('force');    // boolean | undefined
-    const replicas = Params.Flag('replicas');  // number
+const FlagsSchema = z.object({
+  env: z.string().default('production'),
+  force: z.boolean().optional(),
+  replicas: z.number().default(1),
+});
 
-    console.log(`Deploying to ${env} with ${replicas} replicas`);
+class DeployParams extends CommandParams<[], z.infer<typeof FlagsSchema>> {
+  get Environment(): string { return this.Flag('env') ?? 'production'; }
+  get Force(): boolean { return this.Flag('force') ?? false; }
+  get Replicas(): number { return this.Flag('replicas') ?? 1; }
+}
+
+Command('deploy', 'Deploy application')
+  .Flags(FlagsSchema)
+  .Params(DeployParams)
+  .Run(({ Params }) => {
+    console.log(`Deploying to ${Params.Environment} with ${Params.Replicas} replicas`);
   });
 ```
 
@@ -127,18 +137,29 @@ Services are dependencies injected via the IoC container.
 ### Resolving Services
 
 ```typescript
-import { CLIDFSContextManager } from '@fathym/cli';
+import { CLIDFSContextManager, CommandParams } from '@fathym/cli';
+import type { IoCContainer } from '@fathym/cli';
+
+const FlagsSchema = z.object({
+  target: z.string().default('web').describe('Build target'),
+});
+
+class BuildParams extends CommandParams<[], z.infer<typeof FlagsSchema>> {
+  get Target(): string { return this.Flag('target') ?? 'web'; }
+}
 
 Command('build', 'Build project')
-  .Services(async (ctx, ioc) => ({
+  .Flags(FlagsSchema)
+  .Params(BuildParams)
+  .Services(async (ctx, ioc: IoCContainer) => ({
     // Resolve by class/constructor
     dfs: await ioc.Resolve(CLIDFSContextManager),
 
     // Resolve by symbol (for interfaces)
     config: await ioc.Resolve<ConfigService>(ioc.Symbol('ConfigService')),
 
-    // Create inline service
-    builder: new ProjectBuilder(ctx.Params.Flag('target')),
+    // Create inline service using Params getter
+    builder: new ProjectBuilder(ctx.Params.Target),
   }))
   .Run(async ({ Services }) => {
     const root = await Services.dfs.GetProjectDFS();
@@ -309,7 +330,7 @@ The `Config` object provides access to `.cli.json` configuration.
 
 ```typescript
 .Run(({ Config, Log }) => {
-  Log.Info(`CLI: ${Config.name} v${Config.version}`);
+  Log.Info(`CLI: ${Config.Name} v${Config.Version}`);
 
   // Access custom configuration
   const customSetting = Config.custom?.mySetting;
@@ -320,20 +341,23 @@ The `Config` object provides access to `.cli.json` configuration.
 
 ```typescript
 interface CLIConfig {
-  /** CLI name */
-  name: string;
+  /** CLI display name */
+  Name: string;
+
+  /** Command tokens (e.g., ["mycli"]) */
+  Tokens: string[];
 
   /** CLI version */
-  version: string;
+  Version: string;
 
-  /** Command mappings */
-  commands: Record<string, string>;
+  /** Commands directory path or source array */
+  Commands: string | CLICommandSource[];
 
-  /** IoC service registrations */
-  ioc?: Record<string, IoCRegistration>;
+  /** Init file path (optional) */
+  Init?: string;
 
-  /** Template directory */
-  templates?: string;
+  /** Template directory (optional) */
+  Templates?: string;
 
   /** Custom configuration */
   [key: string]: unknown;

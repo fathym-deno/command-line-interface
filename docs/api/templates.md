@@ -380,7 +380,7 @@ class InitParams extends CommandParams<z.infer<typeof ArgsSchema>, {}> {
 export default Command('init', 'Initialize a new project')
   .Args(ArgsSchema)
   .Params(InitParams)
-  .Services(async (ctx, ioc) => {
+  .Services(async (ctx, ioc: IoCContainer) => {
     const dfsCtxMgr = await ioc.Resolve(CLIDFSContextManager);
 
     return {
@@ -421,7 +421,7 @@ export default Command('generate', 'Generate from template')
   .Args(ArgsSchema)
   .Flags(FlagsSchema)
   .Params(GenerateParams)
-  .Services(async (ctx, ioc) => {
+  .Services(async (ctx, ioc: IoCContainer) => {
     const dfsCtxMgr = await ioc.Resolve(CLIDFSContextManager);
     return {
       scaffolder: new TemplateScaffolder(

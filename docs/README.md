@@ -118,8 +118,17 @@ export default Command('greet', 'Greet someone by name')
 Inject services via IoC container:
 
 ```typescript
+import { Command, CommandParams, CLIDFSContextManager } from '@fathym/cli';
+import type { IoCContainer } from '@fathym/cli';
+import { z } from 'zod';
+
+class DeployParams extends CommandParams<[], {}> {}
+
 export default Command('deploy', 'Deploy the project')
-  .Services(async (ctx, ioc) => ({
+  .Args(z.tuple([]))
+  .Flags(z.object({}))
+  .Params(DeployParams)
+  .Services(async (_ctx, ioc: IoCContainer) => ({
     dfs: await ioc.Resolve(CLIDFSContextManager),
     config: await ioc.Resolve(ConfigService),
   }))
@@ -155,13 +164,14 @@ Generate projects from Handlebars templates:
 
 ```typescript
 import { Command, CommandParams, CLIDFSContextManager, TemplateLocator, TemplateScaffolder } from '@fathym/cli';
+import type { IoCContainer } from '@fathym/cli';
 import { z } from 'zod';
 
 const ArgsSchema = z.tuple([
   z.string().optional().describe('Project name').meta({ argName: 'name' }),
 ]);
 
-class InitParams extends CommandParams<z.infer<typeof ArgsSchema>, z.ZodObject<{}>> {
+class InitParams extends CommandParams<z.infer<typeof ArgsSchema>, {}> {
   get ProjectName(): string {
     return this.Arg(0) ?? 'my-project';
   }
@@ -169,8 +179,9 @@ class InitParams extends CommandParams<z.infer<typeof ArgsSchema>, z.ZodObject<{
 
 export default Command('init', 'Initialize a new project')
   .Args(ArgsSchema)
+  .Flags(z.object({}))
   .Params(InitParams)
-  .Services(async (ctx, ioc) => {
+  .Services(async (ctx, ioc: IoCContainer) => {
     const dfsCtxMgr = await ioc.Resolve(CLIDFSContextManager);
     return {
       scaffolder: new TemplateScaffolder(

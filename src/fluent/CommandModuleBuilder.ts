@@ -45,10 +45,10 @@ export type ExtractInvokerMapFromSource<
     ? (args?: A, flags?: F) => Promise<void | number>
     : T[K] extends CommandModuleBuilder<infer A, infer F, any, any, any, any>
       ? (args?: A, flags?: F) => Promise<void | number>
-      : (
-        args?: unknown[],
-        flags?: Record<string, unknown>,
-      ) => Promise<void | number>;
+    : (
+      args?: unknown[],
+      flags?: Record<string, unknown>,
+    ) => Promise<void | number>;
 };
 
 export class CommandModuleBuilder<
@@ -326,10 +326,9 @@ export class CommandModuleBuilder<
 
         for (const [key, source] of Object.entries(subcommands)) {
           // Check if it's a builder or already a module - build lazily if needed
-          const mod =
-            source instanceof CommandModuleBuilder
-              ? source.Build() // It's a builder, call Build() now
-              : (source as CommandModule); // It's already a module
+          const mod = source instanceof CommandModuleBuilder
+            ? source.Build() // It's a builder, call Build() now
+            : (source as CommandModule); // It's already a module
 
           const runtime = new mod.Command();
           const ctor = mod.Params;

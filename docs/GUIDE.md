@@ -75,16 +75,23 @@ deno task build              # Full build (fmt, lint, test)
 1. **Create command file**
    ```typescript
    // commands/my-command.ts
-   import { Command } from '@fathym/cli';
+   import { Command, CommandParams } from '@fathym/cli';
    import { z } from 'zod';
 
+   const FlagsSchema = z.object({
+     verbose: z.boolean().optional().describe('Enable verbose output'),
+   });
+
+   class MyCommandParams extends CommandParams<[], z.infer<typeof FlagsSchema>> {
+     get Verbose(): boolean { return this.Flag('verbose') ?? false; }
+   }
+
    export default Command('my-command', 'Description of command')
-     .Flags(z.object({
-       verbose: z.boolean().optional().describe('Enable verbose output'),
-     }))
+     .Flags(FlagsSchema)
+     .Params(MyCommandParams)
      .Run(({ Params, Log }) => {
-       if (Params.Flag('verbose')) {
-         Log.Debug('Verbose mode enabled');
+       if (Params.Verbose) {
+         Log.Info('Verbose mode enabled');
        }
        Log.Info('Command executed!');
      });
@@ -112,10 +119,10 @@ deno task build              # Full build (fmt, lint, test)
 1. **Register services in .cli.init.ts**
    ```typescript
    // .cli.init.ts
-   import { CLIInitFn } from '@fathym/cli';
+   import type { CLIInitFn, IoCContainer } from '@fathym/cli';
    import { ConfigService } from './services/ConfigService.ts';
 
-   export default (async (ioc, _config) => {
+   export default ((ioc: IoCContainer, _config) => {
      ioc.Register(() => new ConfigService(), {
        Type: ioc.Symbol('ConfigService'),
      });
@@ -124,8 +131,14 @@ deno task build              # Full build (fmt, lint, test)
 
 2. **Inject in command**
    ```typescript
+   import { Command, CommandParams } from '@fathym/cli';
+   import type { IoCContainer } from '@fathym/cli';
+
+   class DeployParams extends CommandParams<[], {}> {}
+
    Command('deploy', 'Deploy project')
-     .Services(async (ctx, ioc) => ({
+     .Params(DeployParams)
+     .Services(async (ctx, ioc: IoCContainer) => ({
        config: await ioc.Resolve(ConfigService),
      }))
      .Run(async ({ Services }) => {
@@ -188,21 +201,30 @@ When modifying:
 
 ### Debugging Commands
 
-Enable debug logging:
+Use a verbose flag for detailed output:
 ```typescript
-// Set environment variable
-Deno.env.set('LOG_LEVEL', 'debug');
+const FlagsSchema = z.object({
+  verbose: z.boolean().optional().describe('Verbose output'),
+});
+
+class DebugParams extends CommandParams<[], z.infer<typeof FlagsSchema>> {
+  get Verbose(): boolean { return this.Flag('verbose') ?? false; }
+}
+
+Command('example', 'Example command')
+  .Flags(FlagsSchema)
+  .Params(DebugParams)
+  .Run(({ Params, Log }) => {
+    if (Params.Verbose) {
+      Log.Info('Detailed info');  // Show when verbose
+    }
+    Log.Info('Standard info');
+    Log.Warn('Warning');
+    Log.Error('Error');
+  });
 ```
 
-Or use Log methods:
-```typescript
-.Run(({ Log }) => {
-  Log.Debug('Detailed info');
-  Log.Info('Standard info');
-  Log.Warn('Warning');
-  Log.Error('Error');
-});
-```
+> **Note:** There is no `Log.Debug()` method. Use a verbose flag with conditional `Log.Info()` for debug output.
 
 ## Project Structure
 

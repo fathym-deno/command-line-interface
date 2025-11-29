@@ -247,7 +247,7 @@ Inject dependencies from the IoC container.
 Command('build', 'Build project')
   .Flags(FlagsSchema)
   .Params(BuildParams)  // Has .Target getter
-  .Services(async (ctx, ioc) => ({
+  .Services(async (ctx, ioc: IoCContainer) => ({
     dfs: await ioc.Resolve(CLIDFSContextManager),
     config: await ioc.Resolve(ConfigService),
     builder: new ProjectBuilder(ctx.Params.Target),  // Access via getter
@@ -260,7 +260,7 @@ Command('build', 'Build project')
 #### Service Function Parameters
 
 ```typescript
-.Services(async (ctx, ioc) => {
+.Services(async (ctx, ioc: IoCContainer) => {
   // ctx: Partial command context
   // - ctx.Params - Parsed arguments and flags
   // - ctx.Config - CLI configuration
@@ -450,7 +450,7 @@ Command('compile', 'Compile the CLI into a native binary')
   .Commands({
     Build: BuildCommand,  // Just pass the builder - Build() is called lazily
   })
-  .Services(async (ctx, ioc) => ({
+  .Services(async (ctx, ioc: IoCContainer) => ({
     CLIDFS: await dfsCtx.GetDFS('CLI'),
     CLIRoot: cliRoot,
   }))

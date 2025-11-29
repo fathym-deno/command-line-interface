@@ -340,13 +340,14 @@ export default Command('init', 'Initialize a new project')
 ### Basic Service Injection
 
 ```typescript
-import { CLIDFSContextManager } from '@fathym/cli';
+import { CLIDFSContextManager, CommandParams } from '@fathym/cli';
+import type { IoCContainer } from '@fathym/cli';
 
 class InfoParams extends CommandParams<[], {}> {}
 
 Command('info', 'Show project info')
   .Params(InfoParams)
-  .Services(async (ctx, ioc) => ({
+  .Services(async (ctx, ioc: IoCContainer) => ({
     dfs: await ioc.Resolve(CLIDFSContextManager),
   }))
   .Run(async ({ Services, Log }) => {
@@ -358,7 +359,7 @@ Command('info', 'Show project info')
 ### Multiple Services
 
 ```typescript
-.Services(async (ctx, ioc) => ({
+.Services(async (ctx, ioc: IoCContainer) => ({
   dfs: await ioc.Resolve(CLIDFSContextManager),
   config: await ioc.Resolve(ConfigService),
   api: await ioc.Resolve(APIClient),
@@ -375,7 +376,7 @@ class DeployParams extends CommandParams<[], TFlags> {
 Command('deploy', 'Deploy')
   .Flags(FlagsSchema)
   .Params(DeployParams)
-  .Services(async (ctx, ioc) => {
+  .Services(async (ctx, ioc: IoCContainer) => {
     const provider = ctx.Params.Provider;
 
     return {
@@ -637,7 +638,8 @@ class MigrateParams extends CommandParams<[], z.infer<typeof FlagsSchema>> {
   get Steps(): number | undefined { return this.Flag('steps'); }
 }
 
-export default Command('db/migrate', 'Run database migrations')
+// Display name is 'migrate', command key is 'db/migrate' (from file path)
+export default Command('migrate', 'Run database migrations')
   .Flags(FlagsSchema)
   .Params(MigrateParams)
   .Run(async ({ Params, Log }) => {

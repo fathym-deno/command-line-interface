@@ -87,14 +87,21 @@ Define positional arguments using a Zod tuple schema:
 ```typescript
 import { z } from 'zod';
 
+const ArgsSchema = z.tuple([
+  z.string().describe('First name').meta({ argName: 'firstName' }),
+  z.string().optional().describe('Last name').meta({ argName: 'lastName' }),
+]);
+
+class GreetParams extends CommandParams<z.infer<typeof ArgsSchema>, {}> {
+  get FirstName(): string { return this.Arg(0)!; }
+  get LastName(): string | undefined { return this.Arg(1); }
+}
+
 Command('greet', 'Greet users')
-  .Args(z.tuple([
-    z.string().describe('First name').meta({ argName: 'firstName' }),
-    z.string().optional().describe('Last name').meta({ argName: 'lastName' }),
-  ]))
+  .Args(ArgsSchema)
+  .Params(GreetParams)
   .Run(({ Params }) => {
-    const first = Params.Arg(0);  // string
-    const last = Params.Arg(1);   // string | undefined
+    console.log(`Hello, ${Params.FirstName} ${Params.LastName ?? ''}`);
   });
 ```
 
@@ -109,17 +116,24 @@ Schema requirements:
 Define flags/options using a Zod object schema:
 
 ```typescript
+const FlagsSchema = z.object({
+  env: z.string().default('production').describe('Target environment'),
+  force: z.boolean().optional().describe('Skip confirmation'),
+  replicas: z.number().min(1).max(10).default(1).describe('Instance count'),
+  tags: z.array(z.string()).optional().describe('Resource tags'),
+});
+
+class DeployParams extends CommandParams<[], z.infer<typeof FlagsSchema>> {
+  get Environment(): string { return this.Flag('env') ?? 'production'; }
+  get Force(): boolean { return this.Flag('force') ?? false; }
+  get Replicas(): number { return this.Flag('replicas') ?? 1; }
+}
+
 Command('deploy', 'Deploy application')
-  .Flags(z.object({
-    env: z.string().default('production').describe('Target environment'),
-    force: z.boolean().optional().describe('Skip confirmation'),
-    replicas: z.number().min(1).max(10).default(1).describe('Instance count'),
-    tags: z.array(z.string()).optional().describe('Resource tags'),
-  }))
+  .Flags(FlagsSchema)
+  .Params(DeployParams)
   .Run(({ Params }) => {
-    const env = Params.Flag('env');      // string (has default)
-    const force = Params.Flag('force');  // boolean | undefined
-    const replicas = Params.Flag('replicas');  // number (has default)
+    console.log(`Deploying ${Params.Replicas} replicas to ${Params.Environment}`);
   });
 ```
 
@@ -167,13 +181,24 @@ Command('deploy', 'Deploy application')
 Inject dependencies from the IoC container:
 
 ```typescript
-import { CLIDFSContextManager } from '@fathym/cli';
+import { CLIDFSContextManager, CommandParams } from '@fathym/cli';
+import type { IoCContainer } from '@fathym/cli';
+
+const FlagsSchema = z.object({
+  target: z.string().default('web').describe('Build target'),
+});
+
+class BuildParams extends CommandParams<[], z.infer<typeof FlagsSchema>> {
+  get Target(): string { return this.Flag('target') ?? 'web'; }
+}
 
 Command('build', 'Build project')
-  .Services(async (ctx, ioc) => ({
+  .Flags(FlagsSchema)
+  .Params(BuildParams)
+  .Services(async (ctx, ioc: IoCContainer) => ({
     dfs: await ioc.Resolve(CLIDFSContextManager),
     config: await ioc.Resolve(ConfigService),
-    builder: new ProjectBuilder(ctx.Params.Flag('target')),
+    builder: new ProjectBuilder(ctx.Params.Target),
   }))
   .Run(async ({ Services, Log }) => {
     const root = await Services.dfs.GetProjectDFS();
@@ -191,11 +216,22 @@ Service function parameters:
 Define initialization logic:
 
 ```typescript
-Command('deploy', 'Deploy application')
-  .Init(async ({ Params, Log, Services }) => {
-    Log.Debug('Validating deployment configuration...');
+const FlagsSchema = z.object({
+  env: z.string().default('staging').describe('Environment'),
+});
 
-    if (Params.Flag('env') === 'production') {
+class DeployParams extends CommandParams<[], z.infer<typeof FlagsSchema>> {
+  get Environment(): string { return this.Flag('env') ?? 'staging'; }
+  get IsProduction(): boolean { return this.Environment === 'production'; }
+}
+
+Command('deploy', 'Deploy application')
+  .Flags(FlagsSchema)
+  .Params(DeployParams)
+  .Init(async ({ Params, Log, Services }) => {
+    Log.Info('Validating deployment configuration...');
+
+    if (Params.IsProduction) {
       const confirmed = await Services.prompt.confirm('Deploy to production?');
       if (!confirmed) {
         throw new Error('Deployment cancelled');
@@ -212,11 +248,17 @@ Command('deploy', 'Deploy application')
 Define the main execution logic:
 
 ```typescript
+const ArgsSchema = z.tuple([z.string().describe('Name')]);
+
+class GreetParams extends CommandParams<z.infer<typeof ArgsSchema>, {}> {
+  get Name(): string { return this.Arg(0)!; }
+}
+
 Command('greet', 'Greet someone')
-  .Args(z.tuple([z.string()]))
+  .Args(ArgsSchema)
+  .Params(GreetParams)
   .Run(({ Params, Log }) => {
-    const name = Params.Arg(0);
-    Log.Info(`Hello, ${name}!`);
+    Log.Info(`Hello, ${Params.Name}!`);
   });
 ```
 
@@ -232,15 +274,21 @@ The run function receives the full `CommandContext`:
 Define preview/simulation logic:
 
 ```typescript
+const ArgsSchema = z.tuple([z.string().describe('Path')]);
+
+class DeleteParams extends CommandParams<z.infer<typeof ArgsSchema>, {}> {
+  get Path(): string { return this.Arg(0)!; }
+}
+
 Command('delete', 'Delete files')
-  .Args(z.tuple([z.string()]))
+  .Args(ArgsSchema)
+  .Params(DeleteParams)
   .Run(async ({ Params, Log }) => {
-    await Deno.remove(Params.Arg(0), { recursive: true });
+    await Deno.remove(Params.Path, { recursive: true });
     Log.Success('Files deleted');
   })
   .DryRun(async ({ Params, Log }) => {
-    const path = Params.Arg(0);
-    const files = await listFilesRecursive(path);
+    const files = await listFilesRecursive(Params.Path);
     Log.Info('Would delete the following files:');
     files.forEach(f => Log.Info(`  - ${f}`));
   });
@@ -299,19 +347,24 @@ Command('example', 'Example command')
 Services can be conditionally created based on params:
 
 ```typescript
-Command('deploy', 'Deploy application')
-  .Flags(z.object({ provider: z.enum(['aws', 'gcp', 'azure']) }))
-  .Services(async (ctx, ioc) => {
-    const provider = ctx.Params.Flag('provider');
+const FlagsSchema = z.object({
+  provider: z.enum(['aws', 'gcp', 'azure']).describe('Cloud provider'),
+});
 
-    return {
-      deployer: provider === 'aws'
-        ? await ioc.Resolve(AWSDeployer)
-        : provider === 'gcp'
-        ? await ioc.Resolve(GCPDeployer)
-        : await ioc.Resolve(AzureDeployer),
-    };
-  })
+class DeployParams extends CommandParams<[], z.infer<typeof FlagsSchema>> {
+  get Provider(): string { return this.Flag('provider')!; }
+}
+
+Command('deploy', 'Deploy application')
+  .Flags(FlagsSchema)
+  .Params(DeployParams)
+  .Services(async (ctx, ioc: IoCContainer) => ({
+    deployer: ctx.Params.Provider === 'aws'
+      ? await ioc.Resolve(AWSDeployer)
+      : ctx.Params.Provider === 'gcp'
+      ? await ioc.Resolve(GCPDeployer)
+      : await ioc.Resolve(AzureDeployer),
+  }))
   .Run(async ({ Services }) => {
     await Services.deployer.deploy();
   });

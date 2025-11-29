@@ -193,17 +193,28 @@ export class {{pascalCase name}}Component {
 ### Basic Scaffold Command
 
 ```typescript
-import { Command, CLIDFSContextManager, TemplateLocator, TemplateScaffolder } from '@fathym/cli';
+import { Command, CommandParams, CLIDFSContextManager, TemplateLocator, TemplateScaffolder } from '@fathym/cli';
+import type { IoCContainer } from '@fathym/cli';
 import { z } from 'zod';
 
+const ArgsSchema = z.tuple([
+  z.string().optional().describe('Project name'),
+]);
+
+const FlagsSchema = z.object({
+  template: z.string().optional().describe('Template to use'),
+});
+
+class InitParams extends CommandParams<z.infer<typeof ArgsSchema>, z.infer<typeof FlagsSchema>> {
+  get Name(): string { return this.Arg(0) ?? 'my-project'; }
+  get Template(): string { return this.Flag('template') ?? 'init'; }
+}
+
 export default Command('init', 'Initialize a new project')
-  .Args(z.tuple([
-    z.string().optional().describe('Project name'),
-  ]))
-  .Flags(z.object({
-    template: z.string().optional().describe('Template to use'),
-  }))
-  .Services(async (ctx, ioc) => {
+  .Args(ArgsSchema)
+  .Flags(FlagsSchema)
+  .Params(InitParams)
+  .Services(async (ctx, ioc: IoCContainer) => {
     const dfsCtxMgr = await ioc.Resolve(CLIDFSContextManager);
 
     return {
@@ -211,21 +222,18 @@ export default Command('init', 'Initialize a new project')
       scaffolder: new TemplateScaffolder(
         await ioc.Resolve<TemplateLocator>(ioc.Symbol('TemplateLocator')),
         await dfsCtxMgr.GetExecutionDFS(),
-        { name: ctx.Params.Arg(0) ?? 'my-project' },
+        { name: ctx.Params.Name },
       ),
     };
   })
   .Run(async ({ Params, Services, Log }) => {
-    const name = Params.Arg(0) ?? 'my-project';
-    const template = Params.Flag('template') ?? 'init';
-
     await Services.scaffolder.Scaffold({
-      templateName: template,
-      outputDir: name,
+      templateName: Params.Template,
+      outputDir: Params.Name,
     });
 
-    const fullPath = await Services.buildDfs.ResolvePath(name);
-    Log.Success(`Project created from "${template}" template.`);
+    const fullPath = await Services.buildDfs.ResolvePath(Params.Name);
+    Log.Success(`Project created from "${Params.Template}" template.`);
     Log.Info(`Initialized at: ${fullPath}`);
   });
 ```
@@ -233,7 +241,16 @@ export default Command('init', 'Initialize a new project')
 ### Scaffold with Additional Context
 
 ```typescript
-.Services(async (ctx, ioc) => {
+// Given a Params class like:
+class ScaffoldParams extends CommandParams<TArgs, TFlags> {
+  get Name(): string | undefined { return this.Arg(0); }
+  get Description(): string | undefined { return this.Flag('description'); }
+  get Author(): string | undefined { return this.Flag('author'); }
+  get License(): string { return this.Flag('license') ?? 'MIT'; }
+}
+
+// Services can access via ctx.Params getters:
+.Services(async (ctx, ioc: IoCContainer) => {
   const dfsCtxMgr = await ioc.Resolve(CLIDFSContextManager);
 
   return {
@@ -241,12 +258,12 @@ export default Command('init', 'Initialize a new project')
       await ioc.Resolve<TemplateLocator>(ioc.Symbol('TemplateLocator')),
       await dfsCtxMgr.GetExecutionDFS(),
       {
-        // Template context variables
-        name: ctx.Params.Arg(0),
+        // Template context variables via Params getters
+        name: ctx.Params.Name,
         version: '0.0.1',
-        description: ctx.Params.Flag('description'),
-        author: ctx.Params.Flag('author'),
-        license: ctx.Params.Flag('license') ?? 'MIT',
+        description: ctx.Params.Description,
+        author: ctx.Params.Author,
+        license: ctx.Params.License,
         year: new Date().getFullYear(),
       },
     ),
@@ -257,14 +274,26 @@ export default Command('init', 'Initialize a new project')
 ### List Available Templates
 
 ```typescript
+import { Command, CommandParams, CLIDFSContextManager, TemplateLocator, TemplateScaffolder } from '@fathym/cli';
+import type { IoCContainer } from '@fathym/cli';
+import { z } from 'zod';
+
+class ListParams extends CommandParams<[], {}> {}
+
 Command('templates', 'List available templates')
-  .Services(async (ctx, ioc) => ({
-    scaffolder: new TemplateScaffolder(
-      await ioc.Resolve<TemplateLocator>(ioc.Symbol('TemplateLocator')),
-      await dfsCtxMgr.GetExecutionDFS(),
-      {},
-    ),
-  }))
+  .Args(z.tuple([]))
+  .Flags(z.object({}))
+  .Params(ListParams)
+  .Services(async (_ctx, ioc: IoCContainer) => {
+    const dfsCtxMgr = await ioc.Resolve(CLIDFSContextManager);
+    return {
+      scaffolder: new TemplateScaffolder(
+        await ioc.Resolve<TemplateLocator>(ioc.Symbol('TemplateLocator')),
+        await dfsCtxMgr.GetExecutionDFS(),
+        {},
+      ),
+    };
+  })
   .Run(async ({ Services, Log }) => {
     const templates = await Services.scaffolder.ListTemplates();
 

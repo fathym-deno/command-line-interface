@@ -31,6 +31,8 @@ import { z } from 'zod';
 class BuildParams extends CommandParams<[], {}> {}
 
 export default Command('build', 'Build the project')
+  .Args(z.tuple([]))
+  .Flags(z.object({}))
   .Params(BuildParams)
   .Run(({ Log }) => {
     Log.Info('Starting build...');
@@ -63,12 +65,17 @@ Log.Info('Processing', filename, 'with options', options);
 The framework intentionally omits `Log.Debug()`. For debug output, use a verbose flag:
 
 ```typescript
-class BuildParams extends CommandParams<[], TFlags> {
+const FlagsSchema = z.object({
+  verbose: z.boolean().optional().describe('Enable verbose output'),
+});
+
+class BuildParams extends CommandParams<[], z.infer<typeof FlagsSchema>> {
   get Verbose(): boolean { return this.Flag('verbose') ?? false; }
 }
 
 Command('build', 'Build project')
-  .Flags(z.object({ verbose: z.boolean().optional() }))
+  .Args(z.tuple([]))
+  .Flags(FlagsSchema)
   .Params(BuildParams)
   .Run(({ Params, Log }) => {
     if (Params.Verbose) {

@@ -109,19 +109,26 @@ Two template locator strategies:
 
 **Fluent command pattern:**
 ```typescript
-import { Command } from '@fathym/cli';
+import { Command, CommandParams, CLIDFSContextManager } from '@fathym/cli';
+import type { IoCContainer } from '@fathym/cli';
 import { z } from 'zod';
 
+const FlagsSchema = z.object({
+  environment: z.string().optional().describe('Target environment'),
+});
+
+class DeployParams extends CommandParams<[], z.infer<typeof FlagsSchema>> {
+  get Environment(): string { return this.Flag('environment') ?? 'production'; }
+}
+
 export default Command('deploy', 'Deploy the project')
-  .Flags(z.object({
-    environment: z.string().optional().describe('Target environment'),
-  }))
-  .Services(async (ctx, ioc) => ({
+  .Flags(FlagsSchema)
+  .Params(DeployParams)
+  .Services(async (ctx, ioc: IoCContainer) => ({
     dfs: await ioc.Resolve(CLIDFSContextManager),
   }))
   .Run(async ({ Params, Services, Log }) => {
-    const env = Params.Flag('environment') ?? 'production';
-    Log.Info(`Deploying to ${env}...`);
+    Log.Info(`Deploying to ${Params.Environment}...`);
   });
 ```
 

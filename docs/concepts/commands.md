@@ -84,7 +84,7 @@ Optional initialization phase for setting up state or validating preconditions.
 // Fluent API: use .Init()
 Command('deploy', 'Deploy the project')
   .Init(async ({ Log, Services }) => {
-    Log.Debug('Checking deployment prerequisites...');
+    Log.Info('Checking deployment prerequisites...');
     if (!await Services.config.IsConfigured()) {
       throw new Error('Project not configured');
     }
@@ -103,16 +103,24 @@ class DeployCommand extends CommandRuntime {
 The main execution phase. `Run` performs the action; `DryRun` shows what would happen.
 
 ```typescript
+const FlagsSchema = z.object({
+  env: z.string().default('production').describe('Target environment'),
+});
+
+class DeployParams extends CommandParams<[], z.infer<typeof FlagsSchema>> {
+  get Environment(): string { return this.Flag('env') ?? 'production'; }
+}
+
 Command('deploy', 'Deploy the project')
+  .Flags(FlagsSchema)
+  .Params(DeployParams)
   .Run(async ({ Params, Log, Services }) => {
-    const env = Params.Flag('env') ?? 'production';
-    Log.Info(`Deploying to ${env}...`);
-    await Services.deployer.Deploy(env);
+    Log.Info(`Deploying to ${Params.Environment}...`);
+    await Services.deployer.Deploy(Params.Environment);
     Log.Success('Deployment complete!');
   })
   .DryRun(async ({ Params, Log }) => {
-    const env = Params.Flag('env') ?? 'production';
-    Log.Info(`Would deploy to ${env}`);
+    Log.Info(`Would deploy to ${Params.Environment}`);
     Log.Info('Files that would be deployed:');
     // List files without actually deploying
   });
@@ -132,7 +140,7 @@ Command('process', 'Process files')
   })
   .Cleanup(async ({ Services, Log }) => {
     await Deno.remove(Services.tempDir, { recursive: true });
-    Log.Debug('Temporary files cleaned up');
+    Log.Info('Temporary files cleaned up');
   });
 ```
 
@@ -143,11 +151,14 @@ Command('process', 'Process files')
 A minimal command with no arguments or flags:
 
 ```typescript
-import { Command } from '@fathym/cli';
+import { Command, CommandParams } from '@fathym/cli';
+
+class VersionParams extends CommandParams<[], {}> {}
 
 export default Command('version', 'Show version information')
+  .Params(VersionParams)
   .Run(({ Log, Config }) => {
-    Log.Info(`${Config.name} v${Config.version}`);
+    Log.Info(`${Config.Name} v${Config.Version}`);
   });
 ```
 
@@ -156,18 +167,24 @@ export default Command('version', 'Show version information')
 Positional arguments are defined with Zod tuple schemas:
 
 ```typescript
-import { Command } from '@fathym/cli';
+import { Command, CommandParams } from '@fathym/cli';
 import { z } from 'zod';
 
+const ArgsSchema = z.tuple([
+  z.string().describe('Name to greet').meta({ argName: 'name' }),
+  z.string().optional().describe('Custom greeting').meta({ argName: 'greeting' }),
+]);
+
+class GreetParams extends CommandParams<z.infer<typeof ArgsSchema>, {}> {
+  get Name(): string { return this.Arg(0)!; }
+  get Greeting(): string { return this.Arg(1) ?? 'Hello'; }
+}
+
 export default Command('greet', 'Greet someone')
-  .Args(z.tuple([
-    z.string().describe('Name to greet').meta({ argName: 'name' }),
-    z.string().optional().describe('Custom greeting').meta({ argName: 'greeting' }),
-  ]))
+  .Args(ArgsSchema)
+  .Params(GreetParams)
   .Run(({ Params, Log }) => {
-    const name = Params.Arg(0);
-    const greeting = Params.Arg(1) ?? 'Hello';
-    Log.Info(`${greeting}, ${name}!`);
+    Log.Info(`${Params.Greeting}, ${Params.Name}!`);
   });
 ```
 
@@ -176,20 +193,26 @@ export default Command('greet', 'Greet someone')
 Flags are defined with Zod object schemas:
 
 ```typescript
-import { Command } from '@fathym/cli';
+import { Command, CommandParams } from '@fathym/cli';
 import { z } from 'zod';
 
+const FlagsSchema = z.object({
+  env: z.string().default('production').describe('Target environment'),
+  force: z.boolean().optional().describe('Force deployment'),
+  replicas: z.number().default(1).describe('Number of replicas'),
+});
+
+class DeployParams extends CommandParams<[], z.infer<typeof FlagsSchema>> {
+  get Environment(): string { return this.Flag('env') ?? 'production'; }
+  get Force(): boolean { return this.Flag('force') ?? false; }
+  get Replicas(): number { return this.Flag('replicas') ?? 1; }
+}
+
 export default Command('deploy', 'Deploy the project')
-  .Flags(z.object({
-    env: z.string().default('production').describe('Target environment'),
-    force: z.boolean().optional().describe('Force deployment'),
-    replicas: z.number().default(1).describe('Number of replicas'),
-  }))
+  .Flags(FlagsSchema)
+  .Params(DeployParams)
   .Run(({ Params, Log }) => {
-    const env = Params.Flag('env');
-    const force = Params.Flag('force');
-    const replicas = Params.Flag('replicas');
-    Log.Info(`Deploying to ${env} with ${replicas} replicas`);
+    Log.Info(`Deploying to ${Params.Environment} with ${Params.Replicas} replicas`);
   });
 ```
 
@@ -198,10 +221,14 @@ export default Command('deploy', 'Deploy the project')
 Inject dependencies via the IoC container:
 
 ```typescript
-import { Command, CLIDFSContextManager } from '@fathym/cli';
+import { Command, CommandParams, CLIDFSContextManager } from '@fathym/cli';
+import type { IoCContainer } from '@fathym/cli';
+
+class BuildParams extends CommandParams<[], {}> {}
 
 export default Command('build', 'Build the project')
-  .Services(async (ctx, ioc) => ({
+  .Params(BuildParams)
+  .Services(async (ctx, ioc: IoCContainer) => ({
     dfs: await ioc.Resolve(CLIDFSContextManager),
     builder: await ioc.Resolve(ProjectBuilder),
   }))
@@ -281,7 +308,8 @@ class CommitParams extends CommandParams<[], z.infer<typeof FlagsSchema>> {
   get Message(): string { return this.Flag('message')!; }
 }
 
-export default Command('git/commit', 'Commit changes')
+// Display name is 'commit', command key is 'git/commit' (from file path)
+export default Command('commit', 'Commit changes')
   .Flags(FlagsSchema)
   .Params(CommitParams)
   .Run(({ Params, Log }) => {
@@ -298,16 +326,24 @@ Command matching:
 Commands can throw errors to indicate failure:
 
 ```typescript
-Command('deploy', 'Deploy the project')
-  .Run(async ({ Params, Log }) => {
-    const env = Params.Flag('env');
+const FlagsSchema = z.object({
+  env: z.string().default('staging').describe('Environment'),
+});
 
-    if (!['staging', 'production'].includes(env)) {
-      throw new Error(`Invalid environment: ${env}`);
+class DeployParams extends CommandParams<[], z.infer<typeof FlagsSchema>> {
+  get Environment(): string { return this.Flag('env') ?? 'staging'; }
+}
+
+Command('deploy', 'Deploy the project')
+  .Flags(FlagsSchema)
+  .Params(DeployParams)
+  .Run(async ({ Params, Log }) => {
+    if (!['staging', 'production'].includes(Params.Environment)) {
+      throw new Error(`Invalid environment: ${Params.Environment}`);
     }
 
     try {
-      await performDeployment(env);
+      await performDeployment(Params.Environment);
     } catch (error) {
       Log.Error(`Deployment failed: ${error.message}`);
       throw error; // Re-throw to set exit code

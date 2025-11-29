@@ -510,6 +510,9 @@ Register a custom loader for specific paths:
 
 ```typescript
 // In .cli.init.ts
+import type { IoCContainer } from '@fathym/ioc';
+import type { CLIConfig } from '@fathym/cli';
+
 export default async function init(ioc: IoCContainer, config: CLIConfig) {
   // Register custom hooks for specific scenarios
   ioc.Register(CLICommandResolver, () => {
