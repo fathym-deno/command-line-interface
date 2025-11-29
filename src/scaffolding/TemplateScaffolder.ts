@@ -18,17 +18,27 @@ export class TemplateScaffolder {
     const { templateName, outputDir, context = {} } = options;
 
     const mergedContext = { ...this.baseContext, ...context };
-    const templateRoot = `./templates/${templateName}`.replace(/\\/g, '/');
+
+    // Normalize template root - remove leading ./ and normalize slashes
+    const templateRoot = `templates/${templateName}`.replace(/\\/g, '/');
 
     const files = await this.locator.ListFiles(`./templates/${templateName}`);
 
     for (const fullPath of files) {
-      const normalizedFullPath = fullPath.replace(/\\/g, '/');
+      // Normalize the full path: forward slashes, remove leading ./
+      const normalizedFullPath = fullPath
+        .replace(/\\/g, '/')
+        .replace(/^\.\//, '');
 
-      const relPath = normalizedFullPath.replace(
-        new RegExp(`^${templateRoot}/?`),
-        '',
-      );
+      // Strip the template root prefix to get the relative path
+      const relPath = normalizedFullPath.startsWith(templateRoot + '/')
+        ? normalizedFullPath.substring(templateRoot.length + 1)
+        : normalizedFullPath.startsWith(templateRoot)
+          ? normalizedFullPath.substring(templateRoot.length)
+          : normalizedFullPath;
+
+      // Skip if relPath is empty (would be the template directory itself)
+      if (!relPath) continue;
 
       const targetPath = join(outputDir || '.', relPath.replace(/\.hbs$/, ''));
       const raw = await this.locator.ReadTemplateFile(fullPath);
