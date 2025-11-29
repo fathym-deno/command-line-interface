@@ -13,7 +13,7 @@
     "check": "deno fmt --check && deno lint && deno check **/*.ts",
     "cli:compile": "deno compile --allow-all --output=ftm-cli-run ./scripts/cli-runtime.ts",
     "cli:run": "deno run -A ./scripts/cli-runtime.ts",
-    "deploy": "npx rimraf cov && deno task build && ftm git",
+    "deploy": "npx rimraf cov && deno task publish:check && deno task build && ftm git",
     "ftm-cli:init": "deno task ftm-cli:run init",
     "ftm-cli:build": "deno task ftm-cli:run build --config=./src/ftm-cli/.cli.json",
     "ftm-cli:compile": "deno task ftm-cli:run compile --entry=./src/ftm-cli/.build/cli.ts",
@@ -23,15 +23,7 @@
     "test": "npx rimraf cov && deno test -A ./tests/.tests.ts --coverage=cov",
     "version": "deno run -A jsr:@fathym/common@0.2.299/build/version"
   },
-  "imports": {
-    "jsr:@fathym/dfs@0.0.16": "../distributed-file-system/src/_/.exports.ts",
-    "jsr:@fathym/dfs@0.0.16/handlers": "../distributed-file-system/src/handlers/.exports.ts"
-  },
-/**
-// @sync-imports BEGIN ORIGINAL IMPORTS
-//   "imports": {},
-// @sync-imports END ORIGINAL IMPORTS
-*/
+  "imports": {},
   "exclude": ["**/_eac-runtime/*", "!src/**/.exports.ts", "!mod.ts"],
   "lint": {
     "include": ["apps/", "configs/", "src/", "tests/"],
