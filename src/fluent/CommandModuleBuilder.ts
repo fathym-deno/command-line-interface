@@ -24,6 +24,33 @@ export type ExtractInvokerMap<T extends Record<string, CommandModule>> = {
     ) => Promise<void | number>;
 };
 
+/**
+ * Union type for what .Commands() accepts - either a built CommandModule
+ * or a CommandModuleBuilder that will be built lazily at execution time.
+ */
+export type CommandSource<
+  A extends unknown[] = unknown[],
+  F extends Record<string, unknown> = Record<string, unknown>,
+> = CommandModule<A, F, any> | CommandModuleBuilder<A, F, any, any, any, any>;
+
+/**
+ * Extract invoker function types from either CommandModule or CommandModuleBuilder.
+ * This enables type-safe command invocation regardless of whether the user
+ * passes a built module or a builder.
+ */
+export type ExtractInvokerMapFromSource<
+  T extends Record<string, CommandSource>,
+> = {
+  [K in keyof T]: T[K] extends CommandModule<infer A, infer F, any>
+    ? (args?: A, flags?: F) => Promise<void | number>
+    : T[K] extends CommandModuleBuilder<infer A, infer F, any, any, any, any>
+      ? (args?: A, flags?: F) => Promise<void | number>
+      : (
+        args?: unknown[],
+        flags?: Record<string, unknown>,
+      ) => Promise<void | number>;
+};
+
 export class CommandModuleBuilder<
   TArgs extends unknown[] = unknown[],
   TFlags extends Record<string, unknown> = Record<string, unknown>,
@@ -50,10 +77,7 @@ export class CommandModuleBuilder<
     ctx: CommandContext<TParams, TServices, TCommands>,
     ioc: IoCContainer,
   ) => Promise<TServices>;
-  protected subcommands?: Record<
-    string,
-    CommandModule<unknown[], Record<string, unknown>>
-  >;
+  protected subcommands?: Record<string, CommandSource>;
   protected paramsCtor?: CommandParamConstructor<TArgs, TFlags, TParams>;
 
   constructor(
@@ -213,7 +237,7 @@ export class CommandModuleBuilder<
   }
 
   public Commands<
-    TSubcommands extends Record<string, CommandModule<any, any, any>>,
+    TSubcommands extends Record<string, CommandSource<any, any>>,
   >(
     commands: TSubcommands,
   ): RemoveUsed<
@@ -222,7 +246,7 @@ export class CommandModuleBuilder<
       TFlags,
       TParams,
       TServices,
-      ExtractInvokerMap<TSubcommands>,
+      ExtractInvokerMapFromSource<TSubcommands>,
       TUsed & { Commands: true }
     >,
     TUsed & { Commands: true }
@@ -300,7 +324,13 @@ export class CommandModuleBuilder<
 
         const invokers: CommandInvokerMap = {};
 
-        for (const [key, mod] of Object.entries(subcommands)) {
+        for (const [key, source] of Object.entries(subcommands)) {
+          // Check if it's a builder or already a module - build lazily if needed
+          const mod =
+            source instanceof CommandModuleBuilder
+              ? source.Build() // It's a builder, call Build() now
+              : (source as CommandModule); // It's already a module
+
           const runtime = new mod.Command();
           const ctor = mod.Params;
 

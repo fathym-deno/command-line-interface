@@ -6,7 +6,9 @@ import {
   defineCommandModule,
 } from '../../../src/commands/.exports.ts';
 
-export const FlagsSchema = z.object({});
+export const FlagsSchema = z.object({
+  name: z.string().describe('The name')
+});
 export const ArgsSchema = z.tuple([]);
 
 export class CloudCommandParams extends CommandParams<

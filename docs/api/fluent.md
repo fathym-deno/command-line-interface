@@ -418,7 +418,7 @@ Command('process', 'Process data')
 ### Commands
 
 ```typescript
-Commands<T extends Record<string, CommandModule>>(
+Commands<T extends Record<string, CommandSource>>(
   commands: T
 ): CommandBuilder
 ```
@@ -427,7 +427,7 @@ Register commands that can be programmatically invoked from within the current c
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `commands` | `Record<string, CommandModule>` | Map of command names to built modules |
+| `commands` | `Record<string, CommandSource>` | Map of command names to builders or modules |
 
 **Returns:** Updated builder with command invokers accessible via `Commands` in the run context
 
@@ -435,7 +435,7 @@ Register commands that can be programmatically invoked from within the current c
 > For organizing commands into groups (like `mycli db migrate`), use directory structure
 > with `.metadata.ts` files - see [Command Groups](../guides/building-commands.md#command-groups).
 
-**Real-world example (from fathym-cli's compile command):**
+**Example (from fathym-cli's compile command):**
 
 ```typescript
 import { join } from '@std/path/join';
@@ -446,7 +446,7 @@ Command('compile', 'Compile the CLI into a native binary')
   .Flags(CompileFlagsSchema)
   .Params(CompileParams)
   .Commands({
-    Build: BuildCommand.Build(),  // PascalCase key, call .Build()
+    Build: BuildCommand,  // Just pass the builder - Build() is called lazily
   })
   .Services(async (ctx, ioc) => ({
     CLIDFS: await dfsCtx.GetDFS('CLI'),
@@ -464,9 +464,10 @@ Command('compile', 'Compile the CLI into a native binary')
 
 **Key points:**
 - Use **PascalCase** keys (e.g., `Build`, `Deploy`, `Test`)
-- Call `.Build()` on the command module when registering
+- Pass the command builder directly (no `.Build()` needed - it's called lazily at runtime)
 - Access via destructuring: `const { Build } = Commands!`
 - Invoke with args array and flags object: `await Build(args, flags)`
+- Full type safety is preserved - TypeScript knows the args/flags types
 
 ---
 
