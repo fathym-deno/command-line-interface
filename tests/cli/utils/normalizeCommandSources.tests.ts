@@ -35,4 +35,17 @@ Deno.test('normalizeCommandSources', async (t) => {
     const result = normalizeCommandSources([]);
     assertEquals(result, []);
   });
+
+  await t.step('converts string array to CLICommandSource array', () => {
+    const result = normalizeCommandSources(['./commands', './plugins']);
+    assertEquals(result, [
+      { Path: './commands' },
+      { Path: './plugins' },
+    ]);
+  });
+
+  await t.step('converts single-element string array', () => {
+    const result = normalizeCommandSources(['./my-commands']);
+    assertEquals(result, [{ Path: './my-commands' }]);
+  });
 });

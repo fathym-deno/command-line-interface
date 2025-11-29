@@ -48,11 +48,13 @@ export type CLIConfig = {
 
   /**
    * Root folder(s) containing CLI commands and group definitions.
-   * Can be a single path string (for backward compatibility) or an array of CLICommandSource objects.
-   * Each source can specify a Path and an optional Root prefix for command keys.
+   * Can be:
+   * - A single path string (e.g., "./commands")
+   * - An array of path strings (e.g., ["./commands", "./plugins"])
+   * - An array of CLICommandSource objects with optional Root prefixes
    * Defaults to `./commands` when undefined.
    */
-  Commands?: string | CLICommandSource[];
+  Commands?: string | string[] | CLICommandSource[];
 
   /**
    * Root folder containing CLI templates.
@@ -99,10 +101,10 @@ export const CLIConfigSchema: z.ZodType<CLIConfig> = z.object({
     .describe('Optional description of what this CLI is for.'),
 
   Commands: z
-    .union([z.string(), z.array(CLICommandSourceSchema)])
+    .union([z.string(), z.array(z.string()), z.array(CLICommandSourceSchema)])
     .optional()
     .describe(
-      "Path(s) to CLI command folder(s). Can be a string or array of CLICommandSource objects. Defaults to './commands'.",
+      "Path(s) to CLI command folder(s). Can be a string, array of strings, or array of CLICommandSource objects. Defaults to './commands'.",
     ),
 });
 

@@ -23,4 +23,34 @@ Deno.test('CLIConfig schema and guard', async (t) => {
     assertEquals(isCLIConfig(baseConfig), true);
     assertEquals(isCLIConfig({ Name: '', Tokens: [], Version: '' }), false);
   });
+
+  await t.step('accepts Commands as single string', () => {
+    const config = {
+      ...baseConfig,
+      Commands: './commands',
+    };
+    const parsed = CLIConfigSchema.safeParse(config);
+    assert(parsed.success);
+  });
+
+  await t.step('accepts Commands as array of strings', () => {
+    const config = {
+      ...baseConfig,
+      Commands: ['./commands', './plugins'],
+    };
+    const parsed = CLIConfigSchema.safeParse(config);
+    assert(parsed.success);
+  });
+
+  await t.step('accepts Commands as array of CLICommandSource', () => {
+    const config = {
+      ...baseConfig,
+      Commands: [
+        { Path: './commands' },
+        { Path: './plugins', Root: 'plugins' },
+      ],
+    };
+    const parsed = CLIConfigSchema.safeParse(config);
+    assert(parsed.success);
+  });
 });

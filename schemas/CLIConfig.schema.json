@@ -25,10 +25,16 @@
       "type": "string"
     },
     "Commands": {
-      "description": "Path(s) to CLI command folder(s). Can be a string or array of CLICommandSource objects. Defaults to './commands'.",
+      "description": "Path(s) to CLI command folder(s). Can be a string, array of strings, or array of CLICommandSource objects. Defaults to './commands'.",
       "anyOf": [
         {
           "type": "string"
+        },
+        {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
         },
         {
           "type": "array",
