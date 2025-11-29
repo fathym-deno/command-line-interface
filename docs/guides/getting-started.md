@@ -56,13 +56,18 @@ Create `.cli.json`:
 
 ```json
 {
-  "name": "my-cli",
-  "version": "1.0.0",
-  "commands": {
-    "greet": "./commands/greet.ts"
-  }
+  "Name": "My CLI",
+  "Tokens": ["mycli"],
+  "Version": "1.0.0",
+  "Commands": "./commands"
 }
 ```
+
+This configuration tells the CLI framework:
+- **Name**: Display name shown in help output
+- **Tokens**: Command names users type (e.g., `mycli greet`)
+- **Version**: Semantic version for `--version` output
+- **Commands**: Directory to scan for command files (auto-discovered)
 
 ## Step 2: Create Your First Command
 
@@ -256,23 +261,12 @@ export default Command('info', 'Show project information')
   .Run(async ({ Services, Log, Config }) => {
     const projectDfs = await Services.dfs.GetProjectDFS();
 
-    Log.Info(`CLI: ${Config.name} v${Config.version}`);
+    Log.Info(`CLI: ${Config.Name} v${Config.Version}`);
     Log.Info(`Project root: ${projectDfs.Root}`);
   });
 ```
 
-Update `.cli.json`:
-
-```json
-{
-  "name": "my-cli",
-  "version": "1.0.0",
-  "commands": {
-    "greet": "./commands/greet.ts",
-    "info": "./commands/info.ts"
-  }
-}
-```
+Since commands are auto-discovered from the `./commands` directory, you don't need to update `.cli.json` when adding new command files. Just create the file in the `commands/` directory and it will be available automatically.
 
 ### Organizing Related Commands
 
@@ -320,19 +314,28 @@ export default Command('config get', 'Get a configuration value')
   });
 ```
 
-Update `.cli.json`:
+For hierarchical commands like `config get`, use directory structure instead:
 
-```json
-{
-  "name": "my-cli",
-  "version": "1.0.0",
-  "commands": {
-    "greet": "./commands/greet.ts",
-    "info": "./commands/info.ts",
-    "config": "./commands/config.ts",
-    "config get": "./commands/config-get.ts"
-  }
-}
+```
+commands/
+├── greet.ts          → mycli greet
+├── info.ts           → mycli info
+└── config/
+    ├── .metadata.ts  → Group help for "config"
+    ├── get.ts        → mycli config get
+    └── set.ts        → mycli config set
+```
+
+The `.metadata.ts` file provides help text for the command group:
+
+```typescript
+// commands/config/.metadata.ts
+import { CommandModuleMetadata } from '@fathym/cli';
+
+export default {
+  Name: 'config',
+  Description: 'Manage configuration',
+} as CommandModuleMetadata;
 ```
 
 ---

@@ -305,18 +305,30 @@ const locator = new EmbeddedTemplateLocator(templates);
 
 ### IoC Registration
 
-Configure in `.cli.json`:
+Configure templates path in `.cli.json`:
 
 ```json
 {
-  "ioc": {
-    "TemplateLocator": {
-      "Type": "Singleton",
-      "Factory": "./services/createTemplateLocator.ts"
-    }
-  },
-  "templates": "./templates"
+  "Name": "My CLI",
+  "Tokens": ["mycli"],
+  "Version": "1.0.0",
+  "Commands": "./commands",
+  "Templates": "./templates"
 }
+```
+
+Register the TemplateLocator in `.cli.init.ts`:
+
+```typescript
+// .cli.init.ts
+import { CLIInitFn } from '@fathym/cli';
+import { createTemplateLocator } from './services/createTemplateLocator.ts';
+
+export default (async (ioc, _config) => {
+  ioc.Register(await createTemplateLocator(), {
+    Type: ioc.Symbol('TemplateLocator'),
+  });
+}) as CLIInitFn;
 ```
 
 Factory:

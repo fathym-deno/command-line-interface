@@ -369,21 +369,25 @@ The IoC (Inversion of Control) container manages service lifecycle.
 
 ### Registering Services
 
-Services are registered in `.cli.json`:
+Services are registered in `.cli.init.ts`:
 
-```json
-{
-  "ioc": {
-    "ConfigService": {
-      "Type": "Singleton",
-      "Module": "./services/ConfigService.ts"
-    },
-    "DatabaseClient": {
-      "Type": "Transient",
-      "Module": "./services/DatabaseClient.ts"
-    }
-  }
-}
+```typescript
+// .cli.init.ts
+import { CLIInitFn } from '@fathym/cli';
+import { ConfigService } from './services/ConfigService.ts';
+import { DatabaseClient } from './services/DatabaseClient.ts';
+
+export default (async (ioc, _config) => {
+  // Singleton - one instance for entire CLI run
+  ioc.Register(() => new ConfigService(), {
+    Type: ioc.Symbol('ConfigService'),
+  });
+
+  // Each resolution creates a new instance
+  ioc.Register(() => new DatabaseClient(), {
+    Type: ioc.Symbol('DatabaseClient'),
+  });
+}) as CLIInitFn;
 ```
 
 ### Service Lifetimes

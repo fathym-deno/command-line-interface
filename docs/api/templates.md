@@ -445,17 +445,18 @@ export default Command('generate', 'Generate from template')
 
 ## IoC Registration
 
-Register the template locator in `.cli.json`:
+Register the template locator in `.cli.init.ts`:
 
-```json
-{
-  "ioc": {
-    "TemplateLocator": {
-      "Type": "Singleton",
-      "Factory": "./services/createTemplateLocator.ts"
-    }
-  }
-}
+```typescript
+// .cli.init.ts
+import { CLIInitFn } from '@fathym/cli';
+import { createTemplateLocator } from './services/createTemplateLocator.ts';
+
+export default (async (ioc, _config) => {
+  ioc.Register(createTemplateLocator(), {
+    Type: ioc.Symbol('TemplateLocator'),
+  });
+}) as CLIInitFn;
 ```
 
 Factory file:

@@ -34,8 +34,10 @@ function Command(key: string, description: string): CommandBuilder
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `key` | `string` | Command key for matching |
+| `name` | `string` | Display name shown in help output |
 | `description` | `string` | Human-readable description |
+
+> **Note:** The first parameter is the **display name**, not the command key. The actual command key is determined by the file's location in the commands directory. For example, a file at `commands/db/migrate.ts` has the key `db/migrate`, regardless of what name is passed to `Command()`.
 
 **Returns:** A `CommandBuilder` for method chaining
 

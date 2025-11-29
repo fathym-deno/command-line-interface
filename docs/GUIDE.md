@@ -90,15 +90,9 @@ deno task build              # Full build (fmt, lint, test)
      });
    ```
 
-2. **Add to command manifest**
-   ```json
-   // .cli.json
-   {
-     "commands": {
-       "my-command": "./commands/my-command.ts"
-     }
-   }
-   ```
+2. **Commands are auto-discovered**
+
+   Place your command file in the `commands/` directory and it will be automatically discovered. No manual registration needed in `.cli.json`.
 
 3. **Add intent tests**
    ```typescript
@@ -115,16 +109,17 @@ deno task build              # Full build (fmt, lint, test)
 
 ### Adding Service Injection
 
-1. **Configure IoC in .cli.json**
-   ```json
-   {
-     "ioc": {
-       "ConfigService": {
-         "Type": "Singleton",
-         "Module": "./services/ConfigService.ts"
-       }
-     }
-   }
+1. **Register services in .cli.init.ts**
+   ```typescript
+   // .cli.init.ts
+   import { CLIInitFn } from '@fathym/cli';
+   import { ConfigService } from './services/ConfigService.ts';
+
+   export default (async (ioc, _config) => {
+     ioc.Register(() => new ConfigService(), {
+       Type: ioc.Symbol('ConfigService'),
+     });
+   }) as CLIInitFn;
    ```
 
 2. **Inject in command**

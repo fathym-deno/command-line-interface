@@ -63,22 +63,22 @@ Methods can be called in any order (except `Command()` must be first), but the a
 
 ## Core Methods
 
-### Command(key, description)
+### Command(name, description)
 
 Entry point that creates a new command builder:
 
 ```typescript
 import { Command } from '@fathym/cli';
 
-// Simple command
+// The first parameter is the display name (shown in help)
+// The actual command key comes from the file's location in the commands directory
 const cmd = Command('hello', 'Say hello');
-
-// With namespace
-const cmd = Command('git:commit', 'Commit changes');
-
-// Command group style (directory-based)
-const cmd = Command('db/migrate', 'Run database migrations');
 ```
+
+> **Important:** The first parameter is the **display name** for help output, not the command key. The command key is determined by the file's path relative to the `commands` directory:
+> - `commands/hello.ts` → command key is `hello`
+> - `commands/db/migrate.ts` → command key is `db/migrate`
+> - `commands/scaffold/cloud/aws.ts` → command key is `scaffold/cloud/aws`
 
 ### .Args(schema)
 

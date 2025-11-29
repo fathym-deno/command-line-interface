@@ -218,19 +218,35 @@ File operations use pluggable DFS handlers:
 
 ```json
 {
-  "name": "mycli",
-  "version": "1.0.0",
-  "commands": {
-    "deploy": "./commands/deploy.ts",
-    "init": "./commands/init.ts"
-  },
-  "ioc": {
-    "ConfigService": {
-      "Type": "Singleton",
-      "Module": "./services/ConfigService.ts"
-    }
-  },
-  "templates": "./templates"
+  "Name": "My CLI",
+  "Tokens": ["mycli"],
+  "Version": "1.0.0",
+  "Description": "CLI tools for my project",
+  "Commands": "./commands",
+  "Templates": "./templates"
+}
+```
+
+Commands are auto-discovered from the directory specified in `Commands`. The directory structure determines the command keys:
+
+```
+commands/
+├── deploy.ts           → mycli deploy
+├── init.ts             → mycli init
+└── db/
+    ├── .metadata.ts    → Group metadata for "db"
+    ├── migrate.ts      → mycli db migrate
+    └── seed.ts         → mycli db seed
+```
+
+For multiple command sources with prefixes:
+
+```json
+{
+  "Commands": [
+    { "Path": "./commands" },
+    { "Path": "./plugins", "Root": "plugin" }
+  ]
 }
 ```
 
