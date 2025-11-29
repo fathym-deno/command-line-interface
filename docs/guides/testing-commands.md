@@ -410,6 +410,202 @@ CommandIntents('Deploy Command', cmd, configPath)
 
 ---
 
+## Mocking Services
+
+The testing framework provides type-safe service mocking via `.WithServices()`. This enables
+isolated unit testing by replacing real services with test doubles.
+
+### Basic Service Mocking
+
+Mock services at the suite level to apply to all intents:
+
+```typescript
+import { CommandIntents } from '@fathym/cli';
+import DeployCommand from '../../commands/deploy.ts';
+
+const cmd = DeployCommand.Build();
+const configPath = import.meta.resolve('../../.cli.json');
+
+// Create a mock deployer
+const mockDeployer = {
+  deploy: async (target: string) => ({ success: true, url: `https://${target}.example.com` }),
+  rollback: async () => {},
+};
+
+CommandIntents('Deploy Command', cmd, configPath)
+  .WithServices({
+    deployer: mockDeployer,  // Applied to all intents
+  })
+  .Intent('deploys to staging', (int) =>
+    int
+      .Args(['staging'])
+      .Flags({})
+      .ExpectLogs('Deployed to https://staging.example.com')
+      .ExpectExit(0))
+  .Intent('deploys to production', (int) =>
+    int
+      .Args(['production'])
+      .Flags({})
+      .ExpectLogs('Deployed to https://production.example.com')
+      .ExpectExit(0))
+  .Run();
+```
+
+### Intent-Level Overrides
+
+Override suite-level mocks for specific test cases:
+
+```typescript
+CommandIntents('Deploy Scenarios', DeployCommand.Build(), configPath)
+  .WithServices({
+    deployer: successfulDeployer,  // Default: success
+  })
+  .Intent('handles successful deployment', (int) =>
+    int
+      .Args(['staging'])
+      .ExpectLogs('Deployment successful')
+      .ExpectExit(0))
+  .Intent('handles deployment failure', (int) =>
+    int
+      .WithServices({
+        deployer: {
+          deploy: async () => { throw new Error('Connection timeout'); },
+        },
+      })  // Override with failing mock
+      .Args(['staging'])
+      .ExpectLogs('Connection timeout')
+      .ExpectExit(1))
+  .Intent('handles rollback', (int) =>
+    int
+      .WithServices({
+        deployer: {
+          deploy: async () => ({ success: true }),
+          rollback: async () => { throw new Error('Rollback failed'); },
+        },
+      })
+      .Args(['staging'])
+      .Flags({ rollbackOnFail: true })
+      .ExpectLogs('Rollback failed')
+      .ExpectExit(1))
+  .Run();
+```
+
+### Partial Mocking
+
+Mock only the services you need. Other services use real implementations:
+
+```typescript
+CommandIntents('Deploy with Partial Mocks', DeployCommand.Build(), configPath)
+  .WithInit(initFn)  // Registers real services
+  .WithServices({
+    deployer: mockDeployer,  // Only mock the deployer
+    // config, logger, etc. use real implementations from initFn
+  })
+  .Intent('uses mock deployer with real config', (int) =>
+    int.Args(['staging']).ExpectExit(0))
+  .Run();
+```
+
+### Type-Safe Mocking
+
+Service types are inferred from the command's `.Services()` definition:
+
+```typescript
+// In your command
+export default Command('deploy', 'Deploy application')
+  .Params(DeployParams)
+  .Services(async (ctx, ioc) => ({
+    deployer: await ioc.Resolve<DeployerService>(ioc.Symbol('Deployer')),
+    config: await ioc.Resolve<ConfigService>(ioc.Symbol('Config')),
+  }))
+  .Run(({ Services }) => {
+    // Services.deployer and Services.config are typed
+  });
+
+// In tests - TypeScript validates mock shapes
+CommandIntent('deploys', DeployCommand.Build(), configPath)
+  .WithServices({
+    deployer: {
+      deploy: async (t) => ({ success: true }),  // Must match DeployerService shape
+    },
+  })
+  .ExpectExit(0)
+  .Run();
+```
+
+### Testing with Mock State
+
+Track calls and verify behavior:
+
+```typescript
+const deploymentHistory: string[] = [];
+const trackingMock = {
+  deploy: async (target: string) => {
+    deploymentHistory.push(target);
+    return { success: true };
+  },
+};
+
+CommandIntents('Deploy Tracking', DeployCommand.Build(), configPath)
+  .BeforeAll(() => {
+    deploymentHistory.length = 0;  // Reset before each suite run
+  })
+  .WithServices({ deployer: trackingMock })
+  .Intent('tracks staging deployment', (int) =>
+    int.Args(['staging']).ExpectExit(0))
+  .Intent('tracks production deployment', (int) =>
+    int.Args(['production']).ExpectExit(0))
+  .Run();
+
+// Verify calls after tests
+Deno.test('deployment history', () => {
+  assertEquals(deploymentHistory, ['staging', 'production']);
+});
+```
+
+### Common Mocking Patterns
+
+#### Success/Failure Testing
+
+```typescript
+const successMock = {
+  execute: async () => ({ status: 'ok' }),
+};
+
+const failureMock = {
+  execute: async () => { throw new Error('Operation failed'); },
+};
+
+CommandIntents('Error Handling', MyCommand.Build(), configPath)
+  .Intent('handles success', (int) =>
+    int.WithServices({ api: successMock }).ExpectExit(0))
+  .Intent('handles failure', (int) =>
+    int.WithServices({ api: failureMock }).ExpectExit(1))
+  .Run();
+```
+
+#### Conditional Responses
+
+```typescript
+let callCount = 0;
+const retriableMock = {
+  execute: async () => {
+    callCount++;
+    if (callCount < 3) throw new Error('Temporary failure');
+    return { status: 'ok' };
+  },
+};
+
+CommandIntents('Retry Logic', RetryCommand.Build(), configPath)
+  .BeforeAll(() => { callCount = 0; })
+  .WithServices({ api: retriableMock })
+  .Intent('succeeds after retries', (int) =>
+    int.Flags({ maxRetries: 3 }).ExpectLogs('Succeeded after 3 attempts').ExpectExit(0))
+  .Run();
+```
+
+---
+
 ## Debugging Tests
 
 ### Run Single Test File

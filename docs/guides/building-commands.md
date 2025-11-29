@@ -741,8 +741,154 @@ class ConfigParams extends CommandParams<[], TFlags> {
 
 ---
 
+## Help System Integration
+
+The CLI framework automatically generates help output from your command's Zod schemas using meta attributes.
+
+### Meta Attributes
+
+Use `.meta()` on Zod schemas to customize help output:
+
+```typescript
+const ArgsSchema = z.tuple([
+  z.string()
+    .describe('Project name')
+    .meta({ argName: 'name' }),       // Display as <name> in help
+  z.string()
+    .optional()
+    .describe('Output directory')
+    .meta({ argName: 'output' }),     // Display as <output> in help
+]);
+
+const FlagsSchema = z.object({
+  v: z.boolean()
+    .optional()
+    .describe('Verbose output')
+    .meta({ flagName: 'verbose' }),   // Display as --verbose in help
+  t: z.string()
+    .optional()
+    .describe('Template to use')
+    .meta({ flagName: 'template' }),  // Display as --template in help
+});
+```
+
+### Available Meta Attributes
+
+| Attribute | Schema Type | Purpose |
+|-----------|-------------|---------|
+| `argName` | Args (tuple items) | Custom name in `<name>` format |
+| `flagName` | Flags (object properties) | Custom name for `--flag` display |
+
+### Without Meta Attributes
+
+Without `.meta()`, arguments display as generic names:
+
+```typescript
+// Schema without meta
+const ArgsSchema = z.tuple([
+  z.string().describe('Project name'),
+  z.string().optional().describe('Output'),
+]);
+
+// Help shows: <arg1> <arg2>
+// Instead of: <name> <output>
+```
+
+### Generated Help Output
+
+The help system extracts information from schemas:
+
+```typescript
+Command('init', 'Initialize a new project')
+  .Args(z.tuple([
+    z.string().describe('Project name').meta({ argName: 'name' }),
+  ]))
+  .Flags(z.object({
+    template: z.string().optional().describe('Template to use'),
+    force: z.boolean().optional().describe('Overwrite existing files'),
+  }))
+  .Params(InitParams)
+  .Run(...);
+```
+
+Generates:
+```
+📘 Command: Init
+Initialize a new project
+
+Usage:
+  mycli init <name> [--template] [--force]
+
+Args:
+  <name> - Project name
+
+Flags:
+  --template - Template to use
+  --force - Overwrite existing files
+```
+
+### Automatic --help Flag
+
+The `--help` flag is handled automatically:
+
+```bash
+mycli init --help      # Shows init command help
+mycli db --help        # Shows db group help
+mycli --help           # Shows CLI root help
+```
+
+### Group Metadata Files
+
+Create `.metadata.ts` files for command groups:
+
+```typescript
+// commands/db/.metadata.ts
+import { Command, CommandParams } from '@fathym/cli';
+
+class DbGroupParams extends CommandParams<[], {}> {}
+
+export default Command('db', 'Database management commands')
+  .Params(DbGroupParams)
+  .Run(({ Log }) => {
+    Log.Info('Use --help to see available database commands');
+  });
+```
+
+### Custom Examples
+
+Add examples via class-based commands:
+
+```typescript
+class DeployCommand extends CommandRuntime<DeployParams> {
+  get Key() { return 'deploy'; }
+  get Description() { return 'Deploy the application'; }
+
+  BuildMetadata() {
+    return this.buildMetadataFromSchemas(
+      'Deploy',
+      'Deploy the application to an environment',
+      ArgsSchema,
+      FlagsSchema,
+    );
+  }
+
+  // Add custom examples
+  get Examples(): string[] {
+    return [
+      'mycli deploy staging',
+      'mycli deploy production --force',
+      'mycli deploy --dry-run',
+    ];
+  }
+}
+```
+
+---
+
 ## Related
 
 - [Commands Concept](../concepts/commands.md) - Lifecycle details
 - [Fluent API Concept](../concepts/fluent-api.md) - Builder pattern
 - [Testing Commands](./testing-commands.md) - Test your commands
+- [CLI Configuration](./cli-configuration.md) - Project setup
+- [Advanced Infrastructure](./advanced-infrastructure.md) - Help system internals

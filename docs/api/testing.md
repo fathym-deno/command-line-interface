@@ -151,6 +151,24 @@ Add a test intent to the suite.
     .ExpectExit(0))
 ```
 
+#### WithServices (Suite-Level)
+
+```typescript
+WithServices(services: Partial<S>): CommandIntentsBuilder
+```
+
+Inject mock services for all tests in the suite. See [Service Mocking](#service-mocking) for details.
+
+```typescript
+CommandIntents('Deploy Suite', DeployCommand.Build(), configPath)
+  .WithServices({
+    deployer: mockDeployer,  // Applied to all intents
+  })
+  .Intent('deploys staging', (int) =>
+    int.Args(['staging']).ExpectExit(0))
+  .Run();
+```
+
 ---
 
 ## CommandIntent (Single Test)
@@ -244,6 +262,48 @@ CommandIntent('greets loudly', GreetCommand, configPath)
   .Args(['World'])
   .Flags({ loud: true })
   .ExpectLogs('HELLO, WORLD!')
+  .Run();
+```
+
+### WithInit
+
+```typescript
+WithInit(init: CLIInitFn): CommandIntentBuilder
+```
+
+Inject an initialization function for IoC service registration.
+
+```typescript
+import initFn from '../.cli.init.ts';
+
+CommandIntent('test with services', MyCommand.Build(), configPath)
+  .WithInit(initFn)
+  .Args(['test'])
+  .ExpectExit(0)
+  .Run();
+```
+
+### WithServices
+
+```typescript
+WithServices(services: Partial<S>): CommandIntentBuilder
+```
+
+Inject mock services for the test. See [Service Mocking](#service-mocking) for details.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `services` | `Partial<S>` | Partial map of services to mock |
+
+**Returns:** Same builder (for chaining)
+
+```typescript
+CommandIntent('deploys with mock', DeployCommand.Build(), configPath)
+  .WithServices({
+    deployer: mockDeployer,
+  })
+  .Args(['staging'])
+  .ExpectExit(0)
   .Run();
 ```
 
@@ -424,6 +484,144 @@ CommandIntents('Deploy Command', DeployCommand.Build(), configPath)
 |--------|-------------|
 | `ExpectExit(code)` | Assert exit code |
 | `ExpectLogs(...msgs)` | Assert log messages (ordered) |
+
+---
+
+## Service Mocking
+
+The testing framework provides type-safe service mocking via `WithServices()`. Mock services
+override real services during test execution, enabling isolated unit testing of command logic.
+
+### Type Safety
+
+Service types are inferred from the command's `.Services()` definition, providing autocomplete
+and type checking for mock objects:
+
+```typescript
+// Command defines typed services
+export default Command('deploy', 'Deploy application')
+  .Params(DeployParams)
+  .Services(async (ctx, ioc) => ({
+    deployer: await ioc.Resolve<DeployerService>(ioc.Symbol('Deployer')),
+    config: await ioc.Resolve<ConfigService>(ioc.Symbol('Config')),
+  }))
+  .Run(({ Services }) => {
+    // Services.deployer and Services.config are typed
+  });
+
+// Tests get type-safe mocking
+CommandIntent('deploys staging', DeployCommand.Build(), configPath)
+  .WithServices({
+    deployer: mockDeployer,  // TypeScript validates this matches DeployerService
+    // config uses real implementation (partial mocking)
+  })
+  .Args(['staging'])
+  .ExpectExit(0)
+  .Run();
+```
+
+### Merge Order
+
+Mock services are merged with real services in this order (later values override earlier):
+
+1. **Built-in services** → Core CLI services (DFS, Resolver, etc.)
+2. **WithInit services** → Services registered via `.cli.init.ts`
+3. **Suite-level WithServices** → Applied to all intents in suite
+4. **Intent-level WithServices** → Applied to individual intent
+
+```typescript
+CommandIntents('Deploy Suite', DeployCommand.Build(), configPath)
+  .WithInit(initFn)
+  .WithServices({
+    deployer: suiteWideMock,  // Applied to all intents
+  })
+  .Intent('uses suite mock', (int) =>
+    int.Args(['staging']).ExpectExit(0))
+  .Intent('uses intent override', (int) =>
+    int
+      .WithServices({ deployer: intentSpecificMock })  // Overrides suite mock
+      .Args(['prod'])
+      .ExpectExit(0))
+  .Run();
+```
+
+### Partial Mocking
+
+You only need to mock the services your test cares about. Other services use their
+real implementations:
+
+```typescript
+CommandIntent('deploys with mock deployer', DeployCommand.Build(), configPath)
+  .WithServices({
+    deployer: mockDeployer,  // Only mock the deployer
+    // config, logger, etc. use real implementations
+  })
+  .ExpectExit(0)
+  .Run();
+```
+
+### Common Patterns
+
+#### Simple Mock Object
+
+```typescript
+const mockDeployer = {
+  deploy: async (target: string) => ({ success: true, url: 'https://...' }),
+  rollback: async () => {},
+};
+
+CommandIntent('deploys successfully', DeployCommand.Build(), configPath)
+  .WithServices({ deployer: mockDeployer })
+  .Args(['staging'])
+  .ExpectLogs('Deployed to https://...')
+  .ExpectExit(0)
+  .Run();
+```
+
+#### Mocking Different Scenarios
+
+```typescript
+CommandIntents('Deploy Scenarios', DeployCommand.Build(), configPath)
+  .Intent('handles success', (int) =>
+    int
+      .WithServices({
+        deployer: { deploy: async () => ({ success: true }) },
+      })
+      .Args(['staging'])
+      .ExpectExit(0))
+  .Intent('handles failure', (int) =>
+    int
+      .WithServices({
+        deployer: { deploy: async () => { throw new Error('Deploy failed'); } },
+      })
+      .Args(['staging'])
+      .ExpectLogs('Deploy failed')
+      .ExpectExit(1))
+  .Run();
+```
+
+#### Stateful Mocks for Verification
+
+```typescript
+const calls: string[] = [];
+const trackingMock = {
+  deploy: async (target: string) => {
+    calls.push(target);
+    return { success: true };
+  },
+};
+
+CommandIntent('calls deployer with correct target', DeployCommand.Build(), configPath)
+  .WithServices({ deployer: trackingMock })
+  .Args(['production'])
+  .ExpectExit(0)
+  .Run();
+
+// After test, verify calls
+Deno.test('verifies deployment target', () => {
+  assertEquals(calls, ['production']);
+});
+```
 
 ---
 

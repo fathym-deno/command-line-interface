@@ -34,12 +34,17 @@ A powerful, type-safe CLI framework for Deno with fluent command building, depen
 - [CLI Class](./api/cli.md) - Main orchestrator
 - [Commands](./api/commands.md) - Command types and runtime
 - [Fluent Builder](./api/fluent.md) - Builder API reference
+- [DFS Context](./api/dfs.md) - File system context management
 - [Templates](./api/templates.md) - Template scaffolding
 - [Testing](./api/testing.md) - Intent-based testing
+- [Utilities](./api/utilities.md) - Utility functions
 
 ### Guides
+- [CLI Configuration](./guides/cli-configuration.md) - .cli.json and .cli.init.ts
 - [Testing Commands](./guides/testing-commands.md) - Intent testing framework
 - [Template Scaffolding](./guides/scaffolding.md) - Project generation
+- [Logging & Output](./guides/logging-output.md) - Logging, spinners, styling
+- [Advanced Infrastructure](./guides/advanced-infrastructure.md) - Internal architecture
 - [Compiling CLIs](./guides/embedded-cli.md) - Standalone executables
 
 ### Contributors

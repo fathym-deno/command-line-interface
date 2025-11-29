@@ -102,6 +102,33 @@ export class CommandIntentRuntime<
       CLICommandInvocationParser,
       () => new CLICommandInvocationParser(this.dfsCtxMgr),
     );
+
+    // Wrap injectServices to merge mock services after real services
+    if (this.mockServices && Object.keys(this.mockServices).length > 0) {
+      this.wrapServiceInjection();
+    }
+  }
+
+  /**
+   * Wraps the runtime's injectServices method to merge mock services.
+   *
+   * Mock services override real services, allowing partial mocking where
+   * only specific services are replaced while others use real implementations.
+   */
+  protected wrapServiceInjection(): void {
+    const runtime = this.runtime as any;
+    const originalInjectServices = runtime.injectServices?.bind(runtime);
+    const mocks = this.mockServices!;
+
+    runtime.injectServices = async (ctx: any, ioc: any): Promise<Partial<S>> => {
+      // Get real services first (if original exists)
+      const realServices = originalInjectServices
+        ? await originalInjectServices(ctx, ioc)
+        : {} as Partial<S>;
+
+      // Merge mock services over real services
+      return { ...realServices, ...mocks } as Partial<S>;
+    };
   }
 
   public ExpectLog(msg: string): this {
