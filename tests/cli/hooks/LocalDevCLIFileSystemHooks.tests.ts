@@ -102,20 +102,23 @@ Deno.test('LocalDevCLIFileSystemHooks', async (t) => {
     assertEquals(deploy?.ParentGroup, 'plugins', 'Nested command parent should be "plugins"');
   });
 
-  await t.step('ResolveCommandEntryPaths – skips root .metadata.ts without Root prefix', async () => {
-    const { hooks } = createHooks();
+  await t.step(
+    'ResolveCommandEntryPaths – skips root .metadata.ts without Root prefix',
+    async () => {
+      const { hooks } = createHooks();
 
-    // Load external-commands WITHOUT Root prefix
-    const entries = await hooks.ResolveCommandEntryPaths({
-      Path: './external-commands',
-    });
+      // Load external-commands WITHOUT Root prefix
+      const entries = await hooks.ResolveCommandEntryPaths({
+        Path: './external-commands',
+      });
 
-    // Root-level .metadata.ts should be skipped (no key to attach it to)
-    // But nested commands should still be loaded
-    assert(entries.has('plugin/deploy'), 'Should have "plugin/deploy" key');
-    assert(entries.has('plugin'), 'Should have "plugin" group key');
+      // Root-level .metadata.ts should be skipped (no key to attach it to)
+      // But nested commands should still be loaded
+      assert(entries.has('plugin/deploy'), 'Should have "plugin/deploy" key');
+      assert(entries.has('plugin'), 'Should have "plugin" group key');
 
-    // Verify no empty string key was created
-    assert(!entries.has(''), 'Should not have empty string key');
-  });
+      // Verify no empty string key was created
+      assert(!entries.has(''), 'Should not have empty string key');
+    },
+  );
 });

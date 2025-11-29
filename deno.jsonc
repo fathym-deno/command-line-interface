@@ -25,9 +25,13 @@
   },
   "imports": {
     "jsr:@fathym/dfs@0.0.16": "../distributed-file-system/src/_/.exports.ts",
-    "jsr:@fathym/dfs@0.0.16/handlers": "../distributed-file-system/src/handlers/.exports.ts",
-    "jsr:@fathym/dfs@0.0.16/utils": "../distributed-file-system/src/utils/.exports.ts"
+    "jsr:@fathym/dfs@0.0.16/handlers": "../distributed-file-system/src/handlers/.exports.ts"
   },
+/**
+// @sync-imports BEGIN ORIGINAL IMPORTS
+//   "imports": {},
+// @sync-imports END ORIGINAL IMPORTS
+*/
   "exclude": ["**/_eac-runtime/*", "!src/**/.exports.ts", "!mod.ts"],
   "lint": {
     "include": ["apps/", "configs/", "src/", "tests/"],

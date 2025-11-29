@@ -1,6 +1,6 @@
 import { IoCContainer, type TelemetryLogger, type WriterSync } from './.deps.ts';
 import { CLICommandExecutor } from './executor/CLICommandExecutor.ts';
-import type { CLIConfig, CLICommandSource } from './types/CLIConfig.ts';
+import type { CLICommandSource, CLIConfig } from './types/CLIConfig.ts';
 import type { CLIOptions } from './types/CLIOptions.ts';
 import { LocalDevCLIFileSystemHooks } from './hooks/LocalDevCLIFileSystemHooks.ts';
 import { CLICommandInvocationParser } from './parser/CLICommandInvocationParser.ts';
@@ -99,7 +99,9 @@ export class CLI {
           throw new Error(
             `Duplicate command key '${key}' detected.\n` +
               `  - First defined in: ${existingSource}\n` +
-              `  - Also defined in: ${source.Path}${source.Root ? ` (root: ${source.Root})` : ''}\n` +
+              `  - Also defined in: ${source.Path}${
+                source.Root ? ` (root: ${source.Root})` : ''
+              }\n` +
               `\nPlease ensure each command key is unique across all command sources.`,
           );
         }

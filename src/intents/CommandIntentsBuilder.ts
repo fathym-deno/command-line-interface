@@ -10,6 +10,7 @@ export class CommandIntentsBuilder<
   P extends CommandParams<A, F>,
 > {
   protected initFn?: CLIInitFn;
+  protected beforeAllFn?: () => void | Promise<void>;
   protected testBuilders: CommandIntentBuilder<A, F, P>[] = [];
 
   constructor(
@@ -20,6 +21,11 @@ export class CommandIntentsBuilder<
 
   public WithInit(init: CLIInitFn): this {
     this.initFn = init;
+    return this;
+  }
+
+  public BeforeAll(fn: () => void | Promise<void>): this {
+    this.beforeAllFn = fn;
     return this;
   }
 
@@ -41,6 +47,10 @@ export class CommandIntentsBuilder<
 
   public Run(): void {
     Deno.test(this.suiteName, async (t) => {
+      if (this.beforeAllFn) {
+        await this.beforeAllFn();
+      }
+
       for (const builder of this.testBuilders) {
         if (this.initFn) {
           builder.WithInit(this.initFn);

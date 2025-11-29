@@ -1,7 +1,7 @@
 import type { DFSFileHandler } from './.deps.ts';
 import type { CLICommandEntry } from './types/CLICommandEntry.ts';
 import type { CLIInitFn } from './types/CLIInitFn.ts';
-import type { CLIConfig, CLICommandSource } from './types/CLIConfig.ts';
+import type { CLICommandSource, CLIConfig } from './types/CLIConfig.ts';
 import type { CommandModule } from './commands/CommandModule.ts';
 import type { TemplateLocator } from './templates/TemplateLocator.ts';
 

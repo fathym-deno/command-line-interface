@@ -25,16 +25,37 @@
       "type": "string"
     },
     "Commands": {
-      "description": "Path to the CLI commands folder. Defaults to './commands'.",
-      "default": "./commands",
-      "type": "string"
+      "description": "Path(s) to CLI command folder(s). Can be a string or array of CLICommandSource objects. Defaults to './commands'.",
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "Path": {
+                "type": "string",
+                "minLength": 1
+              },
+              "Root": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "Path"
+            ],
+            "additionalProperties": false
+          }
+        }
+      ]
     }
   },
   "required": [
     "Name",
     "Tokens",
-    "Version",
-    "Commands"
+    "Version"
   ],
   "additionalProperties": false
 }

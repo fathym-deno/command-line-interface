@@ -6,7 +6,7 @@ import { CommandParamConstructor, CommandParams } from './commands/CommandParams
 import { CommandRuntime } from './commands/CommandRuntime.ts';
 import type { TemplateLocator } from './templates/TemplateLocator.ts';
 import { CLICommandEntry } from './types/CLICommandEntry.ts';
-import { CLIConfig, CLICommandSource } from './types/CLIConfig.ts';
+import { CLICommandSource, CLIConfig } from './types/CLIConfig.ts';
 import { CLIInitFn } from './types/CLIInitFn.ts';
 
 export class CLICommandResolver {

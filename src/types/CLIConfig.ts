@@ -64,7 +64,10 @@ export type CLIConfig = {
 /**
  * Zod schema for validating a CLICommandSource object.
  */
-export const CLICommandSourceSchema = z.object({
+export const CLICommandSourceSchema: z.ZodObject<
+  { Path: z.ZodString; Root: z.ZodOptional<z.ZodString> },
+  z.core.$strip
+> = z.object({
   Path: z.string().min(1, 'Command source path is required.'),
   Root: z.string().optional(),
 });
