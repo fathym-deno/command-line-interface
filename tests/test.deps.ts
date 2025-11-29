@@ -12,8 +12,8 @@ export { captureLogs, type CommandModuleMetadata, createTestCLI } from '../src/.
 
 export { CommandIntent, CommandIntents } from '../src/intents/.exports.ts';
 
-export { DFSFileHandler } from 'jsr:@fathym/dfs@0.0.35-integration';
+export { DFSFileHandler } from 'jsr:@fathym/dfs@0.0.39';
 export {
   LocalDFSFileHandler,
   type LocalDFSFileHandlerDetails,
-} from 'jsr:@fathym/dfs@0.0.35-integration/handlers';
+} from 'jsr:@fathym/dfs@0.0.39/handlers';
