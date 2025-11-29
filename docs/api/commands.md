@@ -83,7 +83,7 @@ Optional initialization phase. Called after ConfigureContext, before Run.
 
 ```typescript
 public override async Init(ctx): Promise<void> {
-  ctx.Log.Debug('Validating configuration...');
+  ctx.Log.Info('Validating configuration...');
   if (!this.deployer.isConfigured()) {
     throw new Error('Deployer not configured');
   }
@@ -137,7 +137,7 @@ Resource cleanup phase. Called even if Run throws an error.
 ```typescript
 public override async Cleanup(ctx): Promise<void> {
   await this.deployer.disconnect();
-  ctx.Log.Debug('Connection closed');
+  ctx.Log.Info('Connection closed');
 }
 ```
 
@@ -281,91 +281,136 @@ Invocation metadata.
 
 ## CommandParams
 
-Base class for argument and flag access. Extend for custom accessor methods.
+Base class for argument and flag access. **Always extend this class** to create
+custom getters for accessing arguments and flags.
 
 ```typescript
 import { CommandParams } from '@fathym/cli';
 ```
 
-### Methods
+### Public Properties
 
-#### Arg
+#### Args
 
 ```typescript
-Arg<I extends number>(index: I): TArgs[I]
+public readonly Args: TArgs
 ```
 
-Get a positional argument by index.
+The raw arguments array. Prefer using the protected `Arg()` method in getters.
+
+#### Flags
+
+```typescript
+public readonly Flags: TFlags
+```
+
+The raw flags object. Prefer using the protected `Flag()` method in getters.
+
+#### DryRun
+
+```typescript
+get DryRun(): boolean
+```
+
+Built-in getter that checks if `--dry-run` flag was passed.
+
+### Protected Methods
+
+> **Important:** `Arg()` and `Flag()` are **protected** methods. They are designed
+> to be called from within your custom Params class getters, not directly from
+> command handlers.
+
+#### Arg (protected)
+
+```typescript
+protected Arg<I extends number>(index: I): TArgs[I] | undefined
+```
+
+Get a positional argument by index. Call from within a getter.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
 | `index` | `number` | Zero-based argument index |
 
-**Returns:** The argument value (type inferred from schema)
+**Returns:** The argument value (type inferred from schema), or undefined
+
+#### Flag (protected)
 
 ```typescript
-const name = Params.Arg(0);   // First argument
-const count = Params.Arg(1);  // Second argument
+protected Flag<K extends keyof TFlags>(key: K): TFlags[K] | undefined
 ```
 
-#### Flag
-
-```typescript
-Flag<K extends keyof TFlags>(key: K): TFlags[K]
-```
-
-Get a flag value by key.
+Get a flag value by key. Call from within a getter.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
 | `key` | `string` | Flag name |
 
-**Returns:** The flag value (type inferred from schema)
+**Returns:** The flag value (type inferred from schema), or undefined
+
+### Best Practice: Custom Params Class
+
+**Always create a custom Params class with getters.** This is the recommended pattern
+from the fathym-cli implementation:
 
 ```typescript
-const env = Params.Flag('env');      // string
-const force = Params.Flag('force');  // boolean | undefined
-```
-
-### Custom Params Example
-
-```typescript
-import { CommandParams } from '@fathym/cli';
+import { Command, CommandParams } from '@fathym/cli';
 import { z } from 'zod';
 
-const ArgsSchema = z.tuple([z.string().optional()]);
+// 1. Define schemas
+const ArgsSchema = z.tuple([
+  z.string().optional().describe('Project name'),
+]);
+
 const FlagsSchema = z.object({
-  template: z.string().optional(),
-  force: z.boolean().optional(),
+  template: z.string().optional().describe('Template to use'),
+  force: z.boolean().optional().describe('Skip confirmation'),
 });
 
+// 2. Create custom Params class with public getters
 class InitParams extends CommandParams<
   z.infer<typeof ArgsSchema>,
   z.infer<typeof FlagsSchema>
 > {
-  get ProjectName(): string {
-    const arg = this.Arg(0);
-    return !arg || arg === '.' ? 'my-project' : arg;
+  /** Get project name with smart defaults */
+  get Name(): string {
+    const arg = this.Arg(0);  // Protected method
+    return !arg || arg === '.' ? '.' : arg;
   }
 
+  /** Get template with default */
   get Template(): string {
-    return this.Flag('template') ?? 'default';
+    return this.Flag('template') ?? 'init';  // Protected method
   }
 
+  /** Check if force mode is enabled */
   get Force(): boolean {
-    return this.Flag('force') ?? false;
+    return this.Flag('force') ?? false;  // Protected method
   }
 }
 
-Command('init', 'Initialize project')
+// 3. Use in command - access via public getters
+export default Command('init', 'Initialize a new project')
   .Args(ArgsSchema)
   .Flags(FlagsSchema)
   .Params(InitParams)
-  .Run(({ Params }) => {
-    console.log(Params.ProjectName);  // Type-safe
-    console.log(Params.Template);     // Type-safe
+  .Run(({ Params, Log }) => {
+    // Access through public getters - NOT Params.Arg(0) or Params.Flag('template')
+    Log.Info(`Creating ${Params.Name} from ${Params.Template} template`);
+
+    if (Params.Force) {
+      Log.Info('Force mode enabled, skipping confirmation');
+    }
   });
 ```
+
+### Why Use Getters?
+
+1. **Encapsulation** - Business logic for defaults stays in the Params class
+2. **Type Safety** - Getters can have computed return types
+3. **Reusability** - Same logic available in Init, Run, Cleanup phases
+4. **Testability** - Params class can be tested independently
+5. **Readability** - `Params.Name` is clearer than `Params.Arg(0) ?? '.'`
 
 ---
 
@@ -394,39 +439,77 @@ interface CommandMetadata {
 
 ---
 
-## CLILogger
+## CommandLog
 
-Logging facade with level-based output.
+The logging interface available in command handlers. Provides **four methods** for
+output with semantic meaning.
 
 ```typescript
-interface CLILogger {
-  Debug(message: string, data?: unknown): void;
-  Info(message: string, data?: unknown): void;
-  Warn(message: string, data?: unknown): void;
-  Error(message: string, data?: unknown): void;
-  Success(message: string, data?: unknown): void;
-}
+type CommandLog = {
+  Info: (...args: unknown[]) => void;
+  Warn: (...args: unknown[]) => void;
+  Error: (...args: unknown[]) => void;
+  Success: (...args: unknown[]) => void;
+};
 ```
 
-### Log Levels
+### Methods
 
-| Level | Environment | Description |
-|-------|-------------|-------------|
-| `debug` | `LOG_LEVEL=debug` | Verbose debugging |
-| `info` | Default | Standard output |
-| `warn` | Always shown | Warnings |
-| `error` | Always shown | Errors |
+| Method | Purpose | Usage |
+|--------|---------|-------|
+| `Info` | Standard informational output | Progress updates, status messages |
+| `Warn` | Warning messages | Non-fatal issues, deprecations |
+| `Error` | Error messages | Failures, exceptions |
+| `Success` | Success indicators | Completion messages |
+
+> **Note:** There is no `Debug` or `Trace` method. For debug output, use
+> conditional logging based on a verbose flag in your command.
 
 ### Usage
 
 ```typescript
-.Run(({ Log }) => {
-  Log.Debug('Config loaded', { path: './config.json' });
+.Run(({ Params, Log }) => {
   Log.Info('Starting build...');
-  Log.Warn('Deprecated option used');
-  Log.Error('Build failed', { exitCode: 1 });
-  Log.Success('Build complete!');
+  Log.Info('📦 Embedded templates →', templatesPath);
+
+  if (someWarning) {
+    Log.Warn('Deprecated option used');
+  }
+
+  try {
+    await performAction();
+    Log.Success('Build complete!');
+  } catch (error) {
+    Log.Error('Build failed:', error.message);
+    throw error;
+  }
 });
+```
+
+### Verbose/Debug Pattern
+
+If you need debug-level output, implement it with a flag:
+
+```typescript
+const FlagsSchema = z.object({
+  verbose: z.boolean().optional().describe('Enable verbose output'),
+});
+
+class MyParams extends CommandParams<TArgs, TFlags> {
+  get Verbose(): boolean {
+    return this.Flag('verbose') ?? false;
+  }
+}
+
+Command('build', 'Build the project')
+  .Flags(FlagsSchema)
+  .Params(MyParams)
+  .Run(({ Params, Log }) => {
+    if (Params.Verbose) {
+      Log.Info('Debug: Loading configuration...');
+    }
+    // ...
+  });
 ```
 
 ---

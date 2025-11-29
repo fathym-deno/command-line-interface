@@ -363,6 +363,228 @@ try {
 
 ---
 
+## CLIDFSContextManager
+
+The `CLIDFSContextManager` coordinates multiple DFS handlers for different filesystem scopes
+(execution directory, project root, user home, custom directories).
+
+```typescript
+import { CLIDFSContextManager } from '@fathym/cli';
+```
+
+### Registration Methods
+
+#### RegisterExecutionDFS
+
+```typescript
+RegisterExecutionDFS(cwd?: string): string
+```
+
+Register a DFS handler for the current execution directory.
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `cwd` | `string` | `Deno.cwd()` | Working directory path |
+
+**Returns:** The registered file root path
+
+```typescript
+const dfsCtx = await ioc.Resolve(CLIDFSContextManager);
+dfsCtx.RegisterExecutionDFS();  // Uses current directory
+dfsCtx.RegisterExecutionDFS('/custom/path');  // Custom path
+```
+
+#### RegisterProjectDFS
+
+```typescript
+RegisterProjectDFS(
+  fileUrlInProject: string,
+  name?: string,
+  rootFile?: string
+): string
+```
+
+Register a DFS handler for the project root (walks up to find root file).
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `fileUrlInProject` | `string` | — | File URL or path within project |
+| `name` | `string` | `'project'` | DFS registration name |
+| `rootFile` | `string` | `'.cli.json'` | File that marks project root |
+
+**Returns:** The registered project root path
+
+```typescript
+// Standard project DFS (walks up to find .cli.json)
+dfsCtx.RegisterProjectDFS(import.meta.url);
+
+// Named DFS for config override
+dfsCtx.RegisterProjectDFS(ctx.Params.ConfigOverride, 'CLI');
+```
+
+#### RegisterUserHomeDFS
+
+```typescript
+RegisterUserHomeDFS(): string
+```
+
+Register a DFS handler for the user's home directory.
+
+**Returns:** The user home directory path
+
+```typescript
+dfsCtx.RegisterUserHomeDFS();
+// Windows: C:\Users\username
+// Unix: /home/username
+```
+
+#### RegisterCustomDFS
+
+```typescript
+RegisterCustomDFS(
+  name: string,
+  details: LocalDFSFileHandlerDetails
+): string
+```
+
+Register a custom DFS handler with any name and configuration.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `name` | `string` | Unique DFS name |
+| `details` | `LocalDFSFileHandlerDetails` | Handler configuration |
+
+**Returns:** The registered file root path
+
+```typescript
+dfsCtx.RegisterCustomDFS('temp', { FileRoot: '/tmp/mycli' });
+dfsCtx.RegisterCustomDFS('output', { FileRoot: './dist' });
+```
+
+### Access Methods
+
+#### GetDFS
+
+```typescript
+async GetDFS(name: string): Promise<DFSFileHandler>
+```
+
+Get a registered DFS handler by name.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `name` | `string` | DFS registration name |
+
+**Returns:** The DFS handler
+
+**Throws:** Error if DFS is not registered
+
+```typescript
+const dfs = await dfsCtx.GetDFS('project');
+const files = await dfs.LoadAllPaths();
+```
+
+#### GetExecutionDFS
+
+```typescript
+async GetExecutionDFS(): Promise<DFSFileHandler>
+```
+
+Get the execution directory DFS handler.
+
+```typescript
+const execDfs = await dfsCtx.GetExecutionDFS();
+const cwd = await execDfs.ResolvePath('.');
+```
+
+#### GetProjectDFS
+
+```typescript
+async GetProjectDFS(): Promise<DFSFileHandler>
+```
+
+Get the project root DFS handler.
+
+```typescript
+const projectDfs = await dfsCtx.GetProjectDFS();
+const config = await projectDfs.GetFileInfo('.cli.json');
+```
+
+#### GetUserHomeDFS
+
+```typescript
+async GetUserHomeDFS(): Promise<DFSFileHandler>
+```
+
+Get the user home DFS handler. Auto-registers if not already registered.
+
+```typescript
+const homeDfs = await dfsCtx.GetUserHomeDFS();
+const configPath = await homeDfs.ResolvePath('.mycli/config.json');
+```
+
+#### ResolvePath
+
+```typescript
+async ResolvePath(scope: string, ...parts: string[]): Promise<string>
+```
+
+Resolve a path within a named DFS scope.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `scope` | `string` | DFS scope name |
+| `parts` | `string[]` | Path segments to join |
+
+**Returns:** Resolved absolute path
+
+```typescript
+const templatesPath = await dfsCtx.ResolvePath('project', './templates');
+const outputPath = await dfsCtx.ResolvePath('execution', 'dist', 'bundle.js');
+```
+
+### Usage Patterns
+
+#### Build Command Pattern
+
+```typescript
+// Common pattern for commands that support config override
+const Run = async (ctx) => {
+  const dfsCtx = await ctx.IoC.Resolve(CLIDFSContextManager);
+
+  // Register based on config override flag
+  if (ctx.Params.ConfigOverride) {
+    dfsCtx.RegisterProjectDFS(ctx.Params.ConfigOverride, 'CLI');
+  }
+
+  // Get the appropriate DFS
+  const buildDFS = ctx.Params.ConfigOverride
+    ? await dfsCtx.GetDFS('CLI')
+    : await dfsCtx.GetExecutionDFS();
+
+  // Use for file operations
+  const files = await buildDFS.LoadAllPaths();
+};
+```
+
+#### User Configuration Pattern
+
+```typescript
+// Load user-level configuration from home directory
+const loadUserConfig = async (ctx) => {
+  const dfsCtx = await ctx.IoC.Resolve(CLIDFSContextManager);
+  const homeDfs = await dfsCtx.GetUserHomeDFS();
+
+  const configInfo = await homeDfs.GetFileInfo('.mycli/config.json');
+  if (configInfo) {
+    return JSON.parse(await new Response(configInfo.Contents).text());
+  }
+  return {};
+};
+```
+
+---
+
 ## Related
 
 - [Architecture Concept](../concepts/architecture.md) - Framework overview

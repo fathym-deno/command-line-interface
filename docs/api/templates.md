@@ -32,22 +32,41 @@ import { TemplateScaffolder } from '@fathym/cli';
 constructor(
   locator: TemplateLocator,
   outputDfs: DFSFileHandler<unknown>,
-  context: Record<string, unknown>,
+  baseContext?: Record<string, unknown>,
 )
 ```
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
 | `locator` | `TemplateLocator` | Template file locator |
-| `outputDfs` | `DFSFileHandler` | DFS handler for output |
-| `context` | `Record<string, unknown>` | Handlebars template context |
+| `outputDfs` | `DFSFileHandler` | DFS handler for output (exposed as `.DFS`) |
+| `baseContext` | `Record<string, unknown>?` | Default Handlebars context (merged with per-call context) |
 
 ```typescript
 const scaffolder = new TemplateScaffolder(
   await ioc.Resolve<TemplateLocator>(ioc.Symbol('TemplateLocator')),
   await dfsCtxMgr.GetExecutionDFS(),
-  { name: 'my-project', author: 'John' },
+  { author: 'Fathym Platform', year: new Date().getFullYear() },
 );
+```
+
+### Properties
+
+#### DFS
+
+```typescript
+public DFS: DFSFileHandler
+```
+
+The output DFS handler passed to the constructor. Useful for additional file operations.
+
+```typescript
+// Check if file exists before scaffolding
+const existing = await scaffolder.DFS.GetFileInfo('my-project/deno.json');
+if (existing) {
+  Log.Warn('Project already exists');
+  return;
+}
 ```
 
 ---
@@ -57,52 +76,39 @@ const scaffolder = new TemplateScaffolder(
 #### Scaffold
 
 ```typescript
-async Scaffold(options: ScaffoldOptions): Promise<void>
+async Scaffold(options: TemplateScaffoldOptions): Promise<void>
 ```
 
 Generate files from a template.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `options` | `ScaffoldOptions` | Scaffolding options |
+| `options` | `TemplateScaffoldOptions` | Scaffolding options |
 
 ```typescript
-interface ScaffoldOptions {
-  /** Template name to use */
+interface TemplateScaffoldOptions {
+  /** Template name (directory under ./templates/) */
   templateName: string;
 
   /** Output directory (relative to outputDfs) */
-  outputDir: string;
+  outputDir?: string;
 
-  /** Additional context overrides */
+  /** Additional context (merged with baseContext) */
   context?: Record<string, unknown>;
-
-  /** Skip confirmation prompts */
-  force?: boolean;
 }
 ```
 
+The `context` is merged with `baseContext` from the constructor, with per-call values
+taking precedence:
+
 ```typescript
+// Constructor baseContext: { author: 'Fathym', year: 2024 }
 await scaffolder.Scaffold({
   templateName: 'init',
   outputDir: 'my-project',
-  context: { description: 'My new project' },
+  context: { name: 'my-cli', year: 2025 },  // year overrides baseContext
 });
-```
-
-#### ListTemplates
-
-```typescript
-async ListTemplates(): Promise<string[]>
-```
-
-Get available template names.
-
-**Returns:** Array of template names
-
-```typescript
-const templates = await scaffolder.ListTemplates();
-// ['init', 'component', 'service']
+// Merged context: { author: 'Fathym', year: 2025, name: 'my-cli' }
 ```
 
 ---
@@ -123,43 +129,45 @@ import { TemplateLocator } from '@fathym/cli';
 abstract ListFiles(templateName: string): Promise<string[]>
 ```
 
-List all files in a template.
+List all files in a template directory.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `templateName` | `string` | Name of the template |
+| `templateName` | `string` | Template directory path (e.g., `'./templates/init'`) |
 
 **Returns:** Array of file paths relative to template root
 
-#### GetFile
-
 ```typescript
-abstract GetFile(filePath: string): Promise<DFSFileInfo | undefined>
+const files = await locator.ListFiles('./templates/init');
+// ['./templates/init/{{name}}/deno.jsonc.hbs', './templates/init/{{name}}/README.md.hbs']
 ```
 
-Get a specific template file.
+#### ReadTemplateFile
+
+```typescript
+abstract ReadTemplateFile(path: string): Promise<string>
+```
+
+Read the contents of a template file.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `filePath` | `string` | Path to the file |
+| `path` | `string` | Full path to the template file |
 
-**Returns:** File info with contents stream, or undefined
+**Returns:** The file contents as a string
 
-#### ListTemplates
+**Throws:** Error if the file is not found
 
 ```typescript
-abstract ListTemplates(): Promise<string[]>
+const content = await locator.ReadTemplateFile('./templates/init/{{name}}/deno.jsonc.hbs');
 ```
-
-List available template names.
-
-**Returns:** Array of template names
 
 ---
 
 ## DFSTemplateLocator
 
-Locates templates from a DFS handler (filesystem).
+Locates templates from a DFS handler (filesystem). Used during development when
+templates are stored on the local filesystem.
 
 ```typescript
 import { DFSTemplateLocator } from '@fathym/cli';
@@ -168,21 +176,16 @@ import { DFSTemplateLocator } from '@fathym/cli';
 ### Constructor
 
 ```typescript
-constructor(
-  dfs: DFSFileHandler<unknown>,
-  templatesPath?: string,
-)
+constructor(dfs: DFSFileHandler)
 ```
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `dfs` | `DFSFileHandler` | DFS handler for template files |
-| `templatesPath` | `string?` | Base path for templates (default: 'templates') |
+| `dfs` | `DFSFileHandler` | DFS handler rooted at the CLI project directory |
 
 ```typescript
 const locator = new DFSTemplateLocator(
   new LocalDFSFileHandler({ FileRoot: './cli' }),
-  'templates',
 );
 ```
 
@@ -197,16 +200,32 @@ const locator = new DFSTemplateLocator(
 //         deno.jsonc.hbs
 //         README.md.hbs
 
-const locator = new DFSTemplateLocator(cliDfs, 'templates');
-const files = await locator.ListFiles('init');
+const dfs = new LocalDFSFileHandler({ FileRoot: './cli' });
+const locator = new DFSTemplateLocator(dfs);
+
+const files = await locator.ListFiles('./templates/init');
 // ['./templates/init/{{name}}/deno.jsonc.hbs', ...]
+
+const content = await locator.ReadTemplateFile('./templates/init/{{name}}/deno.jsonc.hbs');
+```
+
+### With Memory DFS (Testing)
+
+```typescript
+import { MemoryDFSFileHandler } from '@fathym/dfs/handlers';
+
+const dfs = new MemoryDFSFileHandler({});
+await dfs.WriteFile('./templates/init/mod.ts.hbs', createStream('export default {};'));
+
+const locator = new DFSTemplateLocator(dfs);
 ```
 
 ---
 
 ## EmbeddedTemplateLocator
 
-Locates templates from a compiled JSON bundle.
+Locates templates from a preloaded in-memory map. Used in statically compiled
+CLI binaries where templates are bundled at build time.
 
 ```typescript
 import { EmbeddedTemplateLocator } from '@fathym/cli';
@@ -215,17 +234,19 @@ import { EmbeddedTemplateLocator } from '@fathym/cli';
 ### Constructor
 
 ```typescript
-constructor(templates: EmbeddedTemplates)
+constructor(templates: Record<string, string>)
 ```
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `templates` | `EmbeddedTemplates` | Embedded template bundle |
+| `templates` | `Record<string, string>` | Map of template paths to content |
 
 ```typescript
-interface EmbeddedTemplates {
-  [path: string]: string;  // path -> base64 encoded content
-}
+// Keys are paths without leading ./templates/, values are file content
+const templates = {
+  'init/{{name}}/deno.jsonc.hbs': '{\n  "name": "{{name}}"\n}',
+  'init/{{name}}/README.md.hbs': '# {{name}}\n',
+};
 ```
 
 ### Usage Example
@@ -234,17 +255,25 @@ interface EmbeddedTemplates {
 import embeddedTemplates from './.build/embedded-templates.json' with { type: 'json' };
 
 const locator = new EmbeddedTemplateLocator(embeddedTemplates);
+
+// ListFiles returns paths prefixed with ./templates/
+const files = await locator.ListFiles('init');
+// ['./templates/init/{{name}}/deno.jsonc.hbs', ...]
+
+// ReadTemplateFile accepts paths with or without ./templates/ prefix
+const content = await locator.ReadTemplateFile('./templates/init/{{name}}/deno.jsonc.hbs');
 ```
 
 ### Building Embedded Templates
 
-Templates are embedded during the build process:
+Templates are embedded during the CLI build process:
 
 ```bash
-deno task ftm-cli:build
+deno task build
 ```
 
-This creates `.build/embedded-templates.json` containing base64-encoded template files.
+This creates `.build/embedded-templates.json` containing all template files.
+See [Compiling CLIs Guide](../guides/embedded-cli.md) for details.
 
 ---
 

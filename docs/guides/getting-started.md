@@ -45,6 +45,7 @@ my-cli/
 ├── commands/
 │   └── greet.ts
 ├── .cli.json
+├── .cli.init.ts      # Optional: IoC service registration
 ├── deno.json
 └── main.ts
 ```
@@ -152,6 +153,60 @@ deno task cli greet Alice --loud
 
 ---
 
+## Service Registration with .cli.init.ts
+
+For CLIs that need shared services (API clients, configuration, utilities), create a
+`.cli.init.ts` file at the project root. This function runs once before command execution.
+
+Create `.cli.init.ts`:
+
+```typescript
+import { CLIInitFn } from '@fathym/cli';
+
+// Define your service interface
+export interface ConfigService {
+  Get(key: string): string | undefined;
+}
+
+// Implementation
+class EnvConfigService implements ConfigService {
+  Get(key: string): string | undefined {
+    return Deno.env.get(key);
+  }
+}
+
+// Export the init function as default
+export default (async (ioc, _config) => {
+  // Register services in the IoC container
+  ioc.Register(() => new EnvConfigService(), {
+    Type: ioc.Symbol('ConfigService'),
+  });
+}) as CLIInitFn;
+```
+
+Use services in commands:
+
+```typescript
+import { Command } from '@fathym/cli';
+import type { ConfigService } from '../.cli.init.ts';
+
+export default Command('env', 'Show environment variable')
+  .Args(z.tuple([z.string().describe('Variable name')]))
+  .Services(async (ctx, ioc) => ({
+    config: await ioc.Resolve<ConfigService>(ioc.Symbol('ConfigService')),
+  }))
+  .Run(({ Params, Services, Log }) => {
+    const key = Params.Arg(0);
+    const value = Services.config.Get(key) ?? '(not set)';
+    Log.Info(`${key}=${value}`);
+  });
+```
+
+> **Note:** The `.cli.init.ts` file is automatically discovered when placed next to
+> `.cli.json`. For testing, use `.WithInit(initFn)` on your test suite.
+
+---
+
 ## Adding More Commands
 
 ### A Command with Services
@@ -238,29 +293,36 @@ Update `.cli.json`:
 Create `tests/intents/greet.intents.ts`:
 
 ```typescript
-import { CommandIntent } from '@fathym/cli';
+import { CommandIntents } from '@fathym/cli';
 import GreetCommand from '../../commands/greet.ts';
 
+const cmd = GreetCommand.Build();  // Important: call .Build() for fluent commands
 const configPath = import.meta.resolve('../../.cli.json');
 
-CommandIntent('greets with default name', GreetCommand, configPath)
-  .ExpectLogs('Hello, World!')
-  .ExpectExit(0)
-  .Run();
-
-CommandIntent('greets by name', GreetCommand, configPath)
-  .Args(['Alice'])
-  .ExpectLogs('Hello, Alice!')
-  .ExpectExit(0)
-  .Run();
-
-CommandIntent('greets loudly', GreetCommand, configPath)
-  .Args(['Bob'])
-  .Flags({ loud: true })
-  .ExpectLogs('HELLO, BOB!')
-  .ExpectExit(0)
+CommandIntents('Greet Command', cmd, configPath)
+  .Intent('greets with default name', (int) =>
+    int
+      .Args([undefined])
+      .Flags({})
+      .ExpectLogs('Hello, World!')
+      .ExpectExit(0))
+  .Intent('greets by name', (int) =>
+    int
+      .Args(['Alice'])
+      .Flags({})
+      .ExpectLogs('Hello, Alice!')
+      .ExpectExit(0))
+  .Intent('greets loudly', (int) =>
+    int
+      .Args(['Bob'])
+      .Flags({ loud: true })
+      .ExpectLogs('HELLO, BOB!')
+      .ExpectExit(0))
   .Run();
 ```
+
+> **Note:** When testing fluent commands created with `Command()`, you must call
+> `.Build()` to get the CommandModule before passing it to `CommandIntents`.
 
 Create `tests/.tests.ts`:
 
@@ -337,7 +399,6 @@ z.object({
 
 ```typescript
 .Run(({ Log }) => {
-  Log.Debug('Detailed info');    // Only with LOG_LEVEL=debug
   Log.Info('Standard output');   // Default level
   Log.Warn('Warning message');   // Highlighted
   Log.Error('Error message');    // Error output

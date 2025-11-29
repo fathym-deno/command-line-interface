@@ -16,11 +16,146 @@ References:
 
 # Testing API Reference
 
-API reference for the intent-based testing framework including `CommandIntent` and assertion helpers.
+API reference for the intent-based testing framework including `CommandIntent`, `CommandIntents`, and assertion helpers.
 
-## CommandIntent
+## Two Testing APIs
 
-The main class for declarative command testing.
+The framework provides two APIs for testing commands:
+
+| API | Use Case | Pattern |
+|-----|----------|---------|
+| `CommandIntents` (plural) | Multiple tests for one command | Suite-based with `.Intent()` |
+| `CommandIntent` (singular) | Single standalone test | One test per call |
+
+**Recommendation:** Use `CommandIntents` for most cases. It provides better organization,
+shared setup via `.BeforeAll()` and `.WithInit()`, and groups related tests.
+
+---
+
+## CommandIntents (Suite-Based)
+
+The **preferred** way to test commands. Groups multiple intents for a single command.
+
+```typescript
+import { CommandIntents } from '@fathym/cli';
+```
+
+### Constructor
+
+```typescript
+function CommandIntents(
+  suiteName: string,
+  command: CommandModule,
+  configPath: string | URL,
+): CommandIntentsBuilder
+```
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `suiteName` | `string` | Name of the test suite |
+| `command` | `CommandModule` | Command to test (use `.Build()` for fluent commands) |
+| `configPath` | `string \| URL` | Path to .cli.json |
+
+**Returns:** A `CommandIntentsBuilder` for method chaining
+
+### Complete Example
+
+```typescript
+import { CommandIntents } from '@fathym/cli';
+import HelloCommand from '../commands/hello.ts';
+import initFn from '../.cli.init.ts';
+
+const cmd = HelloCommand.Build();  // Important: call .Build() for fluent commands
+const origin = import.meta.resolve('../.cli.json');
+
+CommandIntents('Hello Command Suite', cmd, origin)
+  .WithInit(initFn)  // Optional: inject IoC initialization
+  .BeforeAll(async () => {
+    // Optional: setup before all tests
+    await cleanupTempFiles();
+  })
+  .Intent('greets default world', (int) =>
+    int
+      .Args([undefined])  // No argument
+      .Flags({})
+      .ExpectLogs('👋 Hello, world')
+      .ExpectExit(0))
+  .Intent('greets a specific name', (int) =>
+    int
+      .Args(['Alice'])
+      .Flags({})
+      .ExpectLogs('👋 Hello, Alice')
+      .ExpectExit(0))
+  .Intent('greets loudly', (int) =>
+    int
+      .Args(['team'])
+      .Flags({ loud: true })
+      .ExpectLogs('👋 HELLO, TEAM')
+      .ExpectExit(0))
+  .Run();
+```
+
+### Suite Methods
+
+#### WithInit
+
+```typescript
+WithInit(initFn: CLIInitFn): CommandIntentsBuilder
+```
+
+Inject an initialization function for IoC service registration.
+
+```typescript
+import initFn from '../.cli.init.ts';
+
+CommandIntents('My Suite', cmd, origin)
+  .WithInit(initFn)  // Registers services before each test
+  .Intent(...)
+  .Run();
+```
+
+#### BeforeAll
+
+```typescript
+BeforeAll(fn: () => Promise<void> | void): CommandIntentsBuilder
+```
+
+Run setup before all tests in the suite.
+
+```typescript
+CommandIntents('Init Suite', cmd, origin)
+  .BeforeAll(async () => {
+    await Deno.remove('./tests/.temp', { recursive: true }).catch(() => {});
+  })
+  .Intent(...)
+  .Run();
+```
+
+#### Intent
+
+```typescript
+Intent(
+  name: string,
+  configure: (builder: IntentBuilder) => IntentBuilder
+): CommandIntentsBuilder
+```
+
+Add a test intent to the suite.
+
+```typescript
+.Intent('test case name', (int) =>
+  int
+    .Args(['value'])
+    .Flags({ flag: true })
+    .ExpectLogs('expected output')
+    .ExpectExit(0))
+```
+
+---
+
+## CommandIntent (Single Test)
+
+For standalone single tests. Use when you only need one test case.
 
 ```typescript
 import { CommandIntent } from '@fathym/cli';
@@ -48,12 +183,15 @@ function CommandIntent(
 import { CommandIntent } from '@fathym/cli';
 import GreetCommand from '../commands/greet.ts';
 
-CommandIntent('greets the user', GreetCommand, import.meta.resolve('../.cli.json'))
+CommandIntent('greets the user', GreetCommand.Build(), import.meta.resolve('../.cli.json'))
   .Args(['World'])
   .ExpectLogs('Hello, World!')
   .ExpectExit(0)
   .Run();
 ```
+
+> **Important:** When testing fluent commands (created with `Command()`), you must
+> call `.Build()` on the command before passing it to `CommandIntent`.
 
 ---
 

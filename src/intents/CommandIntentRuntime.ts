@@ -15,6 +15,17 @@ import { CLICommandInvocationParser } from '../parser/CLICommandInvocationParser
 import { CLIDFSContextManager } from '../CLIDFSContextManager.ts';
 import { LocalDevCLIFileSystemHooks } from '../hooks/LocalDevCLIFileSystemHooks.ts';
 
+/**
+ * Runtime for executing command tests and validating expectations.
+ *
+ * This class handles the actual test execution, including:
+ * - Setting up IoC container and DFS contexts
+ * - Running the command with captured output
+ * - Intercepting Deno.exit calls
+ * - Validating log output and exit codes
+ *
+ * @internal Used by CommandIntentBuilder - not intended for direct use
+ */
 export class CommandIntentRuntime<
   A extends unknown[],
   F extends Record<string, unknown>,
