@@ -7,14 +7,14 @@ Deno.test('EmbeddedTemplateLocator – normalizes prefixes and lists files', asy
     'base/nested/inner.txt': 'in',
   });
 
-  const files = await locator.ListFiles('/tmp/template/base');
-  assertEquals(files.sort(), ['./template/base/file.txt', './template/base/nested/inner.txt']);
+  const files = await locator.ListFiles('/tmp/templates/base');
+  assertEquals(files.sort(), ['./templates/base/file.txt', './templates/base/nested/inner.txt']);
 
-  const content = await locator.ReadTemplateFile('./template/base/file.txt');
+  const content = await locator.ReadTemplateFile('./templates/base/file.txt');
   assertEquals(content, 'hi');
 });
 
 Deno.test('EmbeddedTemplateLocator – throws when missing template', () => {
   const locator = new EmbeddedTemplateLocator({});
-  assertThrows(() => locator.ReadTemplateFile('./template/missing.txt'));
+  assertThrows(() => locator.ReadTemplateFile('./templates/missing.txt'));
 });
