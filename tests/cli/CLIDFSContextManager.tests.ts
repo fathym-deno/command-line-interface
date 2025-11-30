@@ -43,3 +43,59 @@ Deno.test('CLIDFSContextManager – throws when root marker is missing', () => {
   const path = join(Deno.cwd(), 'nonexistent', 'file.ts');
   assertThrows(() => dfs.RegisterProjectDFS(path));
 });
+
+Deno.test('CLIDFSContextManager – RegisterConfigDFS creates directory and registers DFS', async () => {
+  const ioc = new IoCContainer();
+  const dfsCtx = new CLIDFSContextManager(ioc);
+
+  // Create a temp directory to act as "home" and override environment
+  const tempHome = await Deno.makeTempDir();
+  const originalEnv = Deno.build.os === 'windows'
+    ? Deno.env.get('USERPROFILE')
+    : Deno.env.get('HOME');
+
+  try {
+    // Override home directory for test
+    if (Deno.build.os === 'windows') {
+      Deno.env.set('USERPROFILE', tempHome);
+    } else {
+      Deno.env.set('HOME', tempHome);
+    }
+
+    const configPath = await dfsCtx.RegisterConfigDFS('.test-cli');
+
+    // Verify directory was created
+    const stat = await Deno.stat(configPath);
+    assertEquals(stat.isDirectory, true);
+
+    // Verify path is correct
+    assertEquals(configPath, join(tempHome, '.test-cli'));
+
+    // Verify DFS is accessible
+    const configDfs = await dfsCtx.GetConfigDFS();
+    const resolved = await configDfs.ResolvePath('config.json');
+    assertEquals(resolved, join(tempHome, '.test-cli', 'config.json'));
+  } finally {
+    // Restore environment
+    if (Deno.build.os === 'windows') {
+      if (originalEnv) Deno.env.set('USERPROFILE', originalEnv);
+    } else {
+      if (originalEnv) Deno.env.set('HOME', originalEnv);
+    }
+    await Deno.remove(tempHome, { recursive: true });
+  }
+});
+
+Deno.test('CLIDFSContextManager – GetConfigDFS throws when not registered', async () => {
+  const ioc = new IoCContainer();
+  const dfsCtx = new CLIDFSContextManager(ioc);
+
+  // GetConfigDFS should throw when config DFS has not been registered
+  let threw = false;
+  try {
+    await dfsCtx.GetConfigDFS();
+  } catch {
+    threw = true;
+  }
+  assertEquals(threw, true);
+});

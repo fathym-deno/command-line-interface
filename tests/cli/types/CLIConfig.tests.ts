@@ -59,6 +59,22 @@ Deno.test('CLIConfig schema and guard', async (t) => {
     const parsed = CLIConfigSchema.safeParse(config);
     assert(parsed.success);
   });
+
+  await t.step('accepts ConfigDFS as optional string', () => {
+    const config = {
+      ...baseConfig,
+      ConfigDFS: '.ftm',
+    };
+    const parsed = CLIConfigSchema.safeParse(config);
+    assert(parsed.success);
+    assertEquals(parsed.data.ConfigDFS, '.ftm');
+  });
+
+  await t.step('accepts config without ConfigDFS', () => {
+    const parsed = CLIConfigSchema.safeParse(baseConfig);
+    assert(parsed.success);
+    assertEquals(parsed.data.ConfigDFS, undefined);
+  });
 });
 
 Deno.test('loadCLIConfig – loads base config', async () => {
