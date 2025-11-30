@@ -50,4 +50,4 @@ CLI for working with Fathym runtimes and micro-frameworks—covering scaffolding
 
 ## Related Projects
 
-- Fathym CLI (open-source): `projects/open-source/fathym-cli` now hosts the `ftm-cli` commands/templates/docs. Use `@fathym/cli` runtime from this repo as the dependency.
+- Fathym CLI (open-source): `projects/open-source/fathym-cli` now hosts the `ftm` commands/templates/docs. Use `@fathym/cli` runtime from this repo as the dependency.
