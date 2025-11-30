@@ -3,12 +3,15 @@ import type { ZodSchema } from '../.deps.ts';
 import type { IoCContainer } from '../.deps.ts';
 
 import type { CommandModule } from '../commands/CommandModule.ts';
-import type { CommandContext } from '../commands/CommandContext.ts';
+import type {
+  CommandContext,
+  CommandInvoker,
+  CommandInvokerMap,
+} from '../commands/CommandContext.ts';
 import type { CommandParamConstructor, CommandParams } from '../commands/CommandParams.ts';
 
 import { CommandRuntime } from '../commands/CommandRuntime.ts';
 import { CLICommandExecutor } from '../executor/CLICommandExecutor.ts';
-import type { CommandInvokerMap } from '../commands/CommandContext.ts';
 import { CLICommandResolver } from '../CLICommandResolver.ts';
 
 type UsedKeys = Record<string, true>;
@@ -16,30 +19,28 @@ type UsedKeys = Record<string, true>;
 type RemoveUsed<T, Used extends UsedKeys> = Omit<T, keyof Used>;
 
 export type ExtractInvokerMap<T extends Record<string, CommandModule>> = {
-  [K in keyof T]: CommandInvokerMap[string];
+  [K in keyof T]: T[K] extends CommandModule<infer A, infer F, any> ? CommandInvoker<A, F>
+    : CommandInvokerMap[string];
 };
 
 /**
- * Union type for what .Commands() accepts - either a built CommandModule
- * or a CommandModuleBuilder that will be built lazily at execution time.
+ * Union type for what .Commands() accepts - a built CommandModule only.
+ * Use .Build() when passing subcommands to ensure strong type inference.
  */
 export type CommandSource<
   A extends unknown[] = unknown[],
   F extends Record<string, unknown> = Record<string, unknown>,
-> =
-  | CommandModule<A, F, any>
-  | CommandModuleBuilder<A, F, any, any, any, any>
-  | { Build: () => CommandModule<A, F, any, any, any> };
+> = CommandModule<A, F, any>;
 
 /**
- * Extract invoker function types from either CommandModule or CommandModuleBuilder.
- * This enables type-safe command invocation regardless of whether the user
- * passes a built module or a builder.
+ * Extract invoker function types from CommandModule.
+ * Requires .Build() to be called on builders to preserve strong typing.
  */
 export type ExtractInvokerMapFromSource<
   T extends Record<string, CommandSource>,
 > = {
-  [K in keyof T]: CommandInvokerMap[string];
+  [K in keyof T]: T[K] extends CommandModule<infer A, infer F, any> ? CommandInvoker<A, F>
+    : CommandInvokerMap[string];
 };
 
 export class CommandModuleBuilder<
@@ -316,10 +317,8 @@ export class CommandModuleBuilder<
         const invokers: CommandInvokerMap = {};
 
         for (const [key, source] of Object.entries(subcommands)) {
-          // Check if it's a builder or already a module - build lazily if needed
-          const mod = source instanceof CommandModuleBuilder
-            ? source.Build() // It's a builder, call Build() now
-            : (source as CommandModule); // It's already a module
+          // CommandSource is now modules only - no builder duck-typing needed
+          const mod = source as CommandModule;
 
           const runtime = new mod.Command();
           const ctor = mod.Params;

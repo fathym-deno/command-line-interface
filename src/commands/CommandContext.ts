@@ -17,10 +17,12 @@ import { type CommandLog, CommandLogSchema } from './CommandLog.ts';
  * Each key represents a subcommand, and each value is a function that executes that subcommand
  * with named flags and optional positional args.
  */
-export type CommandInvokerMap = Record<
-  string,
-  (args?: string[], flags?: Record<string, unknown>) => Promise<void | number>
->;
+export type CommandInvoker<
+  A extends unknown[] = unknown[],
+  F extends Record<string, unknown> = Record<string, unknown>,
+> = (args?: A, flags?: F) => Promise<void | number>;
+
+export type CommandInvokerMap = Record<string, CommandInvoker<any, any>>;
 
 /**
  * CommandContext defines the full execution context passed to each command lifecycle method

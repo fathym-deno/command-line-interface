@@ -4,8 +4,8 @@ import DemoCommand from '../../../test-cli/commands/demo-subcommands.ts';
 const configPath = './test-cli/.cli.json';
 
 CommandIntent(
-  'Demo subcommands – builder and module paths',
-  DemoCommand,
+  'Demo subcommands – strong subcommand typing',
+  DemoCommand.Build(),
   configPath,
 )
   .ExpectLogs('pong:hello', 'ping:WORLD', 'demo-subcommands finished')

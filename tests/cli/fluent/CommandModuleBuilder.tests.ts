@@ -58,33 +58,18 @@ Deno.test(
 );
 
 Deno.test(
-  'CommandModuleBuilder – accepts subcommands as builder or module',
+  'CommandModuleBuilder – accepts subcommands as modules (use .Build())',
   () => {
     class EmptyParams extends CommandParams<[], Record<string, unknown>> {}
 
-    const subBuilder = new CommandModuleBuilder('sub', 'Sub command')
+    const subModule = new CommandModuleBuilder('sub', 'Sub command')
       .Args(z.tuple([]))
       .Flags(z.object({}).passthrough())
       .Params(EmptyParams)
-      .Run(() => 0);
-
-    const subBuilderTyped = subBuilder as CommandModuleBuilder<
-      [],
-      Record<string, unknown>,
-      EmptyParams
-    >;
-
-    const subModule = subBuilder.Build();
-
-    const parentWithBuilder = new CommandModuleBuilder('parent1', 'Parent')
-      .Args(z.tuple([]))
-      .Flags(z.object({}).passthrough())
-      .Params(EmptyParams)
-      .Commands({ Sub: subBuilderTyped })
       .Run(() => 0)
       .Build();
 
-    const parentWithModule = new CommandModuleBuilder('parent2', 'Parent')
+    const parentWithModule = new CommandModuleBuilder('parent', 'Parent')
       .Args(z.tuple([]))
       .Flags(z.object({}).passthrough())
       .Params(EmptyParams)
@@ -92,8 +77,7 @@ Deno.test(
       .Run(() => 0)
       .Build();
 
-    // Ensure runtimes can be constructed without throwing.
-    new parentWithBuilder.Command();
+    // Ensure runtime can be constructed without throwing.
     new parentWithModule.Command();
   },
 );

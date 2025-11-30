@@ -19,7 +19,7 @@ class ChildParams extends CommandParams<
   z.infer<typeof ChildFlags>
 > {
   get Message(): string {
-    return this.Arg(0)!;
+    return this.Arg(0) ?? "";
   }
   get Loud(): boolean {
     return this.Flag("loud") ?? false;
@@ -48,19 +48,43 @@ const PongCommand = Command("demo:pong", "Pong subcommand")
 
 export default Command(
   "demo-subcommands",
-  "Demo command to prove builder vs module subcommands.",
+  "Demo command to prove subcommand strong typing.",
 )
   .Args(ParentArgs)
   .Flags(ParentFlags)
   .Params(ParentParams)
-  // Pass builder for Ping and built module for Pong to exercise both code paths.
+  // Use .Build() for subcommands to ensure strong type inference
   .Commands({
-    Ping: PingCommand,
+    Ping: PingCommand.Build(),
     Pong: PongCommand.Build(),
   })
   .Run(async ({ Commands, Log }) => {
-    await Commands?.Ping(["hello"], { loud: false });
-    await Commands?.Pong(["world"], { loud: true });
+    if (!Commands) throw new Error("Commands not injected");
+    const commands = Commands;
+
+    // Type-level assertions - will error if inference widens
+    type PingInvoker = (typeof commands)["Ping"];
+    type PingArgs = Parameters<PingInvoker>[0];
+    type PingFlags = Parameters<PingInvoker>[1];
+
+    type AssertEqual<A, B> =
+      (<T>() => T extends A ? 1 : 2) extends (<T>() => T extends B ? 1 : 2)
+        ? true
+        : never;
+
+    // These lines will become errors if subcommand typing degrades
+    type _AssertPingArgs = AssertEqual<PingArgs, z.infer<typeof ChildArgs> | undefined>;
+    type _AssertPingFlags = AssertEqual<PingFlags, z.infer<typeof ChildFlags> | undefined>;
+
+    // Suppress unused type warnings
+    const _typeCheck: [_AssertPingArgs, _AssertPingFlags] = [true, true];
+    void _typeCheck;
+
+    // Runtime usage with strong typing
+    await commands.Ping(["hello"], { loud: false });
+    await commands.Pong(["world"], { loud: true });
+
     Log.Success("demo-subcommands finished");
+
     return 0;
   });

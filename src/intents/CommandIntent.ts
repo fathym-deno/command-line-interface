@@ -29,9 +29,9 @@ export function CommandIntent<
   command: CommandModule<A, F, P, S, C> | CommandModuleBuilder<A, F, P, S, C>,
   commandFileUrl: string,
 ): CommandIntentBuilder<A, F, P, S, C> {
-  if (command instanceof CommandModuleBuilder) {
-    command = command.Build() as CommandModule<A, F, P, S, C>;
-  }
+  const mod: CommandModule<A, F, P, S, C> = command instanceof CommandModuleBuilder
+    ? command.Build() as CommandModule<A, F, P, S, C>
+    : command as CommandModule<A, F, P, S, C>;
 
-  return new CommandIntentBuilder<A, F, P, S, C>(testName, command, commandFileUrl);
+  return new CommandIntentBuilder<A, F, P, S, C>(testName, mod, commandFileUrl);
 }
