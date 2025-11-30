@@ -16,12 +16,7 @@ type UsedKeys = Record<string, true>;
 type RemoveUsed<T, Used extends UsedKeys> = Omit<T, keyof Used>;
 
 export type ExtractInvokerMap<T extends Record<string, CommandModule>> = {
-  [K in keyof T]: T[K] extends CommandModule<infer A, infer F, any>
-    ? (args?: A, flags?: F) => Promise<void | number>
-    : (
-      args?: unknown[],
-      flags?: Record<string, unknown>,
-    ) => Promise<void | number>;
+  [K in keyof T]: CommandInvokerMap[string];
 };
 
 /**
@@ -31,7 +26,10 @@ export type ExtractInvokerMap<T extends Record<string, CommandModule>> = {
 export type CommandSource<
   A extends unknown[] = unknown[],
   F extends Record<string, unknown> = Record<string, unknown>,
-> = CommandModule<A, F, any> | CommandModuleBuilder<A, F, any, any, any, any>;
+> =
+  | CommandModule<A, F, any>
+  | CommandModuleBuilder<A, F, any, any, any, any>
+  | { Build: () => CommandModule<A, F, any, any, any> };
 
 /**
  * Extract invoker function types from either CommandModule or CommandModuleBuilder.
@@ -41,14 +39,7 @@ export type CommandSource<
 export type ExtractInvokerMapFromSource<
   T extends Record<string, CommandSource>,
 > = {
-  [K in keyof T]: T[K] extends CommandModule<infer A, infer F, any>
-    ? (args?: A, flags?: F) => Promise<void | number>
-    : T[K] extends CommandModuleBuilder<infer A, infer F, any, any, any, any>
-      ? (args?: A, flags?: F) => Promise<void | number>
-    : (
-      args?: unknown[],
-      flags?: Record<string, unknown>,
-    ) => Promise<void | number>;
+  [K in keyof T]: CommandInvokerMap[string];
 };
 
 export class CommandModuleBuilder<
