@@ -1,4 +1,5 @@
-import { z } from '../.deps.ts';
+import { resolve, z } from '../.deps.ts';
+import type { DFSFileHandler } from '../.deps.ts';
 
 /**
  * Represents a single command source configuration.
@@ -120,3 +121,88 @@ export type CLIConfigSchema = z.infer<typeof CLIConfigSchema>;
 export function isCLIConfig(value: unknown): value is CLIConfig {
   return CLIConfigSchema.safeParse(value).success;
 }
+
+/**
+ * Options for loading a CLI configuration file.
+ */
+export interface LoadCLIConfigOptions {
+  /**
+   * Optional DFS file handler for resolving the config path.
+   * When provided, the path will be resolved through the DFS before reading.
+   */
+  dfs?: DFSFileHandler;
+
+  /**
+   * The directory to resolve relative paths against.
+   * Defaults to Deno.cwd() if not specified.
+   */
+  baseDir?: string;
+}
+
+/**
+ * Loads and parses a CLI configuration file with full type safety.
+ *
+ * This generic function allows consuming CLIs to extend the base CLIConfig
+ * with their own custom properties while maintaining type safety.
+ *
+ * @template T - The config type, must extend CLIConfig. Defaults to CLIConfig.
+ * @param configPath - Path to the .cli.json configuration file
+ * @param options - Optional configuration for path resolution
+ * @returns The parsed and validated configuration object
+ * @throws Error if the file cannot be read or required fields are missing
+ *
+ * @example Basic usage (returns CLIConfig)
+ * ```typescript
+ * const config = await loadCLIConfig('./.cli.json');
+ * console.log(config.Name); // Typed as string
+ * ```
+ *
+ * @example Extended config with custom properties
+ * ```typescript
+ * interface MyConfig extends CLIConfig {
+ *   Release?: {
+ *     Targets?: string[];
+ *   };
+ * }
+ *
+ * const config = await loadCLIConfig<MyConfig>('./.cli.json');
+ * console.log(config.Release?.Targets); // Typed correctly
+ * ```
+ */
+export async function loadCLIConfig<T extends CLIConfig = CLIConfig>(
+  configPath: string,
+  options?: LoadCLIConfigOptions,
+): Promise<T> {
+  const { dfs, baseDir } = options ?? {};
+
+  // Resolve the config path
+  const resolvedPath = dfs
+    ? await dfs.ResolvePath(configPath)
+    : resolve(baseDir ?? Deno.cwd(), configPath);
+
+  // Read and parse the config file
+  const content = await Deno.readTextFile(resolvedPath);
+  const config = JSON.parse(content) as T;
+
+  // Validate required base fields using the schema
+  const validation = CLIConfigSchema.safeParse(config);
+  if (!validation.success) {
+    const issues = validation.error.issues.map((i) => i.message).join(', ');
+    throw new Error(`Invalid CLI config at ${configPath}: ${issues}`);
+  }
+
+  return config;
+}
+
+/**
+ * Type helper for creating extended CLI config interfaces.
+ *
+ * @example
+ * ```typescript
+ * type MyConfig = ExtendedCLIConfig<{
+ *   CustomField: string;
+ *   NestedConfig: { option: boolean };
+ * }>;
+ * ```
+ */
+export type ExtendedCLIConfig<T> = CLIConfig & T;
