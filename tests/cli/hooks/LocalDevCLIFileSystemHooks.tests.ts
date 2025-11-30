@@ -53,6 +53,25 @@ Deno.test('LocalDevCLIFileSystemHooks', async (t) => {
     assert(mod.Command);
   });
 
+  await t.step('LoadCommandModule – loads .metadata.ts group module', async () => {
+    const { hooks } = createHooks();
+
+    // This test ensures .metadata.ts files have valid imports and can be loaded.
+    // Regression test: broken imports in .metadata.ts files caused groups to not appear in help.
+    const mod = await hooks.LoadCommandModule(
+      join(Deno.cwd(), 'test-cli/commands/scaffold/.metadata.ts'),
+    );
+
+    // .metadata.ts files export CommandModuleMetadata directly (not a Command class)
+    // The module should have Name and Description properties
+    assert(mod, 'Module should load successfully');
+    assertEquals((mod as { Name?: string }).Name, 'scaffold');
+    assertEquals(
+      (mod as { Description?: string }).Description,
+      'Generate new Open Industrial components',
+    );
+  });
+
   await t.step('ResolveCommandEntryPaths – applies Root prefix', async () => {
     const { hooks } = createHooks();
 
