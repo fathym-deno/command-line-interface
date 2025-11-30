@@ -56,6 +56,10 @@
           }
         }
       ]
+    },
+    "ConfigDFS": {
+      "description": "Path to configuration directory relative to user home (e.g., \".ftm\")",
+      "type": "string"
     }
   },
   "required": [

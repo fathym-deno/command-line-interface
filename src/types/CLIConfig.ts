@@ -62,6 +62,14 @@ export type CLIConfig = {
    * May be absolute or relative. Defaults to `./template`.
    */
   Templates?: string;
+
+  /**
+   * Optional path to a configuration directory, relative to the user's home directory.
+   * When set, this directory is registered as a DFS context named 'config' during CLI init.
+   *
+   * @example ".ftm" resolves to "~/.ftm/" on Unix or "%USERPROFILE%\.ftm\" on Windows
+   */
+  ConfigDFS?: string;
 };
 
 /**
@@ -107,6 +115,11 @@ export const CLIConfigSchema: z.ZodType<CLIConfig> = z.object({
     .describe(
       "Path(s) to CLI command folder(s). Can be a string, array of strings, or array of CLICommandSource objects. Defaults to './commands'.",
     ),
+
+  ConfigDFS: z
+    .string()
+    .optional()
+    .describe('Path to configuration directory relative to user home (e.g., ".ftm")'),
 });
 
 /**

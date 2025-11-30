@@ -212,6 +212,11 @@ export class CLI {
   protected async initialize(initPath: string | undefined, config: CLIConfig) {
     this.dfsCtxMgr.RegisterExecutionDFS();
 
+    // Register ConfigDFS if configured in .cli.json
+    if (config.ConfigDFS) {
+      await this.dfsCtxMgr.RegisterConfigDFS(config.ConfigDFS);
+    }
+
     if (initPath) {
       const { initFn, resolvedInitPath } = await this.resolver.ResolveInitFn(
         initPath,

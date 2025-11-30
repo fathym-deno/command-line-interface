@@ -1,6 +1,7 @@
 import {
   type DFSFileHandler,
   dirname,
+  ensureDir,
   existsSync,
   fromFileUrl,
   type IoCContainer,
@@ -171,6 +172,51 @@ export class CLIDFSContextManager {
       this.RegisterUserHomeDFS();
       return await this.GetDFS('user-home');
     }
+  }
+
+  // ─── ConfigDFS Methods ─────────────────────────────────────────────────
+
+  /**
+   * Register a DFS handler for the CLI configuration directory.
+   *
+   * The config directory is relative to the user's home directory and will
+   * be created if it doesn't exist.
+   *
+   * @param relativePath - Path relative to user home (e.g., ".ftm", ".spire")
+   * @returns The absolute config directory path
+   * @throws Error if unable to determine home directory
+   *
+   * @example
+   * ```typescript
+   * await dfsCtx.RegisterConfigDFS('.ftm');
+   * // Windows: C:\Users\username\.ftm
+   * // Unix: /home/username/.ftm
+   * ```
+   */
+  public async RegisterConfigDFS(relativePath: string): Promise<string> {
+    const homeDir = this.getUserHomeDir();
+    const configPath = join(homeDir, relativePath);
+
+    // Ensure config directory exists (cross-platform)
+    await ensureDir(configPath);
+
+    return this.RegisterCustomDFS('config', { FileRoot: configPath });
+  }
+
+  /**
+   * Get the config DFS handler.
+   *
+   * @returns The config DFS handler
+   * @throws Error if config DFS was not registered
+   *
+   * @example
+   * ```typescript
+   * const configDfs = await dfsCtx.GetConfigDFS();
+   * const settings = await configDfs.GetFileInfo('settings.json');
+   * ```
+   */
+  public async GetConfigDFS(): Promise<DFSFileHandler> {
+    return await this.GetDFS('config');
   }
 
   /**
