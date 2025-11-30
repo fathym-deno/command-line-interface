@@ -83,17 +83,17 @@ Deno.test('CLIHelpBuilder – builds root help when no key provided', async (t) 
 
   await t.step('lists root-level groups', async () => {
     const commandMap = new Map<string, CLICommandEntry>([
-      ['scaffold', { GroupPath: '/commands/scaffold/.group.ts' }],
-      ['config', { GroupPath: '/commands/config/.group.ts' }],
+      ['scaffold', { GroupPath: '/commands/scaffold/.metadata.ts' }],
+      ['config', { GroupPath: '/commands/config/.metadata.ts' }],
     ]);
 
     const instances = new Map<string, CommandRuntime>([
       [
-        '/commands/scaffold/.group.ts',
+        '/commands/scaffold/.metadata.ts',
         createMockCommand({ Name: 'Scaffold', Description: 'Scaffolding commands' }),
       ],
       [
-        '/commands/config/.group.ts',
+        '/commands/config/.metadata.ts',
         createMockCommand({ Name: 'Config', Description: 'Configuration commands' }),
       ],
     ]);
@@ -172,7 +172,7 @@ Deno.test('CLIHelpBuilder – builds command help when key matches command', asy
 Deno.test('CLIHelpBuilder – builds group help when key matches group', async (t) => {
   await t.step('includes group metadata', async () => {
     const commandMap = new Map<string, CLICommandEntry>([
-      ['scaffold', { GroupPath: '/commands/scaffold/.group.ts' }],
+      ['scaffold', { GroupPath: '/commands/scaffold/.metadata.ts' }],
     ]);
 
     const grpInst = createMockCommand({
@@ -194,7 +194,7 @@ Deno.test('CLIHelpBuilder – builds group help when key matches group', async (
 
   await t.step('lists child commands under group', async () => {
     const commandMap = new Map<string, CLICommandEntry>([
-      ['scaffold', { GroupPath: '/commands/scaffold/.group.ts' }],
+      ['scaffold', { GroupPath: '/commands/scaffold/.metadata.ts' }],
       ['scaffold/cloud', { CommandPath: '/commands/scaffold/cloud.ts' }],
       ['scaffold/local', { CommandPath: '/commands/scaffold/local.ts' }],
     ]);
@@ -232,18 +232,18 @@ Deno.test('CLIHelpBuilder – builds group help when key matches group', async (
 
   await t.step('lists child groups under parent group', async () => {
     const commandMap = new Map<string, CLICommandEntry>([
-      ['scaffold', { GroupPath: '/commands/scaffold/.group.ts' }],
-      ['scaffold/aws', { GroupPath: '/commands/scaffold/aws/.group.ts' }],
-      ['scaffold/azure', { GroupPath: '/commands/scaffold/azure/.group.ts' }],
+      ['scaffold', { GroupPath: '/commands/scaffold/.metadata.ts' }],
+      ['scaffold/aws', { GroupPath: '/commands/scaffold/aws/.metadata.ts' }],
+      ['scaffold/azure', { GroupPath: '/commands/scaffold/azure/.metadata.ts' }],
     ]);
 
     const instances = new Map<string, CommandRuntime>([
       [
-        '/commands/scaffold/aws/.group.ts',
+        '/commands/scaffold/aws/.metadata.ts',
         createMockCommand({ Name: 'AWS', Description: 'AWS scaffolding' }),
       ],
       [
-        '/commands/scaffold/azure/.group.ts',
+        '/commands/scaffold/azure/.metadata.ts',
         createMockCommand({ Name: 'Azure', Description: 'Azure scaffolding' }),
       ],
     ]);
@@ -319,7 +319,7 @@ Deno.test('CLIHelpBuilder – handles unknown command', async (t) => {
 Deno.test('CLIHelpBuilder – formats nested command names correctly', async (t) => {
   await t.step('trims base key from nested command names', async () => {
     const commandMap = new Map<string, CLICommandEntry>([
-      ['scaffold', { GroupPath: '/commands/scaffold/.group.ts' }],
+      ['scaffold', { GroupPath: '/commands/scaffold/.metadata.ts' }],
       ['scaffold/cloud/aws', { CommandPath: '/commands/scaffold/cloud/aws.ts' }],
     ]);
 

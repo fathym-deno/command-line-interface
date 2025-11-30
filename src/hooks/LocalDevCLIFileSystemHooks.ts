@@ -57,7 +57,7 @@ export class LocalDevCLIFileSystemHooks implements CLIFileSystemHooks {
         }
       } else {
         // Normal key derivation
-        key = path.endsWith('/.metadata.ts')
+        key = rel.endsWith('.metadata.ts')
           ? rel.replace(/\/\.metadata\.ts$/, '')
           : rel.replace(/\.ts$/, '');
 
@@ -78,7 +78,7 @@ export class LocalDevCLIFileSystemHooks implements CLIFileSystemHooks {
 
       const resolvedPath = await this.dfsCtxMgr.ResolvePath('project', path);
 
-      if (path.endsWith('.metadata.ts')) {
+      if (rel.endsWith('.metadata.ts')) {
         entryData.GroupPath = resolvedPath;
       } else {
         entryData.CommandPath = resolvedPath;
