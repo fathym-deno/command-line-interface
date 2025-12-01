@@ -20,10 +20,10 @@ This guide covers the configuration files that define your CLI's identity, struc
 
 ## Configuration Files Overview
 
-| File | Purpose | Required |
-|------|---------|----------|
-| `.cli.json` | CLI identity, command sources, templates | Yes |
-| `.cli.init.ts` | IoC registration, service setup | No |
+| File           | Purpose                                  | Required |
+| -------------- | ---------------------------------------- | -------- |
+| `.cli.json`    | CLI identity, command sources, templates | Yes      |
+| `.cli.init.ts` | IoC registration, service setup          | No       |
 
 ---
 
@@ -35,20 +35,20 @@ The `.cli.json` file defines your CLI's core configuration.
 
 ```typescript
 interface CLIConfig {
-  Name: string;              // Display name (required)
-  Tokens: string[];          // CLI invocation names (required)
-  Version: string;           // Semantic version (required)
-  Description?: string;      // Help text description
-  Commands?: string | CLICommandSource[];  // Command sources
-  Templates?: string;        // Templates directory
-  ConfigDFSName?: string;    // Config directory name (e.g., ".mycli")
-  ConfigDFSRoot?: string;    // Explicit config root override
-  ConfigDFSRootEnvVar?: string;  // Custom env var for root override
+  Name: string; // Display name (required)
+  Tokens: string[]; // CLI invocation names (required)
+  Version: string; // Semantic version (required)
+  Description?: string; // Help text description
+  Commands?: string | CLICommandSource[]; // Command sources
+  Templates?: string; // Templates directory
+  ConfigDFSName?: string; // Config directory name (e.g., ".mycli")
+  ConfigDFSRoot?: string; // Explicit config root override
+  ConfigDFSRootEnvVar?: string; // Custom env var for root override
 }
 
 interface CLICommandSource {
-  Path: string;              // Path to commands directory
-  Root?: string;             // Prefix for command keys
+  Path: string; // Path to commands directory
+  Root?: string; // Prefix for command keys
 }
 ```
 
@@ -94,6 +94,7 @@ User-facing display name shown in help output.
 ```
 
 Output:
+
 ```
 📘 My Awesome CLI v1.0.0
 ```
@@ -109,6 +110,7 @@ Array of names that can invoke the CLI. The first token is primary.
 ```
 
 Both work:
+
 ```bash
 openindustrial deploy
 oi deploy
@@ -139,6 +141,7 @@ Description shown in the root help output.
 Where to find command modules. Defaults to `./commands`.
 
 **Simple string:**
+
 ```json
 {
   "Commands": "./src/commands"
@@ -146,6 +149,7 @@ Where to find command modules. Defaults to `./commands`.
 ```
 
 **Multiple sources with prefixes:**
+
 ```json
 {
   "Commands": [
@@ -211,6 +215,7 @@ Custom environment variable name for root override.
 If `MYCLI_DATA_DIR=/custom/path`, config is at `/custom/path/.mycli/`.
 
 **Special values:**
+
 - `undefined` (default): Checks `{TOKEN}_CONFIG_ROOT` env var
 - Empty string `""`: Disables all env var checking
 
@@ -218,19 +223,19 @@ If `MYCLI_DATA_DIR=/custom/path`, config is at `/custom/path/.mycli/`.
 
 ConfigDFS resolves the root directory in this order:
 
-| Priority | Source | Example |
-|----------|--------|---------|
-| 1 | Custom env var (if `ConfigDFSRootEnvVar` set and has value) | `MYCLI_DATA_DIR=/custom` |
-| 2 | Explicit root (if `ConfigDFSRoot` set) | `"ConfigDFSRoot": "/data"` |
-| 3 | Default env var (if `ConfigDFSRootEnvVar` undefined) | `MYCLI_CONFIG_ROOT=/alt` |
-| 4 | User home directory (fallback) | `~/.mycli/` |
+| Priority | Source                                                      | Example                    |
+| -------- | ----------------------------------------------------------- | -------------------------- |
+| 1        | Custom env var (if `ConfigDFSRootEnvVar` set and has value) | `MYCLI_DATA_DIR=/custom`   |
+| 2        | Explicit root (if `ConfigDFSRoot` set)                      | `"ConfigDFSRoot": "/data"` |
+| 3        | Default env var (if `ConfigDFSRootEnvVar` undefined)        | `MYCLI_CONFIG_ROOT=/alt`   |
+| 4        | User home directory (fallback)                              | `~/.mycli/`                |
 
 ### Accessing ConfigDFS in Commands
 
 ```typescript
-import { Command, CommandParams, CLIDFSContextManager } from '@fathym/cli';
+import { CLIDFSContextManager, Command, CommandParams } from "@fathym/cli";
 
-export default Command('settings', 'Manage user settings')
+export default Command("settings", "Manage user settings")
   .Args(ArgsSchema)
   .Flags(FlagsSchema)
   .Params(SettingsParams)
@@ -242,14 +247,14 @@ export default Command('settings', 'Manage user settings')
     const configDfs = await dfsCtx.GetConfigDFS();
 
     // Read a config file
-    const fileInfo = await configDfs.GetFileInfo('settings.json');
+    const fileInfo = await configDfs.GetFileInfo("settings.json");
     if (fileInfo) {
       const content = await new Response(fileInfo.Contents).text();
       const settings = JSON.parse(content);
     }
 
     // Write a config file
-    const path = await configDfs.ResolvePath('settings.json');
+    const path = await configDfs.ResolvePath("settings.json");
     await Deno.writeTextFile(path, JSON.stringify(settings, null, 2));
   });
 ```
@@ -268,6 +273,7 @@ export default Command('settings', 'Manage user settings')
 ```
 
 Resolution:
+
 1. If `ENTCLI_CONFIG_DIR=/custom` → `/custom/.entcli/`
 2. Else → `/opt/entcli/config/.entcli/`
 
@@ -281,8 +287,8 @@ Each source specifies where to find commands and how to prefix their keys.
 
 ```typescript
 interface CLICommandSource {
-  Path: string;   // Relative path to commands
-  Root?: string;  // Key prefix (can be nested: "ext/v2")
+  Path: string; // Relative path to commands
+  Root?: string; // Key prefix (can be nested: "ext/v2")
 }
 ```
 
@@ -293,6 +299,7 @@ interface CLICommandSource {
 ```
 
 Directory structure:
+
 ```
 ./commands/
 ├── deploy.ts        → 'deploy'
@@ -309,6 +316,7 @@ Directory structure:
 ```
 
 Directory structure:
+
 ```
 ./plugins/
 ├── run.ts           → 'ext/run'
@@ -324,6 +332,7 @@ Directory structure:
 ```
 
 Commands become:
+
 - `./v2-plugins/run.ts` → `'plugin/v2/run'`
 - `./v2-plugins/test.ts` → `'plugin/v2/test'`
 
@@ -336,8 +345,8 @@ The initialization file registers services before any command runs.
 ### Function Signature
 
 ```typescript
-import type { IoCContainer } from '@fathym/ioc';
-import type { CLIConfig } from '@fathym/cli';
+import type { IoCContainer } from "@fathym/ioc";
+import type { CLIConfig } from "@fathym/cli";
 
 export default async function init(
   ioc: IoCContainer,
@@ -351,15 +360,15 @@ export default async function init(
 
 ```typescript
 // .cli.init.ts
-import { IoCContainer } from '@fathym/ioc';
-import type { CLIConfig } from '@fathym/cli';
+import { IoCContainer } from "@fathym/ioc";
+import type { CLIConfig } from "@fathym/cli";
 
 export default async function init(
   ioc: IoCContainer,
   config: CLIConfig,
 ): Promise<void> {
   // Register a simple service
-  ioc.Register('Logger', () => console);
+  ioc.Register("Logger", () => console);
 }
 ```
 
@@ -368,7 +377,7 @@ export default async function init(
 #### Register by Class
 
 ```typescript
-import { DeployService } from './services/DeployService.ts';
+import { DeployService } from "./services/DeployService.ts";
 
 export default async function init(ioc: IoCContainer) {
   ioc.Register(DeployService, () => new DeployService());
@@ -378,11 +387,11 @@ export default async function init(ioc: IoCContainer) {
 #### Register by Symbol
 
 ```typescript
-const ConfigSymbol = Symbol.for('Config');
+const ConfigSymbol = Symbol.for("Config");
 
 export default async function init(ioc: IoCContainer, config: CLIConfig) {
   ioc.Register(ConfigSymbol, () => ({
-    apiUrl: Deno.env.get('API_URL') ?? 'https://api.example.com',
+    apiUrl: Deno.env.get("API_URL") ?? "https://api.example.com",
     version: config.Version,
   }));
 }
@@ -391,8 +400,8 @@ export default async function init(ioc: IoCContainer, config: CLIConfig) {
 #### Register with Dependencies
 
 ```typescript
-import { HttpClient } from './services/HttpClient.ts';
-import { ApiService } from './services/ApiService.ts';
+import { HttpClient } from "./services/HttpClient.ts";
+import { ApiService } from "./services/ApiService.ts";
 
 export default async function init(ioc: IoCContainer) {
   // Register base service
@@ -411,18 +420,20 @@ export default async function init(ioc: IoCContainer) {
 Services registered in `.cli.init.ts` are available via the `.Services()` method:
 
 ```typescript
-import { Command, CommandParams } from '@fathym/cli';
-import type { IoCContainer } from '@fathym/cli';
-import { z } from 'zod';
-import { DeployService } from '../services/DeployService.ts';
+import { Command, CommandParams } from "@fathym/cli";
+import type { IoCContainer } from "@fathym/cli";
+import { z } from "zod";
+import { DeployService } from "../services/DeployService.ts";
 
-const ArgsSchema = z.tuple([z.string().describe('Target to deploy')]);
+const ArgsSchema = z.tuple([z.string().describe("Target to deploy")]);
 
 class DeployParams extends CommandParams<z.infer<typeof ArgsSchema>, {}> {
-  get Target(): string { return this.Arg(0)!; }
+  get Target(): string {
+    return this.Arg(0)!;
+  }
 }
 
-export default Command('deploy', 'Deploy application')
+export default Command("deploy", "Deploy application")
   .Args(ArgsSchema)
   .Flags(z.object({}))
   .Params(DeployParams)
@@ -443,17 +454,17 @@ export default Command('deploy', 'Deploy application')
 The framework validates configuration using Zod:
 
 ```typescript
-import { CLIConfigSchema, isCLIConfig } from '@fathym/cli';
+import { CLIConfigSchema, isCLIConfig } from "@fathym/cli";
 
 // Validate manually
 const result = CLIConfigSchema.safeParse(jsonData);
 if (!result.success) {
-  console.error('Invalid config:', result.error);
+  console.error("Invalid config:", result.error);
 }
 
 // Type guard
 if (isCLIConfig(data)) {
-  console.log(data.Name);  // Type-safe access
+  console.log(data.Name); // Type-safe access
 }
 ```
 
@@ -477,13 +488,13 @@ In `.cli.init.ts`:
 
 ```typescript
 export default async function init(ioc: IoCContainer, config: CLIConfig) {
-  const env = Deno.env.get('CLI_ENV') ?? 'development';
+  const env = Deno.env.get("CLI_ENV") ?? "development";
 
-  ioc.Register('ApiConfig', () => ({
-    baseUrl: env === 'production'
-      ? 'https://api.example.com'
-      : 'https://staging.api.example.com',
-    debug: env !== 'production',
+  ioc.Register("ApiConfig", () => ({
+    baseUrl: env === "production"
+      ? "https://api.example.com"
+      : "https://staging.api.example.com",
+    debug: env !== "production",
   }));
 }
 ```
@@ -500,8 +511,8 @@ Handle in your entry point:
 
 ```typescript
 // Check for config override in args
-const configArg = Deno.args.find(a => a.startsWith('--config='));
-const configPath = configArg?.split('=')[1] ?? '.cli.json';
+const configArg = Deno.args.find((a) => a.startsWith("--config="));
+const configPath = configArg?.split("=")[1] ?? ".cli.json";
 ```
 
 ---
@@ -543,6 +554,7 @@ my-cli/
 ```
 
 `.cli.json`:
+
 ```json
 {
   "Commands": [
@@ -554,6 +566,7 @@ my-cli/
 ```
 
 Results in:
+
 - Core: `mycli deploy`
 - Auth: `mycli auth login`
 - DB: `mycli db migrate`
@@ -575,6 +588,7 @@ Results in:
 ### Commands Not Discovered
 
 **Check:**
+
 1. `Commands` path is correct relative to `.cli.json`
 2. Command files export properly
 3. File extension is `.ts`
@@ -582,6 +596,7 @@ Results in:
 ### Init Function Not Loading
 
 **Check:**
+
 1. File is named `.cli.init.ts` in project root
 2. Default export is an async function
 3. No syntax errors in the file

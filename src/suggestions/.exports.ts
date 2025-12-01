@@ -2,4 +2,4 @@
  * Helpers for CLI suggestions.
  * @module
  */
-export * from './CLISuggestions.ts';
+export * from "./CLISuggestions.ts";

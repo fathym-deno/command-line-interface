@@ -67,14 +67,19 @@ export default Command(
     type PingArgs = Parameters<PingInvoker>[0];
     type PingFlags = Parameters<PingInvoker>[1];
 
-    type AssertEqual<A, B> =
-      (<T>() => T extends A ? 1 : 2) extends (<T>() => T extends B ? 1 : 2)
-        ? true
-        : never;
+    type AssertEqual<A, B> = (<T>() => T extends A ? 1 : 2) extends
+      (<T>() => T extends B ? 1 : 2) ? true
+      : never;
 
     // These lines will become errors if subcommand typing degrades
-    type _AssertPingArgs = AssertEqual<PingArgs, z.infer<typeof ChildArgs> | undefined>;
-    type _AssertPingFlags = AssertEqual<PingFlags, z.infer<typeof ChildFlags> | undefined>;
+    type _AssertPingArgs = AssertEqual<
+      PingArgs,
+      z.infer<typeof ChildArgs> | undefined
+    >;
+    type _AssertPingFlags = AssertEqual<
+      PingFlags,
+      z.infer<typeof ChildFlags> | undefined
+    >;
 
     // Suppress unused type warnings
     const _typeCheck: [_AssertPingArgs, _AssertPingFlags] = [true, true];

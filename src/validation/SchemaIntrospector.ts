@@ -1,35 +1,35 @@
 // deno-lint-ignore-file no-explicit-any
-import type { ZodSchema } from '../.deps.ts';
-import type { SchemaFieldMeta } from './types.ts';
+import type { ZodSchema } from "../.deps.ts";
+import type { SchemaFieldMeta } from "./types.ts";
 
 /**
  * Complex Zod type names that auto-enable fileCheck.
  * These types typically represent structured data that can be loaded from files.
  */
 const COMPLEX_TYPE_NAMES = [
-  'ZodObject',
-  'ZodArray',
-  'ZodRecord',
-  'ZodMap',
-  'object',
-  'array',
-  'record',
-  'map',
+  "ZodObject",
+  "ZodArray",
+  "ZodRecord",
+  "ZodMap",
+  "object",
+  "array",
+  "record",
+  "map",
 ];
 
 /**
  * Wrapper type names that should be unwrapped to find the inner schema.
  */
 const WRAPPER_TYPE_NAMES = [
-  'ZodOptional',
-  'ZodNullable',
-  'ZodDefault',
-  'ZodCatch',
-  'ZodBranded',
-  'ZodPipeline',
-  'optional',
-  'nullable',
-  'default',
+  "ZodOptional",
+  "ZodNullable",
+  "ZodDefault",
+  "ZodCatch",
+  "ZodBranded",
+  "ZodPipeline",
+  "optional",
+  "nullable",
+  "default",
 ];
 
 /**
@@ -86,7 +86,7 @@ export class SchemaIntrospector {
     const schemaAny = schema as any;
 
     // Zod 4: meta is accessed via .meta() method
-    if (typeof schemaAny.meta === 'function') {
+    if (typeof schemaAny.meta === "function") {
       try {
         return schemaAny.meta() ?? {};
       } catch {
@@ -174,7 +174,7 @@ export class SchemaIntrospector {
     }
 
     // Fallback to constructor name
-    return schemaAny.constructor?.name ?? 'unknown';
+    return schemaAny.constructor?.name ?? "unknown";
   }
 
   /**
@@ -188,14 +188,14 @@ export class SchemaIntrospector {
     const schemaAny = unwrapped as any;
 
     // Zod 4 and 3 both use .shape
-    if (schemaAny.shape && typeof schemaAny.shape === 'object') {
+    if (schemaAny.shape && typeof schemaAny.shape === "object") {
       return schemaAny.shape;
     }
 
     // Some versions store it in _def
-    if (schemaAny._def?.shape && typeof schemaAny._def.shape === 'object') {
+    if (schemaAny._def?.shape && typeof schemaAny._def.shape === "object") {
       // shape might be a function in some versions
-      return typeof schemaAny._def.shape === 'function'
+      return typeof schemaAny._def.shape === "function"
         ? schemaAny._def.shape()
         : schemaAny._def.shape;
     }

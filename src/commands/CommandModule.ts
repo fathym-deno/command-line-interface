@@ -1,8 +1,11 @@
-import type { ZodSchema } from '../.deps.ts';
-import type { CommandRuntime } from './CommandRuntime.ts';
-import type { CommandParamConstructor, CommandParams } from './CommandParams.ts';
-import type { CommandInvokerMap } from './CommandContext.ts';
-import type { ValidateCallback } from '../validation/types.ts';
+import type { ZodSchema } from "../.deps.ts";
+import type { CommandRuntime } from "./CommandRuntime.ts";
+import type {
+  CommandParamConstructor,
+  CommandParams,
+} from "./CommandParams.ts";
+import type { CommandInvokerMap } from "./CommandContext.ts";
+import type { ValidateCallback } from "../validation/types.ts";
 
 /**
  * Represents a complete, executable CLI command module.

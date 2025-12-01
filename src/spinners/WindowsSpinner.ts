@@ -1,4 +1,4 @@
-import type { Spinner } from './Spinner.ts';
+import type { Spinner } from "./Spinner.ts";
 
 /**
  * Classic ASCII spinner compatible with all terminals.
@@ -20,6 +20,6 @@ import type { Spinner } from './Spinner.ts';
  * Visual: / → - → \ → |
  */
 export const WindowsSpinner: Spinner = {
-  Frames: ['/', '-', '\\', '|'],
+  Frames: ["/", "-", "\\", "|"],
   Interval: 80,
 };

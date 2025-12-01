@@ -12,8 +12,8 @@
  *   mycli deploy --config ./config.json --targets '["us-east","eu-west"]'
  */
 
-import { Command, CommandParams } from '../src/.exports.ts';
-import { z } from '../src/.deps.ts';
+import { Command, CommandParams } from "../src/.exports.ts";
+import { z } from "../src/.deps.ts";
 
 // Complex config schema - auto fileCheck: true
 const ConfigSchema = z.object({
@@ -27,14 +27,14 @@ const ConfigSchema = z.object({
 const TargetsSchema = z.array(z.string());
 
 const ArgsSchema = z.tuple([
-  z.string().optional().describe('Environment').meta({ argName: 'env' }),
+  z.string().optional().describe("Environment").meta({ argName: "env" }),
 ]);
 
 const FlagsSchema = z.object({
-  config: ConfigSchema.describe('Deployment configuration'),
-  targets: TargetsSchema.optional().describe('Deployment targets'),
-  force: z.boolean().optional().describe('Skip confirmation'),
-  'dry-run': z.boolean().optional(),
+  config: ConfigSchema.describe("Deployment configuration"),
+  targets: TargetsSchema.optional().describe("Deployment targets"),
+  force: z.boolean().optional().describe("Skip confirmation"),
+  "dry-run": z.boolean().optional(),
 });
 
 class DeployParams extends CommandParams<
@@ -42,20 +42,20 @@ class DeployParams extends CommandParams<
   z.infer<typeof FlagsSchema>
 > {
   get Environment() {
-    return this.Arg(0) ?? 'production';
+    return this.Arg(0) ?? "production";
   }
   get Config() {
-    return this.Flag('config')!;
+    return this.Flag("config")!;
   }
   get Targets() {
-    return this.Flag('targets') ?? ['default'];
+    return this.Flag("targets") ?? ["default"];
   }
   get Force() {
-    return this.Flag('force') ?? false;
+    return this.Flag("force") ?? false;
   }
 }
 
-export default Command('deploy', 'Deploy with complex configuration')
+export default Command("deploy", "Deploy with complex configuration")
   .Args(ArgsSchema)
   .Flags(FlagsSchema)
   .Params(DeployParams)
@@ -65,7 +65,7 @@ export default Command('deploy', 'Deploy with complex configuration')
     Log.Info(`Server: ${Params.Config.host}:${Params.Config.port}`);
 
     if (Params.Config.debug) {
-      Log.Info('Debug mode enabled');
+      Log.Info("Debug mode enabled");
     }
 
     for (const target of Params.Targets) {
@@ -73,7 +73,7 @@ export default Command('deploy', 'Deploy with complex configuration')
     }
 
     if (Params.Config.features?.length) {
-      Log.Info(`Features: ${Params.Config.features.join(', ')}`);
+      Log.Info(`Features: ${Params.Config.features.join(", ")}`);
     }
   })
   .Build();

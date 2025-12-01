@@ -1,4 +1,4 @@
-import type { CLICommandSource } from '../types/CLIConfig.ts';
+import type { CLICommandSource } from "../types/CLIConfig.ts";
 
 /**
  * Normalizes the Commands configuration to a consistent array format.
@@ -11,11 +11,11 @@ export function normalizeCommandSources(
 ): CLICommandSource[] {
   // Default to './commands' when undefined
   if (commands === undefined) {
-    return [{ Path: './commands' }];
+    return [{ Path: "./commands" }];
   }
 
   // Convert string to single-element array
-  if (typeof commands === 'string') {
+  if (typeof commands === "string") {
     return [{ Path: commands }];
   }
 
@@ -25,7 +25,7 @@ export function normalizeCommandSources(
   }
 
   // Check if it's an array of strings (first element is a string, not an object)
-  if (typeof commands[0] === 'string') {
+  if (typeof commands[0] === "string") {
     return (commands as string[]).map((path) => ({ Path: path }));
   }
 

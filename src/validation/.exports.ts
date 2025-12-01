@@ -49,10 +49,13 @@ export type {
   ValidateContext,
   ValidationError,
   ValidationResult,
-} from './types.ts';
+} from "./types.ts";
 
 // Core classes
-export { SchemaIntrospector } from './SchemaIntrospector.ts';
-export { type ResolveResult, ValueResolver } from './ValueResolver.ts';
-export { SchemaValidator } from './SchemaValidator.ts';
-export { ValidationPipeline, type ValidationPipelineOptions } from './ValidationPipeline.ts';
+export { SchemaIntrospector } from "./SchemaIntrospector.ts";
+export { type ResolveResult, ValueResolver } from "./ValueResolver.ts";
+export { SchemaValidator } from "./SchemaValidator.ts";
+export {
+  ValidationPipeline,
+  type ValidationPipelineOptions,
+} from "./ValidationPipeline.ts";

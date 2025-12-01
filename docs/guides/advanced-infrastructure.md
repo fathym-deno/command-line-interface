@@ -45,23 +45,23 @@ This guide covers the internal infrastructure components of @fathym/cli that pow
 The resolver handles loading commands, configuration, and initialization functions.
 
 ```typescript
-import { CLICommandResolver } from '@fathym/cli';
+import { CLICommandResolver } from "@fathym/cli";
 ```
 
 ### Methods
 
-| Method | Purpose |
-|--------|---------|
-| `ResolveCommandMap(source)` | Get all commands from a source path |
-| `LoadCommandInstance(path)` | Load a command module from disk |
-| `ResolveConfig(args)` | Load and parse .cli.json |
-| `ResolveInitFn(path)` | Load the .cli.init.ts function |
-| `ResolveTemplateLocator(dfs)` | Create a template locator |
+| Method                        | Purpose                             |
+| ----------------------------- | ----------------------------------- |
+| `ResolveCommandMap(source)`   | Get all commands from a source path |
+| `LoadCommandInstance(path)`   | Load a command module from disk     |
+| `ResolveConfig(args)`         | Load and parse .cli.json            |
+| `ResolveInitFn(path)`         | Load the .cli.init.ts function      |
+| `ResolveTemplateLocator(dfs)` | Create a template locator           |
 
 ### Creating a Resolver
 
 ```typescript
-import { CLICommandResolver, LocalDevCLIFileSystemHooks } from '@fathym/cli';
+import { CLICommandResolver, LocalDevCLIFileSystemHooks } from "@fathym/cli";
 
 const dfsCtx = await ioc.Resolve(CLIDFSContextManager);
 const hooks = new LocalDevCLIFileSystemHooks(dfsCtx);
@@ -73,13 +73,13 @@ const resolver = new CLICommandResolver(hooks);
 ```typescript
 // Get all commands from a source
 const commandMap = await resolver.ResolveCommandMap({
-  Path: './commands',
-  Root: 'myapp',
+  Path: "./commands",
+  Root: "myapp",
 });
 
 // Load a specific command
 const { Command, Params } = await resolver.LoadCommandInstance(
-  '/path/to/commands/deploy.ts'
+  "/path/to/commands/deploy.ts",
 );
 ```
 
@@ -87,13 +87,13 @@ const { Command, Params } = await resolver.LoadCommandInstance(
 
 ```typescript
 const { config, resolvedPath, remainingArgs } = await resolver.ResolveConfig([
-  './custom.cli.json',
-  'deploy',
-  '--env=prod'
+  "./custom.cli.json",
+  "deploy",
+  "--env=prod",
 ]);
 
-console.log(config.Name);        // CLI name
-console.log(remainingArgs);      // ['deploy', '--env=prod']
+console.log(config.Name); // CLI name
+console.log(remainingArgs); // ['deploy', '--env=prod']
 ```
 
 ---
@@ -103,7 +103,7 @@ console.log(remainingArgs);      // ['deploy', '--env=prod']
 The registry provides programmatic command registration, useful for plugins or dynamic commands.
 
 ```typescript
-import { CLICommandRegistry } from '@fathym/cli';
+import { CLICommandRegistry } from "@fathym/cli";
 ```
 
 ### Usage
@@ -112,17 +112,17 @@ import { CLICommandRegistry } from '@fathym/cli';
 const registry = new CLICommandRegistry();
 
 // Register a command
-registry.RegisterCommand('deploy', {
-  CommandPath: '/path/to/deploy.ts',
+registry.RegisterCommand("deploy", {
+  CommandPath: "/path/to/deploy.ts",
   GroupPath: undefined,
   ParentGroup: undefined,
 });
 
 // Register a group with command
-registry.RegisterCommand('db/migrate', {
-  CommandPath: '/path/to/db/migrate.ts',
-  GroupPath: '/path/to/db/.metadata.ts',
-  ParentGroup: 'db',
+registry.RegisterCommand("db/migrate", {
+  CommandPath: "/path/to/db/migrate.ts",
+  GroupPath: "/path/to/db/.metadata.ts",
+  ParentGroup: "db",
 });
 
 // Get all registered commands
@@ -133,9 +133,9 @@ const commands = registry.GetCommands();
 
 ```typescript
 interface CLICommandEntry {
-  CommandPath?: string;   // Path to command module
-  GroupPath?: string;     // Path to .metadata.ts group file
-  ParentGroup?: string;   // Parent group key
+  CommandPath?: string; // Path to command module
+  GroupPath?: string; // Path to .metadata.ts group file
+  ParentGroup?: string; // Parent group key
 }
 ```
 
@@ -146,14 +146,14 @@ Combine registry with resolver for hybrid command sources:
 ```typescript
 // Load filesystem commands
 const fsCommands = await resolver.ResolveCommandMap({
-  Path: './commands',
+  Path: "./commands",
 });
 
 // Add programmatic commands
 const registry = new CLICommandRegistry();
-registry.RegisterCommand('plugin/run', {
-  CommandPath: '/plugins/run.ts',
-  ParentGroup: 'plugin',
+registry.RegisterCommand("plugin/run", {
+  CommandPath: "/plugins/run.ts",
+  ParentGroup: "plugin",
 });
 
 // Merge both sources
@@ -170,7 +170,7 @@ const allCommands = new Map([
 The matcher resolves user input to command instances with hierarchical path matching.
 
 ```typescript
-import { CLICommandMatcher } from '@fathym/cli';
+import { CLICommandMatcher } from "@fathym/cli";
 ```
 
 ### Matching Algorithm
@@ -206,20 +206,20 @@ const matcher = new CLICommandMatcher(resolver);
 const match = await matcher.Resolve(
   config,
   commandMap,
-  'db/migrate',
+  "db/migrate",
   { force: true },
-  ['up'],
-  './templates',
+  ["up"],
+  "./templates",
 );
 
 if (match.Command) {
   // Execute the matched command
   await executor.Execute(config, match.Command, {
-    key: 'db/migrate',
+    key: "db/migrate",
     flags: match.Flags,
     positional: match.Args,
     paramsCtor: match.Params,
-    baseTemplatesDir: './templates',
+    baseTemplatesDir: "./templates",
   });
 }
 ```
@@ -248,7 +248,7 @@ The matcher automatically shows help when:
 Interface for custom filesystem operations. Implement this for alternative loading strategies.
 
 ```typescript
-import type { CLIFileSystemHooks } from '@fathym/cli';
+import type { CLIFileSystemHooks } from "@fathym/cli";
 ```
 
 ### Interface Definition
@@ -282,12 +282,13 @@ interface CLIFileSystemHooks {
 The default implementation for local development:
 
 ```typescript
-import { LocalDevCLIFileSystemHooks } from '@fathym/cli';
+import { LocalDevCLIFileSystemHooks } from "@fathym/cli";
 
 const hooks = new LocalDevCLIFileSystemHooks(dfsCtxMgr);
 ```
 
 Features:
+
 - Scans `./commands` directory for `.ts` files
 - Loads `.metadata.ts` files as group metadata
 - Resolves paths relative to project root
@@ -343,12 +344,12 @@ class RemoteCLIHooks implements CLIFileSystemHooks {
 For compiled CLIs with bundled commands:
 
 ```typescript
-import DeployCommand from './commands/deploy.ts';
-import BuildCommand from './commands/build.ts';
+import DeployCommand from "./commands/deploy.ts";
+import BuildCommand from "./commands/build.ts";
 
 const embeddedCommands = new Map<string, CommandModule>([
-  ['deploy', DeployCommand.Build()],
-  ['build', BuildCommand.Build()],
+  ["deploy", DeployCommand.Build()],
+  ["build", BuildCommand.Build()],
 ]);
 
 class EmbeddedCLIHooks implements CLIFileSystemHooks {
@@ -356,7 +357,7 @@ class EmbeddedCLIHooks implements CLIFileSystemHooks {
     const map = new Map<string, CLICommandEntry>();
     for (const key of embeddedCommands.keys()) {
       map.set(key, {
-        CommandPath: key,  // Use key as pseudo-path
+        CommandPath: key, // Use key as pseudo-path
         GroupPath: undefined,
         ParentGroup: undefined,
       });
@@ -385,15 +386,15 @@ The framework includes automatic help generation from command metadata.
 Builds structured help context from command map and metadata:
 
 ```typescript
-import { CLIHelpBuilder } from '@fathym/cli';
+import { CLIHelpBuilder } from "@fathym/cli";
 
 const helpBuilder = new CLIHelpBuilder(resolver);
 const helpContext = await helpBuilder.Build(
   config,
   commandMap,
-  'deploy',     // Command key (or undefined for root)
+  "deploy", // Command key (or undefined for root)
   { help: true },
-  cmdInstance,   // Optional command instance
+  cmdInstance, // Optional command instance
   groupInstance, // Optional group instance
 );
 ```
@@ -406,11 +407,25 @@ interface HelpContext {
 }
 
 type HelpSection =
-  | { type: 'CommandDetails'; Name: string; Description?: string; Usage?: string; Args?: ArgMeta[]; Flags?: FlagMeta[]; Examples?: string[] }
-  | { type: 'GroupDetails'; Name: string; Description?: string; Usage?: string; Examples?: string[] }
-  | { type: 'CommandList'; title: string; items: CommandModuleMetadata[] }
-  | { type: 'GroupList'; title: string; items: CommandModuleMetadata[] }
-  | { type: 'Error'; message: string; suggestion?: string; Name: string };
+  | {
+    type: "CommandDetails";
+    Name: string;
+    Description?: string;
+    Usage?: string;
+    Args?: ArgMeta[];
+    Flags?: FlagMeta[];
+    Examples?: string[];
+  }
+  | {
+    type: "GroupDetails";
+    Name: string;
+    Description?: string;
+    Usage?: string;
+    Examples?: string[];
+  }
+  | { type: "CommandList"; title: string; items: CommandModuleMetadata[] }
+  | { type: "GroupList"; title: string; items: CommandModuleMetadata[] }
+  | { type: "Error"; message: string; suggestion?: string; Name: string };
 ```
 
 ### Help Output Example
@@ -482,12 +497,12 @@ The hooks scan for `.ts` files:
 
 ### 3. Key Generation Rules
 
-| File | Generated Key |
-|------|--------------|
-| `commands/deploy.ts` | `deploy` |
-| `commands/db/migrate.ts` | `db/migrate` |
-| `commands/db/.metadata.ts` | `db` (group) |
-| `commands/index.ts` | `` (root command) |
+| File                       | Generated Key     |
+| -------------------------- | ----------------- |
+| `commands/deploy.ts`       | `deploy`          |
+| `commands/db/migrate.ts`   | `db/migrate`      |
+| `commands/db/.metadata.ts` | `db` (group)      |
+| `commands/index.ts`        | `` (root command) |
 
 ### 4. Root Prefix Application
 
@@ -510,8 +525,8 @@ Register a custom loader for specific paths:
 
 ```typescript
 // In .cli.init.ts
-import type { IoCContainer } from '@fathym/ioc';
-import type { CLIConfig } from '@fathym/cli';
+import type { IoCContainer } from "@fathym/ioc";
+import type { CLIConfig } from "@fathym/cli";
 
 export default async function init(ioc: IoCContainer, config: CLIConfig) {
   // Register custom hooks for specific scenarios
@@ -537,7 +552,9 @@ executor.Execute = async (config, runtime, options) => {
   try {
     await originalExecute(config, runtime, options);
   } finally {
-    console.log(`[${new Date().toISOString()}] Completed in ${Date.now() - start}ms`);
+    console.log(
+      `[${new Date().toISOString()}] Completed in ${Date.now() - start}ms`,
+    );
   }
 };
 ```

@@ -1,4 +1,4 @@
-import { writeAllSync, type WriterSync } from '../.deps.ts';
+import { writeAllSync, type WriterSync } from "../.deps.ts";
 
 /**
  * Clears the line and performs a carriage return
@@ -16,7 +16,7 @@ export function clearLine(
   }
 
   for (let i = 0; i < lineCount; i++) {
-    writeAllSync(writer, encoder.encode('\u001B[2K\r'));
+    writeAllSync(writer, encoder.encode("\u001B[2K\r"));
 
     if (i < lineCount - 1) {
       writeAllSync(writer, encoder.encode(`\u001B[1A`));

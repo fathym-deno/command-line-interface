@@ -1,6 +1,6 @@
-import { assert, assertEquals } from '../../test.deps.ts';
-import { CLITelemetryRenderer } from '../../../src/logging/CLITelemetryRenderer.ts';
-import { Colors, type WriterSync } from '../../../src/.deps.ts';
+import { assert, assertEquals } from "../../test.deps.ts";
+import { CLITelemetryRenderer } from "../../../src/logging/CLITelemetryRenderer.ts";
+import { Colors, type WriterSync } from "../../../src/.deps.ts";
 
 class BufferWriter implements WriterSync {
   private readonly chunks: Uint8Array[] = [];
@@ -22,36 +22,39 @@ class BufferWriter implements WriterSync {
   }
 }
 
-Deno.test('CLITelemetryRenderer – renders prefixes and attributes', () => {
+Deno.test("CLITelemetryRenderer – renders prefixes and attributes", () => {
   const writer = new BufferWriter();
   const renderer = new CLITelemetryRenderer(writer);
 
-  renderer.render('info', 'hello world', { foo: 'bar' });
+  renderer.render("info", "hello world", { foo: "bar" });
 
   const line = writer.toString().trim();
-  assertEquals(line, `${Colors.blue('ℹ')} hello world ${Colors.dim('{"foo":"bar"}')}`);
+  assertEquals(
+    line,
+    `${Colors.blue("ℹ")} hello world ${Colors.dim('{"foo":"bar"}')}`,
+  );
 });
 
-Deno.test('CLITelemetryRenderer – omits attributes when none provided', () => {
+Deno.test("CLITelemetryRenderer – omits attributes when none provided", () => {
   const writer = new BufferWriter();
   const renderer = new CLITelemetryRenderer(writer);
 
-  renderer.render('success', 'done');
+  renderer.render("success", "done");
 
   const line = writer.toString().trim();
-  assertEquals(line, `${Colors.green('✅')} done`);
+  assertEquals(line, `${Colors.green("✅")} done`);
 });
 
-Deno.test('CLITelemetryRenderer – falls back on unserializable attributes', () => {
+Deno.test("CLITelemetryRenderer – falls back on unserializable attributes", () => {
   const writer = new BufferWriter();
   const renderer = new CLITelemetryRenderer(writer);
 
   const circular: Record<string, unknown> = {};
   circular.self = circular;
 
-  renderer.render('fatal', 'boom', circular);
+  renderer.render("fatal", "boom", circular);
 
   const line = writer.toString().trim();
-  assert(line.startsWith(`${Colors.red('💥')} boom`));
-  assert(line.includes('[object Object]'));
+  assert(line.startsWith(`${Colors.red("💥")} boom`));
+  assert(line.includes("[object Object]"));
 });

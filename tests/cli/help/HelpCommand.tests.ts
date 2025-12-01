@@ -1,14 +1,19 @@
-import { assertMatch } from '../../test.deps.ts';
-import { captureLogs } from '../../../src/.exports.ts';
-import { HelpCommand, HelpCommandParams } from '../../../src/help/HelpCommand.ts';
-import type { CommandContext } from '../../../src/commands/CommandContext.ts';
-import type { HelpContext } from '../../../src/help/HelpContext.ts';
+import { assertMatch } from "../../test.deps.ts";
+import { captureLogs } from "../../../src/.exports.ts";
+import {
+  HelpCommand,
+  HelpCommandParams,
+} from "../../../src/help/HelpCommand.ts";
+import type { CommandContext } from "../../../src/commands/CommandContext.ts";
+import type { HelpContext } from "../../../src/help/HelpContext.ts";
 
 // Helper to create a minimal CommandContext for HelpCommand
-function createHelpContext(helpContext: HelpContext): CommandContext<HelpCommandParams> {
+function createHelpContext(
+  helpContext: HelpContext,
+): CommandContext<HelpCommandParams> {
   const params = new HelpCommandParams([], helpContext);
   return {
-    Key: 'help',
+    Key: "help",
     Params: params,
     Log: {
       Info: console.log,
@@ -28,16 +33,16 @@ function wrapSync(fn: () => void): () => Promise<void> {
   };
 }
 
-Deno.test('HelpCommand – renders command details', async (t) => {
+Deno.test("HelpCommand – renders command details", async (t) => {
   const cmd = new HelpCommand();
 
-  await t.step('renders command name and description', async () => {
+  await t.step("renders command name and description", async () => {
     const ctx = createHelpContext({
       Sections: [
         {
-          type: 'CommandDetails',
-          Name: 'Command: hello',
-          Description: 'Prints a greeting message',
+          type: "CommandDetails",
+          Name: "Command: hello",
+          Description: "Prints a greeting message",
         },
       ],
     });
@@ -47,13 +52,13 @@ Deno.test('HelpCommand – renders command details', async (t) => {
     assertMatch(output, /Prints a greeting message/);
   });
 
-  await t.step('renders usage section', async () => {
+  await t.step("renders usage section", async () => {
     const ctx = createHelpContext({
       Sections: [
         {
-          type: 'CommandDetails',
-          Name: 'Command: greet',
-          Usage: '<name> [--loud]',
+          type: "CommandDetails",
+          Name: "Command: greet",
+          Usage: "<name> [--loud]",
         },
       ],
     });
@@ -63,13 +68,13 @@ Deno.test('HelpCommand – renders command details', async (t) => {
     assertMatch(output, /<name> \[--loud\]/);
   });
 
-  await t.step('renders examples section', async () => {
+  await t.step("renders examples section", async () => {
     const ctx = createHelpContext({
       Sections: [
         {
-          type: 'CommandDetails',
-          Name: 'Command: deploy',
-          Examples: ['deploy --target prod', 'deploy --dry-run'],
+          type: "CommandDetails",
+          Name: "Command: deploy",
+          Examples: ["deploy --target prod", "deploy --dry-run"],
         },
       ],
     });
@@ -81,17 +86,17 @@ Deno.test('HelpCommand – renders command details', async (t) => {
   });
 });
 
-Deno.test('HelpCommand – renders args with descriptions', async (t) => {
+Deno.test("HelpCommand – renders args with descriptions", async (t) => {
   const cmd = new HelpCommand();
 
-  await t.step('renders arg name and description', async () => {
+  await t.step("renders arg name and description", async () => {
     const ctx = createHelpContext({
       Sections: [
         {
-          type: 'CommandDetails',
-          Name: 'Command: greet',
+          type: "CommandDetails",
+          Name: "Command: greet",
           Args: [
-            { Name: 'name', Description: 'The name to greet', Optional: false },
+            { Name: "name", Description: "The name to greet", Optional: false },
           ],
         },
       ],
@@ -102,15 +107,19 @@ Deno.test('HelpCommand – renders args with descriptions', async (t) => {
     assertMatch(output, /<name> - The name to greet/);
   });
 
-  await t.step('renders multiple args', async () => {
+  await t.step("renders multiple args", async () => {
     const ctx = createHelpContext({
       Sections: [
         {
-          type: 'CommandDetails',
-          Name: 'Command: copy',
+          type: "CommandDetails",
+          Name: "Command: copy",
           Args: [
-            { Name: 'source', Description: 'Source file path', Optional: false },
-            { Name: 'dest', Description: 'Destination path', Optional: true },
+            {
+              Name: "source",
+              Description: "Source file path",
+              Optional: false,
+            },
+            { Name: "dest", Description: "Destination path", Optional: true },
           ],
         },
       ],
@@ -121,14 +130,14 @@ Deno.test('HelpCommand – renders args with descriptions', async (t) => {
     assertMatch(output, /<dest> - Destination path/);
   });
 
-  await t.step('renders arg without description', async () => {
+  await t.step("renders arg without description", async () => {
     const ctx = createHelpContext({
       Sections: [
         {
-          type: 'CommandDetails',
-          Name: 'Command: run',
+          type: "CommandDetails",
+          Name: "Command: run",
           Args: [
-            { Name: 'script', Optional: false },
+            { Name: "script", Optional: false },
           ],
         },
       ],
@@ -138,23 +147,27 @@ Deno.test('HelpCommand – renders args with descriptions', async (t) => {
     assertMatch(output, /Args:/);
     assertMatch(output, /<script>/);
     // Should not have a trailing " - " when no description
-    if (output.includes('<script> -')) {
+    if (output.includes("<script> -")) {
       throw new Error('Should not render " - " when no description');
     }
   });
 });
 
-Deno.test('HelpCommand – renders flags with descriptions', async (t) => {
+Deno.test("HelpCommand – renders flags with descriptions", async (t) => {
   const cmd = new HelpCommand();
 
-  await t.step('renders flag name and description', async () => {
+  await t.step("renders flag name and description", async () => {
     const ctx = createHelpContext({
       Sections: [
         {
-          type: 'CommandDetails',
-          Name: 'Command: build',
+          type: "CommandDetails",
+          Name: "Command: build",
           Flags: [
-            { Name: 'verbose', Description: 'Enable verbose output', Optional: true },
+            {
+              Name: "verbose",
+              Description: "Enable verbose output",
+              Optional: true,
+            },
           ],
         },
       ],
@@ -165,16 +178,24 @@ Deno.test('HelpCommand – renders flags with descriptions', async (t) => {
     assertMatch(output, /--verbose - Enable verbose output/);
   });
 
-  await t.step('renders multiple flags', async () => {
+  await t.step("renders multiple flags", async () => {
     const ctx = createHelpContext({
       Sections: [
         {
-          type: 'CommandDetails',
-          Name: 'Command: deploy',
+          type: "CommandDetails",
+          Name: "Command: deploy",
           Flags: [
-            { Name: 'force', Description: 'Skip confirmation', Optional: true },
-            { Name: 'dry-run', Description: 'Show what would happen', Optional: true },
-            { Name: 'target', Description: 'Deploy target environment', Optional: true },
+            { Name: "force", Description: "Skip confirmation", Optional: true },
+            {
+              Name: "dry-run",
+              Description: "Show what would happen",
+              Optional: true,
+            },
+            {
+              Name: "target",
+              Description: "Deploy target environment",
+              Optional: true,
+            },
           ],
         },
       ],
@@ -186,14 +207,14 @@ Deno.test('HelpCommand – renders flags with descriptions', async (t) => {
     assertMatch(output, /--target - Deploy target environment/);
   });
 
-  await t.step('renders flag without description', async () => {
+  await t.step("renders flag without description", async () => {
     const ctx = createHelpContext({
       Sections: [
         {
-          type: 'CommandDetails',
-          Name: 'Command: test',
+          type: "CommandDetails",
+          Name: "Command: test",
           Flags: [
-            { Name: 'watch', Optional: true },
+            { Name: "watch", Optional: true },
           ],
         },
       ],
@@ -205,16 +226,16 @@ Deno.test('HelpCommand – renders flags with descriptions', async (t) => {
   });
 });
 
-Deno.test('HelpCommand – renders group details', async (t) => {
+Deno.test("HelpCommand – renders group details", async (t) => {
   const cmd = new HelpCommand();
 
-  await t.step('renders group name and description', async () => {
+  await t.step("renders group name and description", async () => {
     const ctx = createHelpContext({
       Sections: [
         {
-          type: 'GroupDetails',
-          Name: 'Group: scaffold',
-          Description: 'Generate project scaffolding',
+          type: "GroupDetails",
+          Name: "Group: scaffold",
+          Description: "Generate project scaffolding",
         },
       ],
     });
@@ -225,18 +246,18 @@ Deno.test('HelpCommand – renders group details', async (t) => {
   });
 });
 
-Deno.test('HelpCommand – renders command and group lists', async (t) => {
+Deno.test("HelpCommand – renders command and group lists", async (t) => {
   const cmd = new HelpCommand();
 
-  await t.step('renders command list', async () => {
+  await t.step("renders command list", async () => {
     const ctx = createHelpContext({
       Sections: [
         {
-          type: 'CommandList',
-          title: 'Available Commands',
+          type: "CommandList",
+          title: "Available Commands",
           items: [
-            { Name: 'build', Description: 'Build the project' },
-            { Name: 'test', Description: 'Run tests' },
+            { Name: "build", Description: "Build the project" },
+            { Name: "test", Description: "Run tests" },
           ],
         },
       ],
@@ -248,15 +269,15 @@ Deno.test('HelpCommand – renders command and group lists', async (t) => {
     assertMatch(output, /test - Run tests/);
   });
 
-  await t.step('renders group list', async () => {
+  await t.step("renders group list", async () => {
     const ctx = createHelpContext({
       Sections: [
         {
-          type: 'GroupList',
-          title: 'Available Groups',
+          type: "GroupList",
+          title: "Available Groups",
           items: [
-            { Name: 'scaffold', Description: 'Scaffolding commands' },
-            { Name: 'config', Description: 'Configuration commands' },
+            { Name: "scaffold", Description: "Scaffolding commands" },
+            { Name: "config", Description: "Configuration commands" },
           ],
         },
       ],
@@ -269,16 +290,16 @@ Deno.test('HelpCommand – renders command and group lists', async (t) => {
   });
 });
 
-Deno.test('HelpCommand – renders error section', async (t) => {
+Deno.test("HelpCommand – renders error section", async (t) => {
   const cmd = new HelpCommand();
 
-  await t.step('renders error message', async () => {
+  await t.step("renders error message", async () => {
     const ctx = createHelpContext({
       Sections: [
         {
-          type: 'Error',
-          message: 'Unknown command: foobar',
-          Name: 'foobar',
+          type: "Error",
+          message: "Unknown command: foobar",
+          Name: "foobar",
         },
       ],
     });
@@ -287,14 +308,14 @@ Deno.test('HelpCommand – renders error section', async (t) => {
     assertMatch(output, /❌ Unknown command: foobar/);
   });
 
-  await t.step('renders error with suggestion', async () => {
+  await t.step("renders error with suggestion", async () => {
     const ctx = createHelpContext({
       Sections: [
         {
-          type: 'Error',
-          message: 'Unknown command: buld',
-          suggestion: 'build',
-          Name: 'buld',
+          type: "Error",
+          message: "Unknown command: buld",
+          suggestion: "build",
+          Name: "buld",
         },
       ],
     });

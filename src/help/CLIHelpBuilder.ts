@@ -1,10 +1,10 @@
-import { findClosestMatch } from '../.deps.ts';
-import type { CLICommandEntry } from '../types/CLICommandEntry.ts';
-import type { CLICommandResolver } from '../CLICommandResolver.ts';
-import type { CLIConfig } from '../types/CLIConfig.ts';
-import type { CommandRuntime } from '../commands/CommandRuntime.ts';
-import type { CommandModuleMetadata } from '../commands/CommandModuleMetadata.ts';
-import type { HelpContext } from './HelpContext.ts';
+import { findClosestMatch } from "../.deps.ts";
+import type { CLICommandEntry } from "../types/CLICommandEntry.ts";
+import type { CLICommandResolver } from "../CLICommandResolver.ts";
+import type { CLIConfig } from "../types/CLIConfig.ts";
+import type { CommandRuntime } from "../commands/CommandRuntime.ts";
+import type { CommandModuleMetadata } from "../commands/CommandModuleMetadata.ts";
+import type { HelpContext } from "./HelpContext.ts";
 
 export class CLIHelpBuilder {
   constructor(protected resolver: CLICommandResolver) {}
@@ -17,15 +17,15 @@ export class CLIHelpBuilder {
     cmdInst?: CommandRuntime,
     groupInst?: CommandRuntime,
   ): Promise<HelpContext | undefined> {
-    const sections: HelpContext['Sections'] = [];
+    const sections: HelpContext["Sections"] = [];
 
     const formatItem = (
       item: CommandModuleMetadata & { Token: string },
       baseKey: string,
     ): CommandModuleMetadata => {
-      const tokenParts = item.Token.split('/');
-      const baseParts = baseKey ? baseKey.split('/') : [];
-      const trimmed = tokenParts.slice(baseParts.length).join(' ');
+      const tokenParts = item.Token.split("/");
+      const baseParts = baseKey ? baseKey.split("/") : [];
+      const trimmed = tokenParts.slice(baseParts.length).join(" ");
 
       return {
         ...item,
@@ -38,10 +38,10 @@ export class CLIHelpBuilder {
       key: string,
       groupsOnly: boolean,
     ): Promise<(CommandModuleMetadata & { Token: string })[]> => {
-      const baseDepth = key === '' ? 0 : key.split('/').length;
+      const baseDepth = key === "" ? 0 : key.split("/").length;
       const matches = [...commandMap.entries()].filter(([k, v]) => {
-        const depth = k.split('/').length;
-        const isDirectChild = (key === '' && depth === 1) ||
+        const depth = k.split("/").length;
+        const isDirectChild = (key === "" && depth === 1) ||
           (k.startsWith(`${key}/`) && depth === baseDepth + 1);
         const isTypeMatch = groupsOnly ? !!v.GroupPath : !!v.CommandPath;
         return isDirectChild && isTypeMatch;
@@ -66,11 +66,11 @@ export class CLIHelpBuilder {
 
     const buildRootIntro = async (): Promise<CommandModuleMetadata> => {
       const token = config.Tokens?.[0] ??
-        config.Name.toLowerCase().replace(/\s+/g, '-');
-      const rootCmds = await getChildItems('', false);
+        config.Name.toLowerCase().replace(/\s+/g, "-");
+      const rootCmds = await getChildItems("", false);
       const examples = rootCmds
         .slice(0, 2)
-        .map((cmd) => `${token} ${cmd.Token.replace(/\//g, ' ')}`);
+        .map((cmd) => `${token} ${cmd.Token.replace(/\//g, " ")}`);
       return {
         Name: `${config.Name} CLI v${config.Version}`,
         Description: config.Description,
@@ -83,7 +83,7 @@ export class CLIHelpBuilder {
       if (groupInst) {
         const grpMd = groupInst.BuildMetadata();
         sections.push({
-          type: 'GroupDetails',
+          type: "GroupDetails",
           ...grpMd,
           Name: `Group: ${grpMd.Name}`,
         });
@@ -92,7 +92,7 @@ export class CLIHelpBuilder {
       if (cmdInst) {
         const cmdMd = cmdInst.BuildMetadata();
         sections.push({
-          type: 'CommandDetails',
+          type: "CommandDetails",
           ...cmdMd,
           Name: `Command: ${cmdMd.Name}`,
         });
@@ -102,8 +102,8 @@ export class CLIHelpBuilder {
         const cmds = await getChildItems(key, false);
         if (cmds.length) {
           sections.push({
-            type: 'CommandList',
-            title: 'Available Commands',
+            type: "CommandList",
+            title: "Available Commands",
             items: cmds.map((item) => formatItem(item, key)),
           });
         }
@@ -111,8 +111,8 @@ export class CLIHelpBuilder {
         const grps = await getChildItems(key, true);
         if (grps.length) {
           sections.push({
-            type: 'GroupList',
-            title: 'Available Groups',
+            type: "GroupList",
+            title: "Available Groups",
             items: grps.map((item) => formatItem(item, key)),
           });
         }
@@ -121,7 +121,7 @@ export class CLIHelpBuilder {
       if (!cmdInst && !groupInst) {
         const guess = findClosestMatch(key, [...commandMap.keys()]);
         sections.push({
-          type: 'Error',
+          type: "Error",
           message: `Unknown command: ${key}`,
           suggestion: guess,
           Name: key,
@@ -129,30 +129,30 @@ export class CLIHelpBuilder {
 
         const root = await buildRootIntro();
         if (root) {
-          sections.unshift({ type: 'CommandDetails', ...root });
+          sections.unshift({ type: "CommandDetails", ...root });
         }
       }
     } else {
       const root = await buildRootIntro();
       if (root) {
-        sections.push({ type: 'CommandDetails', ...root });
+        sections.push({ type: "CommandDetails", ...root });
       }
 
-      const rootCmds = await getChildItems('', false);
+      const rootCmds = await getChildItems("", false);
       if (rootCmds.length) {
         sections.push({
-          type: 'CommandList',
-          title: 'Available Commands',
-          items: rootCmds.map((item) => formatItem(item, '')),
+          type: "CommandList",
+          title: "Available Commands",
+          items: rootCmds.map((item) => formatItem(item, "")),
         });
       }
 
-      const rootGrps = await getChildItems('', true);
+      const rootGrps = await getChildItems("", true);
       if (rootGrps.length) {
         sections.push({
-          type: 'GroupList',
-          title: 'Available Groups',
-          items: rootGrps.map((item) => formatItem(item, '')),
+          type: "GroupList",
+          title: "Available Groups",
+          items: rootGrps.map((item) => formatItem(item, "")),
         });
       }
     }

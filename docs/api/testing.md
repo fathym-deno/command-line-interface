@@ -22,13 +22,12 @@ API reference for the intent-based testing framework including `CommandIntent`, 
 
 The framework provides two APIs for testing commands:
 
-| API | Use Case | Pattern |
-|-----|----------|---------|
-| `CommandIntents` (plural) | Multiple tests for one command | Suite-based with `.Intent()` |
-| `CommandIntent` (singular) | Single standalone test | One test per call |
+| API                        | Use Case                       | Pattern                      |
+| -------------------------- | ------------------------------ | ---------------------------- |
+| `CommandIntents` (plural)  | Multiple tests for one command | Suite-based with `.Intent()` |
+| `CommandIntent` (singular) | Single standalone test         | One test per call            |
 
-**Recommendation:** Use `CommandIntents` for most cases. It provides better organization,
-shared setup via `.BeforeAll()` and `.WithInit()`, and groups related tests.
+**Recommendation:** Use `CommandIntents` for most cases. It provides better organization, shared setup via `.BeforeAll()` and `.WithInit()`, and groups related tests.
 
 ---
 
@@ -37,7 +36,7 @@ shared setup via `.BeforeAll()` and `.WithInit()`, and groups related tests.
 The **preferred** way to test commands. Groups multiple intents for a single command.
 
 ```typescript
-import { CommandIntents } from '@fathym/cli';
+import { CommandIntents } from "@fathym/cli";
 ```
 
 ### Constructor
@@ -47,50 +46,50 @@ function CommandIntents(
   suiteName: string,
   command: CommandModule,
   configPath: string | URL,
-): CommandIntentsBuilder
+): CommandIntentsBuilder;
 ```
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `suiteName` | `string` | Name of the test suite |
-| `command` | `CommandModule` | Command to test (use `.Build()` for fluent commands) |
-| `configPath` | `string \| URL` | Path to .cli.json |
+| Parameter    | Type            | Description                                          |
+| ------------ | --------------- | ---------------------------------------------------- |
+| `suiteName`  | `string`        | Name of the test suite                               |
+| `command`    | `CommandModule` | Command to test (use `.Build()` for fluent commands) |
+| `configPath` | `string \| URL` | Path to .cli.json                                    |
 
 **Returns:** A `CommandIntentsBuilder` for method chaining
 
 ### Complete Example
 
 ```typescript
-import { CommandIntents } from '@fathym/cli';
-import HelloCommand from '../commands/hello.ts';
-import initFn from '../.cli.init.ts';
+import { CommandIntents } from "@fathym/cli";
+import HelloCommand from "../commands/hello.ts";
+import initFn from "../.cli.init.ts";
 
-const cmd = HelloCommand.Build();  // Important: call .Build() for fluent commands
-const origin = import.meta.resolve('../.cli.json');
+const cmd = HelloCommand.Build(); // Important: call .Build() for fluent commands
+const origin = import.meta.resolve("../.cli.json");
 
-CommandIntents('Hello Command Suite', cmd, origin)
-  .WithInit(initFn)  // Optional: inject IoC initialization
+CommandIntents("Hello Command Suite", cmd, origin)
+  .WithInit(initFn) // Optional: inject IoC initialization
   .BeforeAll(async () => {
     // Optional: setup before all tests
     await cleanupTempFiles();
   })
-  .Intent('greets default world', (int) =>
+  .Intent("greets default world", (int) =>
     int
-      .Args([undefined])  // No argument
+      .Args([undefined]) // No argument
       .Flags({})
-      .ExpectLogs('👋 Hello, world')
+      .ExpectLogs("👋 Hello, world")
       .ExpectExit(0))
-  .Intent('greets a specific name', (int) =>
+  .Intent("greets a specific name", (int) =>
     int
-      .Args(['Alice'])
+      .Args(["Alice"])
       .Flags({})
-      .ExpectLogs('👋 Hello, Alice')
+      .ExpectLogs("👋 Hello, Alice")
       .ExpectExit(0))
-  .Intent('greets loudly', (int) =>
+  .Intent("greets loudly", (int) =>
     int
-      .Args(['team'])
+      .Args(["team"])
       .Flags({ loud: true })
-      .ExpectLogs('👋 HELLO, TEAM')
+      .ExpectLogs("👋 HELLO, TEAM")
       .ExpectExit(0))
   .Run();
 ```
@@ -160,12 +159,11 @@ WithServices(services: Partial<S>): CommandIntentsBuilder
 Inject mock services for all tests in the suite. See [Service Mocking](#service-mocking) for details.
 
 ```typescript
-CommandIntents('Deploy Suite', DeployCommand.Build(), configPath)
+CommandIntents("Deploy Suite", DeployCommand.Build(), configPath)
   .WithServices({
-    deployer: mockDeployer,  // Applied to all intents
+    deployer: mockDeployer, // Applied to all intents
   })
-  .Intent('deploys staging', (int) =>
-    int.Args(['staging']).ExpectExit(0))
+  .Intent("deploys staging", (int) => int.Args(["staging"]).ExpectExit(0))
   .Run();
 ```
 
@@ -176,7 +174,7 @@ CommandIntents('Deploy Suite', DeployCommand.Build(), configPath)
 For standalone single tests. Use when you only need one test case.
 
 ```typescript
-import { CommandIntent } from '@fathym/cli';
+import { CommandIntent } from "@fathym/cli";
 ```
 
 ### Constructor
@@ -186,30 +184,33 @@ function CommandIntent(
   description: string,
   command: CommandModule,
   configPath: string | URL,
-): CommandIntentBuilder
+): CommandIntentBuilder;
 ```
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `description` | `string` | Test description |
-| `command` | `CommandModule` | Command to test |
-| `configPath` | `string \| URL` | Path to .cli.json |
+| Parameter     | Type            | Description       |
+| ------------- | --------------- | ----------------- |
+| `description` | `string`        | Test description  |
+| `command`     | `CommandModule` | Command to test   |
+| `configPath`  | `string \| URL` | Path to .cli.json |
 
 **Returns:** A `CommandIntentBuilder` for method chaining
 
 ```typescript
-import { CommandIntent } from '@fathym/cli';
-import GreetCommand from '../commands/greet.ts';
+import { CommandIntent } from "@fathym/cli";
+import GreetCommand from "../commands/greet.ts";
 
-CommandIntent('greets the user', GreetCommand.Build(), import.meta.resolve('../.cli.json'))
-  .Args(['World'])
-  .ExpectLogs('Hello, World!')
+CommandIntent(
+  "greets the user",
+  GreetCommand.Build(),
+  import.meta.resolve("../.cli.json"),
+)
+  .Args(["World"])
+  .ExpectLogs("Hello, World!")
   .ExpectExit(0)
   .Run();
 ```
 
-> **Important:** When testing fluent commands (created with `Command()`), you must
-> call `.Build()` on the command before passing it to `CommandIntent`.
+> **Important:** When testing fluent commands (created with `Command()`), you must call `.Build()` on the command before passing it to `CommandIntent`.
 
 ---
 
@@ -223,15 +224,15 @@ Args(args: unknown[]): CommandIntentBuilder
 
 Set positional arguments for the test.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `args` | `unknown[]` | Array of argument values |
+| Parameter | Type        | Description              |
+| --------- | ----------- | ------------------------ |
+| `args`    | `unknown[]` | Array of argument values |
 
 **Returns:** Same builder (for chaining)
 
 ```typescript
-CommandIntent('copies files', CopyCommand, configPath)
-  .Args(['source.txt', 'dest.txt'])
+CommandIntent("copies files", CopyCommand, configPath)
+  .Args(["source.txt", "dest.txt"])
   .Run();
 ```
 
@@ -243,25 +244,25 @@ Flags(flags: Record<string, unknown>): CommandIntentBuilder
 
 Set flags for the test.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `flags` | `Record<string, unknown>` | Flag key-value pairs |
+| Parameter | Type                      | Description          |
+| --------- | ------------------------- | -------------------- |
+| `flags`   | `Record<string, unknown>` | Flag key-value pairs |
 
 **Returns:** Same builder (for chaining)
 
 ```typescript
-CommandIntent('deploys to staging', DeployCommand, configPath)
-  .Flags({ env: 'staging', force: true })
+CommandIntent("deploys to staging", DeployCommand, configPath)
+  .Flags({ env: "staging", force: true })
   .Run();
 ```
 
 ### Combined Args and Flags
 
 ```typescript
-CommandIntent('greets loudly', GreetCommand, configPath)
-  .Args(['World'])
+CommandIntent("greets loudly", GreetCommand, configPath)
+  .Args(["World"])
   .Flags({ loud: true })
-  .ExpectLogs('HELLO, WORLD!')
+  .ExpectLogs("HELLO, WORLD!")
   .Run();
 ```
 
@@ -274,11 +275,11 @@ WithInit(init: CLIInitFn): CommandIntentBuilder
 Inject an initialization function for IoC service registration.
 
 ```typescript
-import initFn from '../.cli.init.ts';
+import initFn from "../.cli.init.ts";
 
-CommandIntent('test with services', MyCommand.Build(), configPath)
+CommandIntent("test with services", MyCommand.Build(), configPath)
   .WithInit(initFn)
-  .Args(['test'])
+  .Args(["test"])
   .ExpectExit(0)
   .Run();
 ```
@@ -291,18 +292,18 @@ WithServices(services: Partial<S>): CommandIntentBuilder
 
 Inject mock services for the test. See [Service Mocking](#service-mocking) for details.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
+| Parameter  | Type         | Description                     |
+| ---------- | ------------ | ------------------------------- |
 | `services` | `Partial<S>` | Partial map of services to mock |
 
 **Returns:** Same builder (for chaining)
 
 ```typescript
-CommandIntent('deploys with mock', DeployCommand.Build(), configPath)
+CommandIntent("deploys with mock", DeployCommand.Build(), configPath)
   .WithServices({
     deployer: mockDeployer,
   })
-  .Args(['staging'])
+  .Args(["staging"])
   .ExpectExit(0)
   .Run();
 ```
@@ -319,17 +320,17 @@ ExpectExit(code: number): CommandIntentBuilder
 
 Assert the expected exit code.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `code` | `number` | Expected exit code (0 = success) |
+| Parameter | Type     | Description                      |
+| --------- | -------- | -------------------------------- |
+| `code`    | `number` | Expected exit code (0 = success) |
 
 ```typescript
-CommandIntent('succeeds', MyCommand, configPath)
+CommandIntent("succeeds", MyCommand, configPath)
   .ExpectExit(0)
   .Run();
 
-CommandIntent('fails on invalid input', MyCommand, configPath)
-  .Args(['invalid'])
+CommandIntent("fails on invalid input", MyCommand, configPath)
+  .Args(["invalid"])
   .ExpectExit(1)
   .Run();
 ```
@@ -342,16 +343,16 @@ ExpectLogs(...messages: string[]): CommandIntentBuilder
 
 Assert log output contains the specified messages (in order).
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
+| Parameter  | Type       | Description           |
+| ---------- | ---------- | --------------------- |
 | `messages` | `string[]` | Expected log messages |
 
 ```typescript
-CommandIntent('logs progress', BuildCommand, configPath)
+CommandIntent("logs progress", BuildCommand, configPath)
   .ExpectLogs(
-    'Starting build...',
-    'Compiling TypeScript...',
-    'Build complete!',
+    "Starting build...",
+    "Compiling TypeScript...",
+    "Build complete!",
   )
   .Run();
 ```
@@ -369,10 +370,10 @@ Run(): void
 Execute the intent test. Registers a `Deno.test()` with the configured assertions.
 
 ```typescript
-CommandIntent('test description', MyCommand, configPath)
-  .Args(['test'])
+CommandIntent("test description", MyCommand, configPath)
+  .Args(["test"])
   .ExpectExit(0)
-  .Run();  // Registers and runs the test
+  .Run(); // Registers and runs the test
 ```
 
 ---
@@ -394,26 +395,26 @@ tests/
 
 ```typescript
 // tests/intents/greet.intents.ts
-import { CommandIntent } from '@fathym/cli';
-import GreetCommand from '../../commands/greet.ts';
+import { CommandIntent } from "@fathym/cli";
+import GreetCommand from "../../commands/greet.ts";
 
-const configPath = import.meta.resolve('../../.cli.json');
+const configPath = import.meta.resolve("../../.cli.json");
 
-CommandIntent('greets with default', GreetCommand, configPath)
-  .ExpectLogs('Hello, World!')
+CommandIntent("greets with default", GreetCommand, configPath)
+  .ExpectLogs("Hello, World!")
   .ExpectExit(0)
   .Run();
 
-CommandIntent('greets by name', GreetCommand, configPath)
-  .Args(['Alice'])
-  .ExpectLogs('Hello, Alice!')
+CommandIntent("greets by name", GreetCommand, configPath)
+  .Args(["Alice"])
+  .ExpectLogs("Hello, Alice!")
   .ExpectExit(0)
   .Run();
 
-CommandIntent('greets loudly', GreetCommand, configPath)
-  .Args(['Bob'])
+CommandIntent("greets loudly", GreetCommand, configPath)
+  .Args(["Bob"])
   .Flags({ loud: true })
-  .ExpectLogs('HELLO, BOB!')
+  .ExpectLogs("HELLO, BOB!")
   .ExpectExit(0)
   .Run();
 ```
@@ -422,9 +423,9 @@ CommandIntent('greets loudly', GreetCommand, configPath)
 
 ```typescript
 // tests/.tests.ts
-import './intents/greet.intents.ts';
-import './intents/deploy.intents.ts';
-import './intents/init.intents.ts';
+import "./intents/greet.intents.ts";
+import "./intents/deploy.intents.ts";
+import "./intents/init.intents.ts";
 ```
 
 Run tests:
@@ -442,10 +443,10 @@ deno test -A ./tests/.tests.ts
 ### Testing Dry Run
 
 ```typescript
-CommandIntent('dry run shows preview', DeleteCommand, configPath)
-  .Args(['file.txt'])
+CommandIntent("dry run shows preview", DeleteCommand, configPath)
+  .Args(["file.txt"])
   .Flags({ dryRun: true })
-  .ExpectLogs('Would delete: file.txt')
+  .ExpectLogs("Would delete: file.txt")
   .ExpectExit(0)
   .Run();
 ```
@@ -453,25 +454,25 @@ CommandIntent('dry run shows preview', DeleteCommand, configPath)
 ### Testing Different Input Combinations
 
 ```typescript
-CommandIntents('Deploy Command', DeployCommand.Build(), configPath)
+CommandIntents("Deploy Command", DeployCommand.Build(), configPath)
   .WithInit(initFn)
-  .Intent('deploys to default environment', (int) =>
+  .Intent("deploys to default environment", (int) =>
     int
       .Args([])
       .Flags({})
-      .ExpectLogs('Deploying to production...')
+      .ExpectLogs("Deploying to production...")
       .ExpectExit(0))
-  .Intent('deploys to staging', (int) =>
+  .Intent("deploys to staging", (int) =>
     int
       .Args([])
-      .Flags({ env: 'staging' })
-      .ExpectLogs('Deploying to staging...')
+      .Flags({ env: "staging" })
+      .ExpectLogs("Deploying to staging...")
       .ExpectExit(0))
-  .Intent('forces deployment', (int) =>
+  .Intent("forces deployment", (int) =>
     int
       .Args([])
       .Flags({ force: true })
-      .ExpectLogs('Force deploying...')
+      .ExpectLogs("Force deploying...")
       .ExpectExit(0))
   .Run();
 ```
@@ -480,42 +481,40 @@ CommandIntents('Deploy Command', DeployCommand.Build(), configPath)
 
 ## Assertions Reference
 
-| Method | Description |
-|--------|-------------|
-| `ExpectExit(code)` | Assert exit code |
+| Method                | Description                   |
+| --------------------- | ----------------------------- |
+| `ExpectExit(code)`    | Assert exit code              |
 | `ExpectLogs(...msgs)` | Assert log messages (ordered) |
 
 ---
 
 ## Service Mocking
 
-The testing framework provides type-safe service mocking via `WithServices()`. Mock services
-override real services during test execution, enabling isolated unit testing of command logic.
+The testing framework provides type-safe service mocking via `WithServices()`. Mock services override real services during test execution, enabling isolated unit testing of command logic.
 
 ### Type Safety
 
-Service types are inferred from the command's `.Services()` definition, providing autocomplete
-and type checking for mock objects:
+Service types are inferred from the command's `.Services()` definition, providing autocomplete and type checking for mock objects:
 
 ```typescript
 // Command defines typed services
-export default Command('deploy', 'Deploy application')
+export default Command("deploy", "Deploy application")
   .Params(DeployParams)
   .Services(async (ctx, ioc) => ({
-    deployer: await ioc.Resolve<DeployerService>(ioc.Symbol('Deployer')),
-    config: await ioc.Resolve<ConfigService>(ioc.Symbol('Config')),
+    deployer: await ioc.Resolve<DeployerService>(ioc.Symbol("Deployer")),
+    config: await ioc.Resolve<ConfigService>(ioc.Symbol("Config")),
   }))
   .Run(({ Services }) => {
     // Services.deployer and Services.config are typed
   });
 
 // Tests get type-safe mocking
-CommandIntent('deploys staging', DeployCommand.Build(), configPath)
+CommandIntent("deploys staging", DeployCommand.Build(), configPath)
   .WithServices({
-    deployer: mockDeployer,  // TypeScript validates this matches DeployerService
+    deployer: mockDeployer, // TypeScript validates this matches DeployerService
     // config uses real implementation (partial mocking)
   })
-  .Args(['staging'])
+  .Args(["staging"])
   .ExpectExit(0)
   .Run();
 ```
@@ -530,30 +529,28 @@ Mock services are merged with real services in this order (later values override
 4. **Intent-level WithServices** → Applied to individual intent
 
 ```typescript
-CommandIntents('Deploy Suite', DeployCommand.Build(), configPath)
+CommandIntents("Deploy Suite", DeployCommand.Build(), configPath)
   .WithInit(initFn)
   .WithServices({
-    deployer: suiteWideMock,  // Applied to all intents
+    deployer: suiteWideMock, // Applied to all intents
   })
-  .Intent('uses suite mock', (int) =>
-    int.Args(['staging']).ExpectExit(0))
-  .Intent('uses intent override', (int) =>
+  .Intent("uses suite mock", (int) => int.Args(["staging"]).ExpectExit(0))
+  .Intent("uses intent override", (int) =>
     int
-      .WithServices({ deployer: intentSpecificMock })  // Overrides suite mock
-      .Args(['prod'])
+      .WithServices({ deployer: intentSpecificMock }) // Overrides suite mock
+      .Args(["prod"])
       .ExpectExit(0))
   .Run();
 ```
 
 ### Partial Mocking
 
-You only need to mock the services your test cares about. Other services use their
-real implementations:
+You only need to mock the services your test cares about. Other services use their real implementations:
 
 ```typescript
-CommandIntent('deploys with mock deployer', DeployCommand.Build(), configPath)
+CommandIntent("deploys with mock deployer", DeployCommand.Build(), configPath)
   .WithServices({
-    deployer: mockDeployer,  // Only mock the deployer
+    deployer: mockDeployer, // Only mock the deployer
     // config, logger, etc. use real implementations
   })
   .ExpectExit(0)
@@ -566,14 +563,14 @@ CommandIntent('deploys with mock deployer', DeployCommand.Build(), configPath)
 
 ```typescript
 const mockDeployer = {
-  deploy: async (target: string) => ({ success: true, url: 'https://...' }),
+  deploy: async (target: string) => ({ success: true, url: "https://..." }),
   rollback: async () => {},
 };
 
-CommandIntent('deploys successfully', DeployCommand.Build(), configPath)
+CommandIntent("deploys successfully", DeployCommand.Build(), configPath)
   .WithServices({ deployer: mockDeployer })
-  .Args(['staging'])
-  .ExpectLogs('Deployed to https://...')
+  .Args(["staging"])
+  .ExpectLogs("Deployed to https://...")
   .ExpectExit(0)
   .Run();
 ```
@@ -581,21 +578,25 @@ CommandIntent('deploys successfully', DeployCommand.Build(), configPath)
 #### Mocking Different Scenarios
 
 ```typescript
-CommandIntents('Deploy Scenarios', DeployCommand.Build(), configPath)
-  .Intent('handles success', (int) =>
+CommandIntents("Deploy Scenarios", DeployCommand.Build(), configPath)
+  .Intent("handles success", (int) =>
     int
       .WithServices({
         deployer: { deploy: async () => ({ success: true }) },
       })
-      .Args(['staging'])
+      .Args(["staging"])
       .ExpectExit(0))
-  .Intent('handles failure', (int) =>
+  .Intent("handles failure", (int) =>
     int
       .WithServices({
-        deployer: { deploy: async () => { throw new Error('Deploy failed'); } },
+        deployer: {
+          deploy: async () => {
+            throw new Error("Deploy failed");
+          },
+        },
       })
-      .Args(['staging'])
-      .ExpectLogs('Deploy failed')
+      .Args(["staging"])
+      .ExpectLogs("Deploy failed")
       .ExpectExit(1))
   .Run();
 ```
@@ -611,15 +612,19 @@ const trackingMock = {
   },
 };
 
-CommandIntent('calls deployer with correct target', DeployCommand.Build(), configPath)
+CommandIntent(
+  "calls deployer with correct target",
+  DeployCommand.Build(),
+  configPath,
+)
   .WithServices({ deployer: trackingMock })
-  .Args(['production'])
+  .Args(["production"])
   .ExpectExit(0)
   .Run();
 
 // After test, verify calls
-Deno.test('verifies deployment target', () => {
-  assertEquals(calls, ['production']);
+Deno.test("verifies deployment target", () => {
+  assertEquals(calls, ["production"]);
 });
 ```
 

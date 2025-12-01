@@ -25,16 +25,16 @@ This guide covers patterns and best practices for building CLI commands with the
 **Every command must have a custom Params class.** This is the fundamental pattern:
 
 ```typescript
-import { Command, CommandParams } from '@fathym/cli';
-import { z } from 'zod';
+import { Command, CommandParams } from "@fathym/cli";
+import { z } from "zod";
 
 // 1. Define schemas
 const ArgsSchema = z.tuple([
-  z.string().optional().describe('Name').meta({ argName: 'name' }),
+  z.string().optional().describe("Name").meta({ argName: "name" }),
 ]);
 
 const FlagsSchema = z.object({
-  loud: z.boolean().optional().describe('Shout'),
+  loud: z.boolean().optional().describe("Shout"),
 });
 
 // 2. Create Params class with getters
@@ -43,27 +43,26 @@ class GreetParams extends CommandParams<
   z.infer<typeof FlagsSchema>
 > {
   get Name(): string {
-    return this.Arg(0) ?? 'World';  // Protected method in getter
+    return this.Arg(0) ?? "World"; // Protected method in getter
   }
 
   get IsLoud(): boolean {
-    return this.Flag('loud') ?? false;  // Protected method in getter
+    return this.Flag("loud") ?? false; // Protected method in getter
   }
 }
 
 // 3. Build command with all parts
-export default Command('greet', 'Greet someone')
+export default Command("greet", "Greet someone")
   .Args(ArgsSchema)
   .Flags(FlagsSchema)
-  .Params(GreetParams)  // REQUIRED!
+  .Params(GreetParams) // REQUIRED!
   .Run(({ Params, Log }) => {
     const msg = `Hello, ${Params.Name}!`;
     Log.Info(Params.IsLoud ? msg.toUpperCase() : msg);
   });
 ```
 
-> **Important:** The `Arg()` and `Flag()` methods are **protected**. They can only be
-> called from within your Params class getters, not directly in command handlers.
+> **Important:** The `Arg()` and `Flag()` methods are **protected**. They can only be called from within your Params class getters, not directly in command handlers.
 
 ---
 
@@ -98,16 +97,20 @@ export default Command('deploy', 'Deploy the application')
 
 ```typescript
 const ArgsSchema = z.tuple([
-  z.string().describe('Source file').meta({ argName: 'source' }),
-  z.string().describe('Destination').meta({ argName: 'dest' }),
+  z.string().describe("Source file").meta({ argName: "source" }),
+  z.string().describe("Destination").meta({ argName: "dest" }),
 ]);
 
 class CopyParams extends CommandParams<z.infer<typeof ArgsSchema>, {}> {
-  get Source(): string { return this.Arg(0)!; }
-  get Dest(): string { return this.Arg(1)!; }
+  get Source(): string {
+    return this.Arg(0)!;
+  }
+  get Dest(): string {
+    return this.Arg(1)!;
+  }
 }
 
-Command('copy', 'Copy a file')
+Command("copy", "Copy a file")
   .Args(ArgsSchema)
   .Params(CopyParams)
   .Run(({ Params, Log }) => {
@@ -119,16 +122,16 @@ Command('copy', 'Copy a file')
 
 ```typescript
 const ArgsSchema = z.tuple([
-  z.string().optional().describe('Name').meta({ argName: 'name' }),
+  z.string().optional().describe("Name").meta({ argName: "name" }),
 ]);
 
 class GreetParams extends CommandParams<z.infer<typeof ArgsSchema>, {}> {
   get Name(): string {
-    return this.Arg(0) ?? 'World';  // Default in getter
+    return this.Arg(0) ?? "World"; // Default in getter
   }
 }
 
-Command('greet', 'Greet someone')
+Command("greet", "Greet someone")
   .Args(ArgsSchema)
   .Params(GreetParams)
   .Run(({ Params, Log }) => {
@@ -140,7 +143,7 @@ Command('greet', 'Greet someone')
 
 ```typescript
 const ArgsSchema = z.tuple([
-  z.coerce.number().default(3000).describe('Port').meta({ argName: 'port' }),
+  z.coerce.number().default(3000).describe("Port").meta({ argName: "port" }),
 ]);
 
 class ServeParams extends CommandParams<z.infer<typeof ArgsSchema>, {}> {
@@ -149,7 +152,7 @@ class ServeParams extends CommandParams<z.infer<typeof ArgsSchema>, {}> {
   }
 }
 
-Command('serve', 'Start a server')
+Command("serve", "Start a server")
   .Args(ArgsSchema)
   .Params(ServeParams)
   .Run(({ Params, Log }) => {
@@ -161,15 +164,19 @@ Command('serve', 'Start a server')
 
 ```typescript
 const ArgsSchema = z.tuple([
-  z.string().describe('Output file').meta({ argName: 'output' }),
+  z.string().describe("Output file").meta({ argName: "output" }),
 ]).rest(z.string());
 
 class ConcatParams extends CommandParams<z.infer<typeof ArgsSchema>, {}> {
-  get Output(): string { return this.Arg(0)!; }
-  get Inputs(): string[] { return this.Args.slice(1) as string[]; }
+  get Output(): string {
+    return this.Arg(0)!;
+  }
+  get Inputs(): string[] {
+    return this.Args.slice(1) as string[];
+  }
 }
 
-Command('concat', 'Concatenate files')
+Command("concat", "Concatenate files")
   .Args(ArgsSchema)
   .Params(ConcatParams)
   .Run(({ Params, Log }) => {
@@ -185,19 +192,26 @@ Command('concat', 'Concatenate files')
 
 ```typescript
 const FlagsSchema = z.object({
-  verbose: z.boolean().optional().describe('Enable verbose output'),
-  force: z.boolean().optional().describe('Skip confirmation'),
-  quiet: z.boolean().optional().describe('Suppress output'),
+  verbose: z.boolean().optional().describe("Enable verbose output"),
+  force: z.boolean().optional().describe("Skip confirmation"),
+  quiet: z.boolean().optional().describe("Suppress output"),
 });
 
 class BuildParams extends CommandParams<[], z.infer<typeof FlagsSchema>> {
-  get Verbose(): boolean { return this.Flag('verbose') ?? false; }
-  get Force(): boolean { return this.Flag('force') ?? false; }
-  get Quiet(): boolean { return this.Flag('quiet') ?? false; }
+  get Verbose(): boolean {
+    return this.Flag("verbose") ?? false;
+  }
+  get Force(): boolean {
+    return this.Flag("force") ?? false;
+  }
+  get Quiet(): boolean {
+    return this.Flag("quiet") ?? false;
+  }
 }
 ```
 
 Usage:
+
 ```bash
 mycli build --verbose --force
 mycli build --no-verbose  # Explicitly false
@@ -207,17 +221,22 @@ mycli build --no-verbose  # Explicitly false
 
 ```typescript
 const FlagsSchema = z.object({
-  env: z.string().default('development').describe('Environment'),
-  config: z.string().optional().describe('Config file path'),
+  env: z.string().default("development").describe("Environment"),
+  config: z.string().optional().describe("Config file path"),
 });
 
 class DeployParams extends CommandParams<[], z.infer<typeof FlagsSchema>> {
-  get Environment(): string { return this.Flag('env') ?? 'development'; }
-  get ConfigPath(): string | undefined { return this.Flag('config'); }
+  get Environment(): string {
+    return this.Flag("env") ?? "development";
+  }
+  get ConfigPath(): string | undefined {
+    return this.Flag("config");
+  }
 }
 ```
 
 Usage:
+
 ```bash
 mycli deploy --env=production
 mycli deploy --env production
@@ -228,15 +247,21 @@ mycli deploy --config ./config.json
 
 ```typescript
 const FlagsSchema = z.object({
-  port: z.coerce.number().default(3000).describe('Server port'),
-  timeout: z.coerce.number().optional().describe('Timeout in seconds'),
-  retries: z.coerce.number().min(0).max(10).default(3).describe('Retry count'),
+  port: z.coerce.number().default(3000).describe("Server port"),
+  timeout: z.coerce.number().optional().describe("Timeout in seconds"),
+  retries: z.coerce.number().min(0).max(10).default(3).describe("Retry count"),
 });
 
 class ServerParams extends CommandParams<[], z.infer<typeof FlagsSchema>> {
-  get Port(): number { return this.Flag('port') ?? 3000; }
-  get Timeout(): number | undefined { return this.Flag('timeout'); }
-  get Retries(): number { return this.Flag('retries') ?? 3; }
+  get Port(): number {
+    return this.Flag("port") ?? 3000;
+  }
+  get Timeout(): number | undefined {
+    return this.Flag("timeout");
+  }
+  get Retries(): number {
+    return this.Flag("retries") ?? 3;
+  }
 }
 ```
 
@@ -244,13 +269,17 @@ class ServerParams extends CommandParams<[], z.infer<typeof FlagsSchema>> {
 
 ```typescript
 const FlagsSchema = z.object({
-  level: z.enum(['debug', 'info', 'warn', 'error']).default('info'),
-  format: z.enum(['json', 'text', 'table']).optional(),
+  level: z.enum(["debug", "info", "warn", "error"]).default("info"),
+  format: z.enum(["json", "text", "table"]).optional(),
 });
 
 class OutputParams extends CommandParams<[], z.infer<typeof FlagsSchema>> {
-  get Level(): string { return this.Flag('level') ?? 'info'; }
-  get Format(): string { return this.Flag('format') ?? 'text'; }
+  get Level(): string {
+    return this.Flag("level") ?? "info";
+  }
+  get Format(): string {
+    return this.Flag("format") ?? "text";
+  }
 }
 ```
 
@@ -258,17 +287,22 @@ class OutputParams extends CommandParams<[], z.infer<typeof FlagsSchema>> {
 
 ```typescript
 const FlagsSchema = z.object({
-  include: z.array(z.string()).optional().describe('Files to include'),
-  exclude: z.array(z.string()).optional().describe('Files to exclude'),
+  include: z.array(z.string()).optional().describe("Files to include"),
+  exclude: z.array(z.string()).optional().describe("Files to exclude"),
 });
 
 class FilterParams extends CommandParams<[], z.infer<typeof FlagsSchema>> {
-  get Includes(): string[] { return this.Flag('include') ?? []; }
-  get Excludes(): string[] { return this.Flag('exclude') ?? []; }
+  get Includes(): string[] {
+    return this.Flag("include") ?? [];
+  }
+  get Excludes(): string[] {
+    return this.Flag("exclude") ?? [];
+  }
 }
 ```
 
 Usage:
+
 ```bash
 mycli build --include=src --include=lib --exclude=test
 ```
@@ -280,11 +314,11 @@ mycli build --include=src --include=lib --exclude=test
 For complex argument logic, create a custom params class:
 
 ```typescript
-import { CommandParams } from '@fathym/cli';
-import { z } from 'zod';
+import { CommandParams } from "@fathym/cli";
+import { z } from "zod";
 
 const ArgsSchema = z.tuple([
-  z.string().optional().describe('Project name'),
+  z.string().optional().describe("Project name"),
 ]);
 
 const FlagsSchema = z.object({
@@ -300,30 +334,30 @@ class InitParams extends CommandParams<
   /** Get project name with smart defaults */
   get ProjectName(): string {
     const arg = this.Arg(0);
-    if (!arg || arg === '.') {
+    if (!arg || arg === ".") {
       // Use current directory name
-      return Deno.cwd().split(/[\\/]/).pop() ?? 'project';
+      return Deno.cwd().split(/[\\/]/).pop() ?? "project";
     }
     return arg;
   }
 
   /** Get template with default */
   get Template(): string {
-    return this.Flag('template') ?? 'default';
+    return this.Flag("template") ?? "default";
   }
 
   /** Get output directory */
   get OutputDir(): string {
-    return this.Flag('outputDir') ?? this.ProjectName;
+    return this.Flag("outputDir") ?? this.ProjectName;
   }
 
   /** Whether to skip confirmations */
   get Force(): boolean {
-    return this.Flag('force') ?? false;
+    return this.Flag("force") ?? false;
   }
 }
 
-export default Command('init', 'Initialize a new project')
+export default Command("init", "Initialize a new project")
   .Args(ArgsSchema)
   .Flags(FlagsSchema)
   .Params(InitParams)
@@ -340,12 +374,12 @@ export default Command('init', 'Initialize a new project')
 ### Basic Service Injection
 
 ```typescript
-import { CLIDFSContextManager, CommandParams } from '@fathym/cli';
-import type { IoCContainer } from '@fathym/cli';
+import { CLIDFSContextManager, CommandParams } from "@fathym/cli";
+import type { IoCContainer } from "@fathym/cli";
 
 class InfoParams extends CommandParams<[], {}> {}
 
-Command('info', 'Show project info')
+Command("info", "Show project info")
   .Params(InfoParams)
   .Services(async (ctx, ioc: IoCContainer) => ({
     dfs: await ioc.Resolve(CLIDFSContextManager),
@@ -370,34 +404,40 @@ Command('info', 'Show project info')
 
 ```typescript
 class DeployParams extends CommandParams<[], TFlags> {
-  get Provider(): string { return this.Flag('provider') ?? 'local'; }
+  get Provider(): string {
+    return this.Flag("provider") ?? "local";
+  }
 }
 
-Command('deploy', 'Deploy')
+Command("deploy", "Deploy")
   .Flags(FlagsSchema)
   .Params(DeployParams)
   .Services(async (ctx, ioc: IoCContainer) => {
     const provider = ctx.Params.Provider;
 
     return {
-      deployer: provider === 'aws'
+      deployer: provider === "aws"
         ? await ioc.Resolve(AWSDeployer)
-        : provider === 'gcp'
+        : provider === "gcp"
         ? await ioc.Resolve(GCPDeployer)
         : await ioc.Resolve(LocalDeployer),
     };
-  })
+  });
 ```
 
 ### Inline Services
 
 ```typescript
 class BuildParams extends CommandParams<[], TFlags> {
-  get Target(): string { return this.Flag('target') ?? 'web'; }
-  get Minify(): boolean { return this.Flag('minify') ?? false; }
+  get Target(): string {
+    return this.Flag("target") ?? "web";
+  }
+  get Minify(): boolean {
+    return this.Flag("minify") ?? false;
+  }
 }
 
-Command('build', 'Build project')
+Command("build", "Build project")
   .Flags(FlagsSchema)
   .Params(BuildParams)
   .Services(async (ctx) => ({
@@ -409,7 +449,7 @@ Command('build', 'Build project')
 
     // Create temp resources
     tempDir: await Deno.makeTempDir(),
-  }))
+  }));
 ```
 
 ---
@@ -422,31 +462,37 @@ Use for validation and setup before the main logic:
 
 ```typescript
 class DeployParams extends CommandParams<[], TFlags> {
-  get Environment(): string { return this.Flag('env') ?? 'development'; }
-  get Force(): boolean { return this.Flag('force') ?? false; }
-  get IsProduction(): boolean { return this.Environment === 'production'; }
+  get Environment(): string {
+    return this.Flag("env") ?? "development";
+  }
+  get Force(): boolean {
+    return this.Flag("force") ?? false;
+  }
+  get IsProduction(): boolean {
+    return this.Environment === "production";
+  }
 }
 
-Command('deploy', 'Deploy')
+Command("deploy", "Deploy")
   .Flags(FlagsSchema)
   .Params(DeployParams)
   .Init(async ({ Params, Services, Log }) => {
-    Log.Info('Validating configuration...');
+    Log.Info("Validating configuration...");
 
     // Check preconditions
     const config = await Services.config.load();
     if (!config.isValid) {
-      throw new Error('Invalid configuration');
+      throw new Error("Invalid configuration");
     }
 
     // Confirm destructive operations
     if (Params.IsProduction && !Params.Force) {
-      const confirmed = await Services.prompt.confirm('Deploy to production?');
+      const confirmed = await Services.prompt.confirm("Deploy to production?");
       if (!confirmed) {
-        throw new Error('Deployment cancelled');
+        throw new Error("Deployment cancelled");
       }
     }
-  })
+  });
 ```
 
 ### Run Phase
@@ -480,8 +526,7 @@ Preview mode that shows what would happen:
 })
 ```
 
-> **Note:** If `DryRun` is not defined and the user passes `--dry-run`, the command
-> will fall back to calling `Run()`.
+> **Note:** If `DryRun` is not defined and the user passes `--dry-run`, the command will fall back to calling `Run()`.
 
 ### Cleanup Phase
 
@@ -514,10 +559,12 @@ Resource cleanup (runs even on error):
 
 ```typescript
 class ReadParams extends CommandParams<z.infer<typeof ArgsSchema>, {}> {
-  get FilePath(): string { return this.Arg(0)!; }
+  get FilePath(): string {
+    return this.Arg(0)!;
+  }
 }
 
-Command('read', 'Read a file')
+Command("read", "Read a file")
   .Args(ArgsSchema)
   .Params(ReadParams)
   .Run(async ({ Params, Log }) => {
@@ -526,17 +573,19 @@ Command('read', 'Read a file')
     }
 
     // Continue processing...
-  })
+  });
 ```
 
 ### Error Recovery
 
 ```typescript
 class ApiParams extends CommandParams<[], TFlags> {
-  get MaxRetries(): number { return this.Flag('retries') ?? 3; }
+  get MaxRetries(): number {
+    return this.Flag("retries") ?? 3;
+  }
 }
 
-Command('sync', 'Sync data')
+Command("sync", "Sync data")
   .Flags(FlagsSchema)
   .Params(ApiParams)
   .Run(async ({ Params, Log, Services }) => {
@@ -545,36 +594,40 @@ Command('sync', 'Sync data')
     for (let i = 0; i < Params.MaxRetries; i++) {
       try {
         await Services.api.sync();
-        Log.Success('Sync successful');
+        Log.Success("Sync successful");
         return;
       } catch (error) {
         lastError = error;
         Log.Warn(`Attempt ${i + 1} failed: ${error.message}`);
-        await delay(1000 * (i + 1));  // Exponential backoff
+        await delay(1000 * (i + 1)); // Exponential backoff
       }
     }
 
-    throw new Error(`Failed after ${Params.MaxRetries} attempts: ${lastError?.message}`);
-  })
+    throw new Error(
+      `Failed after ${Params.MaxRetries} attempts: ${lastError?.message}`,
+    );
+  });
 ```
 
 ### Validation Errors
 
 ```typescript
 class SendParams extends CommandParams<[], TFlags> {
-  get Email(): string { return this.Flag('email') ?? ''; }
+  get Email(): string {
+    return this.Flag("email") ?? "";
+  }
 }
 
-Command('send', 'Send notification')
+Command("send", "Send notification")
   .Flags(FlagsSchema)
   .Params(SendParams)
   .Run(({ Params, Log }) => {
-    if (!Params.Email.includes('@')) {
-      throw new Error('Invalid email format');
+    if (!Params.Email.includes("@")) {
+      throw new Error("Invalid email format");
     }
 
     // Process valid email...
-  })
+  });
 ```
 
 ---
@@ -606,21 +659,21 @@ Create a `.metadata.ts` file in each group directory:
 
 ```typescript
 // commands/scaffold/.metadata.ts
-import { CommandModuleMetadata } from '@fathym/cli';
+import { CommandModuleMetadata } from "@fathym/cli";
 
 export default {
-  Name: 'scaffold',
-  Description: 'Generate new project components',
+  Name: "scaffold",
+  Description: "Generate new project components",
 } as CommandModuleMetadata;
 ```
 
 ```typescript
 // commands/scaffold/cloud/.metadata.ts
-import { CommandModuleMetadata } from '@fathym/cli';
+import { CommandModuleMetadata } from "@fathym/cli";
 
 export default {
-  Name: 'scaffold/cloud',
-  Description: 'Scaffold cloud infrastructure components',
+  Name: "scaffold/cloud",
+  Description: "Scaffold cloud infrastructure components",
 } as CommandModuleMetadata;
 ```
 
@@ -631,19 +684,21 @@ Commands in a group directory work the same as regular commands:
 ```typescript
 // commands/db/migrate.ts
 const FlagsSchema = z.object({
-  steps: z.number().optional().describe('Number of migrations'),
+  steps: z.number().optional().describe("Number of migrations"),
 });
 
 class MigrateParams extends CommandParams<[], z.infer<typeof FlagsSchema>> {
-  get Steps(): number | undefined { return this.Flag('steps'); }
+  get Steps(): number | undefined {
+    return this.Flag("steps");
+  }
 }
 
 // Display name is 'migrate', command key is 'db/migrate' (from file path)
-export default Command('migrate', 'Run database migrations')
+export default Command("migrate", "Run database migrations")
   .Flags(FlagsSchema)
   .Params(MigrateParams)
   .Run(async ({ Params, Log }) => {
-    Log.Info(`Running ${Params.Steps ?? 'all'} migrations...`);
+    Log.Info(`Running ${Params.Steps ?? "all"} migrations...`);
   });
 ```
 
@@ -669,15 +724,17 @@ The framework automatically discovers commands from the directory structure.
 ```typescript
 // Required - always create a Params class
 class MyParams extends CommandParams<TArgs, TFlags> {
-  get Name(): string { return this.Arg(0) ?? 'default'; }
+  get Name(): string {
+    return this.Arg(0) ?? "default";
+  }
 }
 
-Command('my-cmd', 'Description')
+Command("my-cmd", "Description")
   .Args(ArgsSchema)
   .Flags(FlagsSchema)
-  .Params(MyParams)  // Required!
+  .Params(MyParams) // Required!
   .Run(({ Params }) => {
-    console.log(Params.Name);  // Access via getter
+    console.log(Params.Name); // Access via getter
   });
 ```
 
@@ -687,12 +744,12 @@ Each command should do one thing well:
 
 ```typescript
 // Good
-Command('build', 'Build the project')
-Command('test', 'Run tests')
-Command('deploy', 'Deploy the application')
+Command("build", "Build the project");
+Command("test", "Run tests");
+Command("deploy", "Deploy the application");
 
 // Avoid
-Command('build-test-deploy', 'Do everything')
+Command("build-test-deploy", "Do everything");
 ```
 
 ### 3. Use Descriptive Names
@@ -700,8 +757,8 @@ Command('build-test-deploy', 'Do everything')
 ```typescript
 // Good
 const FlagsSchema = z.object({
-  outputPath: z.string().describe('Output file path'),
-  skipTests: z.boolean().describe('Skip running tests'),
+  outputPath: z.string().describe("Output file path"),
+  skipTests: z.boolean().describe("Skip running tests"),
 });
 
 // Avoid
@@ -715,9 +772,15 @@ const FlagsSchema = z.object({
 
 ```typescript
 class ConfigParams extends CommandParams<[], TFlags> {
-  get Environment(): string { return this.Flag('env') ?? 'development'; }
-  get Port(): number { return this.Flag('port') ?? 3000; }
-  get Retries(): number { return this.Flag('retries') ?? 3; }
+  get Environment(): string {
+    return this.Flag("env") ?? "development";
+  }
+  get Port(): number {
+    return this.Flag("port") ?? 3000;
+  }
+  get Retries(): number {
+    return this.Flag("retries") ?? 3;
+  }
 }
 ```
 
@@ -757,8 +820,7 @@ class ConfigParams extends CommandParams<[], TFlags> {
 });
 ```
 
-> **Note:** There is no `Log.Debug` method. For debug output, use a verbose flag
-> and conditional logging.
+> **Note:** There is no `Log.Debug` method. For debug output, use a verbose flag and conditional logging.
 
 ---
 
@@ -773,31 +835,31 @@ Use `.meta()` on Zod schemas to customize help output:
 ```typescript
 const ArgsSchema = z.tuple([
   z.string()
-    .describe('Project name')
-    .meta({ argName: 'name' }),       // Display as <name> in help
+    .describe("Project name")
+    .meta({ argName: "name" }), // Display as <name> in help
   z.string()
     .optional()
-    .describe('Output directory')
-    .meta({ argName: 'output' }),     // Display as <output> in help
+    .describe("Output directory")
+    .meta({ argName: "output" }), // Display as <output> in help
 ]);
 
 const FlagsSchema = z.object({
   v: z.boolean()
     .optional()
-    .describe('Verbose output')
-    .meta({ flagName: 'verbose' }),   // Display as --verbose in help
+    .describe("Verbose output")
+    .meta({ flagName: "verbose" }), // Display as --verbose in help
   t: z.string()
     .optional()
-    .describe('Template to use')
-    .meta({ flagName: 'template' }),  // Display as --template in help
+    .describe("Template to use")
+    .meta({ flagName: "template" }), // Display as --template in help
 });
 ```
 
 ### Available Meta Attributes
 
-| Attribute | Schema Type | Purpose |
-|-----------|-------------|---------|
-| `argName` | Args (tuple items) | Custom name in `<name>` format |
+| Attribute  | Schema Type               | Purpose                          |
+| ---------- | ------------------------- | -------------------------------- |
+| `argName`  | Args (tuple items)        | Custom name in `<name>` format   |
 | `flagName` | Flags (object properties) | Custom name for `--flag` display |
 
 ### Without Meta Attributes
@@ -807,8 +869,8 @@ Without `.meta()`, arguments display as generic names:
 ```typescript
 // Schema without meta
 const ArgsSchema = z.tuple([
-  z.string().describe('Project name'),
-  z.string().optional().describe('Output'),
+  z.string().describe("Project name"),
+  z.string().optional().describe("Output"),
 ]);
 
 // Help shows: <arg1> <arg2>
@@ -833,6 +895,7 @@ Command('init', 'Initialize a new project')
 ```
 
 Generates:
+
 ```
 📘 Command: Init
 Initialize a new project
@@ -864,11 +927,11 @@ Create `.metadata.ts` files for command groups (simple object format):
 
 ```typescript
 // commands/db/.metadata.ts
-import { CommandModuleMetadata } from '@fathym/cli';
+import { CommandModuleMetadata } from "@fathym/cli";
 
 export default {
-  Name: 'db',
-  Description: 'Database management commands',
+  Name: "db",
+  Description: "Database management commands",
 } as CommandModuleMetadata;
 ```
 
@@ -880,13 +943,17 @@ Add examples via class-based commands:
 
 ```typescript
 class DeployCommand extends CommandRuntime<DeployParams> {
-  get Key() { return 'deploy'; }
-  get Description() { return 'Deploy the application'; }
+  get Key() {
+    return "deploy";
+  }
+  get Description() {
+    return "Deploy the application";
+  }
 
   BuildMetadata() {
     return this.buildMetadataFromSchemas(
-      'Deploy',
-      'Deploy the application to an environment',
+      "Deploy",
+      "Deploy the application to an environment",
       ArgsSchema,
       FlagsSchema,
     );
@@ -895,9 +962,9 @@ class DeployCommand extends CommandRuntime<DeployParams> {
   // Add custom examples
   get Examples(): string[] {
     return [
-      'mycli deploy staging',
-      'mycli deploy production --force',
-      'mycli deploy --dry-run',
+      "mycli deploy staging",
+      "mycli deploy production --force",
+      "mycli deploy --dry-run",
     ];
   }
 }

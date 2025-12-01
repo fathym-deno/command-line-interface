@@ -1,51 +1,51 @@
-import { assertEquals } from '../../test.deps.ts';
-import { normalizeCommandSources } from '../../../src/utils/normalizeCommandSources.ts';
+import { assertEquals } from "../../test.deps.ts";
+import { normalizeCommandSources } from "../../../src/utils/normalizeCommandSources.ts";
 
-Deno.test('normalizeCommandSources', async (t) => {
-  await t.step('returns default for undefined', () => {
+Deno.test("normalizeCommandSources", async (t) => {
+  await t.step("returns default for undefined", () => {
     const result = normalizeCommandSources(undefined);
-    assertEquals(result, [{ Path: './commands' }]);
+    assertEquals(result, [{ Path: "./commands" }]);
   });
 
-  await t.step('wraps string in array', () => {
-    const result = normalizeCommandSources('./my-commands');
-    assertEquals(result, [{ Path: './my-commands' }]);
+  await t.step("wraps string in array", () => {
+    const result = normalizeCommandSources("./my-commands");
+    assertEquals(result, [{ Path: "./my-commands" }]);
   });
 
-  await t.step('passes array through unchanged', () => {
+  await t.step("passes array through unchanged", () => {
     const input = [
-      { Path: './commands' },
-      { Path: './plugins', Root: 'plugins' },
+      { Path: "./commands" },
+      { Path: "./plugins", Root: "plugins" },
     ];
     const result = normalizeCommandSources(input);
     assertEquals(result, input);
   });
 
-  await t.step('handles array with nested Root', () => {
+  await t.step("handles array with nested Root", () => {
     const input = [
-      { Path: './commands' },
-      { Path: '../external', Root: 'ext/v2' },
+      { Path: "./commands" },
+      { Path: "../external", Root: "ext/v2" },
     ];
     const result = normalizeCommandSources(input);
     assertEquals(result, input);
-    assertEquals(result[1].Root, 'ext/v2');
+    assertEquals(result[1].Root, "ext/v2");
   });
 
-  await t.step('handles empty array', () => {
+  await t.step("handles empty array", () => {
     const result = normalizeCommandSources([]);
     assertEquals(result, []);
   });
 
-  await t.step('converts string array to CLICommandSource array', () => {
-    const result = normalizeCommandSources(['./commands', './plugins']);
+  await t.step("converts string array to CLICommandSource array", () => {
+    const result = normalizeCommandSources(["./commands", "./plugins"]);
     assertEquals(result, [
-      { Path: './commands' },
-      { Path: './plugins' },
+      { Path: "./commands" },
+      { Path: "./plugins" },
     ]);
   });
 
-  await t.step('converts single-element string array', () => {
-    const result = normalizeCommandSources(['./my-commands']);
-    assertEquals(result, [{ Path: './my-commands' }]);
+  await t.step("converts single-element string array", () => {
+    const result = normalizeCommandSources(["./my-commands"]);
+    assertEquals(result, [{ Path: "./my-commands" }]);
   });
 });

@@ -54,13 +54,13 @@ my-cli/
 Create `scripts/cli-runtime.ts`:
 
 ```typescript
-import { CLI } from '@fathym/cli';
+import { CLI } from "@fathym/cli";
 
 // Import embedded templates (if available)
 let embeddedTemplates: Record<string, string> | undefined;
 try {
-  const mod = await import('../.build/embedded-templates.json', {
-    with: { type: 'json' },
+  const mod = await import("../.build/embedded-templates.json", {
+    with: { type: "json" },
   });
   embeddedTemplates = mod.default;
 } catch {
@@ -68,9 +68,9 @@ try {
 }
 
 const cli = new CLI({
-  name: 'my-cli',
-  version: '1.0.0',
-  config: import.meta.resolve('../.cli.json'),
+  name: "my-cli",
+  version: "1.0.0",
+  config: import.meta.resolve("../.cli.json"),
   embeddedTemplates,
 });
 
@@ -88,21 +88,21 @@ Create a script to embed templates:
 
 ```typescript
 // scripts/embed-templates.ts
-import { walk } from '@std/fs';
-import { relative, join } from '@std/path';
-import { ensureDir } from '@std/fs';
+import { walk } from "@std/fs";
+import { join, relative } from "@std/path";
+import { ensureDir } from "@std/fs";
 
-const templatesDir = './templates';
-const outputPath = './.build/embedded-templates.json';
+const templatesDir = "./templates";
+const outputPath = "./.build/embedded-templates.json";
 
-await ensureDir('./.build');
+await ensureDir("./.build");
 
 const templates: Record<string, string> = {};
 
 for await (const entry of walk(templatesDir)) {
   if (entry.isFile) {
     const relativePath = relative(templatesDir, entry.path)
-      .replace(/\\/g, '/');  // Normalize for Windows
+      .replace(/\\/g, "/"); // Normalize for Windows
     const content = await Deno.readTextFile(entry.path);
     templates[relativePath] = btoa(content);
   }
@@ -147,11 +147,11 @@ import {
   DFSTemplateLocator,
   EmbeddedTemplateLocator,
   TemplateLocator,
-} from '@fathym/cli';
-import { LocalDFSFileHandler } from '@fathym/dfs/handlers';
+} from "@fathym/cli";
+import { LocalDFSFileHandler } from "@fathym/dfs/handlers";
 
 export async function createTemplateLocator(
-  embeddedTemplates?: Record<string, string>
+  embeddedTemplates?: Record<string, string>,
 ): Promise<TemplateLocator> {
   // Use embedded templates if available (compiled mode)
   if (embeddedTemplates && Object.keys(embeddedTemplates).length > 0) {
@@ -160,10 +160,10 @@ export async function createTemplateLocator(
 
   // Fall back to filesystem (development mode)
   const dfs = new LocalDFSFileHandler({
-    FileRoot: new URL('../', import.meta.url).pathname,
+    FileRoot: new URL("../", import.meta.url).pathname,
   });
 
-  return new DFSTemplateLocator(dfs, 'templates');
+  return new DFSTemplateLocator(dfs, "templates");
 }
 ```
 
@@ -187,22 +187,22 @@ deno task compile:all
 
 ### Compile Options
 
-| Option | Description |
-|--------|-------------|
-| `-A` | Allow all permissions |
-| `--output` | Output path for executable |
-| `--target` | Cross-compile target |
-| `--include` | Include additional files |
+| Option      | Description                |
+| ----------- | -------------------------- |
+| `-A`        | Allow all permissions      |
+| `--output`  | Output path for executable |
+| `--target`  | Cross-compile target       |
+| `--include` | Include additional files   |
 
 ### Cross-Compilation Targets
 
-| Target | Description |
-|--------|-------------|
-| `x86_64-unknown-linux-gnu` | Linux x64 |
-| `aarch64-unknown-linux-gnu` | Linux ARM64 |
-| `x86_64-apple-darwin` | macOS x64 |
-| `aarch64-apple-darwin` | macOS ARM64 (Apple Silicon) |
-| `x86_64-pc-windows-msvc` | Windows x64 |
+| Target                      | Description                 |
+| --------------------------- | --------------------------- |
+| `x86_64-unknown-linux-gnu`  | Linux x64                   |
+| `aarch64-unknown-linux-gnu` | Linux ARM64                 |
+| `x86_64-apple-darwin`       | macOS x64                   |
+| `aarch64-apple-darwin`      | macOS ARM64 (Apple Silicon) |
+| `x86_64-pc-windows-msvc`    | Windows x64                 |
 
 ---
 
@@ -212,69 +212,70 @@ For complex builds, create a comprehensive build script:
 
 ```typescript
 // scripts/build.ts
-import { ensureDir } from '@std/fs';
+import { ensureDir } from "@std/fs";
 
 async function run(cmd: string[]): Promise<void> {
   const process = new Deno.Command(cmd[0], {
     args: cmd.slice(1),
-    stdout: 'inherit',
-    stderr: 'inherit',
+    stdout: "inherit",
+    stderr: "inherit",
   });
 
   const { code } = await process.output();
   if (code !== 0) {
-    throw new Error(`Command failed: ${cmd.join(' ')}`);
+    throw new Error(`Command failed: ${cmd.join(" ")}`);
   }
 }
 
 async function build() {
-  console.log('Building CLI...\n');
+  console.log("Building CLI...\n");
 
   // 1. Clean
-  console.log('Cleaning previous build...');
+  console.log("Cleaning previous build...");
   try {
-    await Deno.remove('./.build', { recursive: true });
-    await Deno.remove('./dist', { recursive: true });
+    await Deno.remove("./.build", { recursive: true });
+    await Deno.remove("./dist", { recursive: true });
   } catch { /* directories may not exist */ }
 
-  await ensureDir('./.build');
-  await ensureDir('./dist');
+  await ensureDir("./.build");
+  await ensureDir("./dist");
 
   // 2. Format and lint
-  console.log('\nFormatting and linting...');
-  await run(['deno', 'fmt']);
-  await run(['deno', 'lint']);
+  console.log("\nFormatting and linting...");
+  await run(["deno", "fmt"]);
+  await run(["deno", "lint"]);
 
   // 3. Run tests
-  console.log('\nRunning tests...');
-  await run(['deno', 'test', '-A', './tests/.tests.ts']);
+  console.log("\nRunning tests...");
+  await run(["deno", "test", "-A", "./tests/.tests.ts"]);
 
   // 4. Embed templates
-  console.log('\nEmbedding templates...');
-  await run(['deno', 'run', '-A', './scripts/embed-templates.ts']);
+  console.log("\nEmbedding templates...");
+  await run(["deno", "run", "-A", "./scripts/embed-templates.ts"]);
 
   // 5. Compile
-  console.log('\nCompiling...');
+  console.log("\nCompiling...");
   const targets = [
-    { name: 'linux-x64', target: 'x86_64-unknown-linux-gnu', ext: '' },
-    { name: 'macos-x64', target: 'x86_64-apple-darwin', ext: '' },
-    { name: 'macos-arm64', target: 'aarch64-apple-darwin', ext: '' },
-    { name: 'windows-x64', target: 'x86_64-pc-windows-msvc', ext: '.exe' },
+    { name: "linux-x64", target: "x86_64-unknown-linux-gnu", ext: "" },
+    { name: "macos-x64", target: "x86_64-apple-darwin", ext: "" },
+    { name: "macos-arm64", target: "aarch64-apple-darwin", ext: "" },
+    { name: "windows-x64", target: "x86_64-pc-windows-msvc", ext: ".exe" },
   ];
 
   for (const { name, target, ext } of targets) {
     console.log(`  Compiling for ${name}...`);
     await run([
-      'deno', 'compile',
-      '-A',
+      "deno",
+      "compile",
+      "-A",
       `--target=${target}`,
       `--output=./dist/my-cli-${name}${ext}`,
-      './scripts/cli-runtime.ts',
+      "./scripts/cli-runtime.ts",
     ]);
   }
 
-  console.log('\nBuild complete!');
-  console.log('Output in ./dist/');
+  console.log("\nBuild complete!");
+  console.log("Output in ./dist/");
 }
 
 if (import.meta.main) {
@@ -311,7 +312,7 @@ name: Release
 on:
   push:
     tags:
-      - 'v*'
+      - "v*"
 
 jobs:
   build:

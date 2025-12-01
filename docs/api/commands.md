@@ -23,7 +23,7 @@ API reference for the command runtime system including `CommandRuntime`, `Comman
 The abstract base class for all commands. Extend this class for class-based command definitions.
 
 ```typescript
-import { CommandRuntime } from '@fathym/cli';
+import { CommandRuntime } from "@fathym/cli";
 ```
 
 ### Abstract Properties
@@ -57,13 +57,12 @@ async ConfigureContext(
 ): Promise<CommandContext<TParams, TServices, TCommands>>
 ```
 
-Called by the executor to set up IoC and services. Override to add custom service resolution.
-Returns the configured context (may be the same or a modified context).
+Called by the executor to set up IoC and services. Override to add custom service resolution. Returns the configured context (may be the same or a modified context).
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `ctx` | `CommandContext` | The command context |
-| `ioc` | `IoCContainer` | The IoC container |
+| Parameter | Type             | Description         |
+| --------- | ---------------- | ------------------- |
+| `ctx`     | `CommandContext` | The command context |
+| `ioc`     | `IoCContainer`   | The IoC container   |
 
 **Returns:** The configured `CommandContext` (with services populated)
 
@@ -118,8 +117,7 @@ public override async Run(ctx): Promise<void> {
 async DryRun(ctx: CommandContext<TArgs, TFlags, TServices>): Promise<void>
 ```
 
-Preview mode execution. Override to show what would happen without side effects.
-If not overridden, defaults to calling `Run()`.
+Preview mode execution. Override to show what would happen without side effects. If not overridden, defaults to calling `Run()`.
 
 ```typescript
 public override async DryRun(ctx): Promise<void> {
@@ -206,7 +204,7 @@ interface CommandContext<TArgs, TFlags, TServices> {
 #### Params
 
 ```typescript
-Params: CommandParams<TArgs, TFlags>
+Params: CommandParams<TArgs, TFlags>;
 ```
 
 Provides type-safe access to parsed arguments and flags via your custom Params class getters.
@@ -222,7 +220,7 @@ Provides type-safe access to parsed arguments and flags via your custom Params c
 #### Services
 
 ```typescript
-Services: TServices
+Services: TServices;
 ```
 
 Injected dependencies from the Services() method.
@@ -239,7 +237,7 @@ Injected dependencies from the Services() method.
 #### Log
 
 ```typescript
-Log: CommandLog
+Log: CommandLog;
 ```
 
 Logging facade with level-based methods.
@@ -256,7 +254,7 @@ Logging facade with level-based methods.
 #### Config
 
 ```typescript
-Config: CLIConfig
+Config: CLIConfig;
 ```
 
 Access to .cli.json configuration.
@@ -270,7 +268,7 @@ Access to .cli.json configuration.
 #### Metadata
 
 ```typescript
-Metadata: CommandMetadata
+Metadata: CommandMetadata;
 ```
 
 Invocation metadata.
@@ -286,11 +284,10 @@ Invocation metadata.
 
 ## CommandParams
 
-Base class for argument and flag access. **Always extend this class** to create
-custom getters for accessing arguments and flags.
+Base class for argument and flag access. **Always extend this class** to create custom getters for accessing arguments and flags.
 
 ```typescript
-import { CommandParams } from '@fathym/cli';
+import { CommandParams } from "@fathym/cli";
 ```
 
 ### Public Properties
@@ -321,9 +318,7 @@ Built-in getter that checks if `--dry-run` flag was passed.
 
 ### Protected Methods
 
-> **Important:** `Arg()` and `Flag()` are **protected** methods. They are designed
-> to be called from within your custom Params class getters, not directly from
-> command handlers.
+> **Important:** `Arg()` and `Flag()` are **protected** methods. They are designed to be called from within your custom Params class getters, not directly from command handlers.
 
 #### Arg (protected)
 
@@ -333,9 +328,9 @@ protected Arg<I extends number>(index: I): TArgs[I] | undefined
 
 Get a positional argument by index. Call from within a getter.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `index` | `number` | Zero-based argument index |
+| Parameter | Type     | Description               |
+| --------- | -------- | ------------------------- |
+| `index`   | `number` | Zero-based argument index |
 
 **Returns:** The argument value (type inferred from schema), or undefined
 
@@ -347,29 +342,28 @@ protected Flag<K extends keyof TFlags>(key: K): TFlags[K] | undefined
 
 Get a flag value by key. Call from within a getter.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `key` | `string` | Flag name |
+| Parameter | Type     | Description |
+| --------- | -------- | ----------- |
+| `key`     | `string` | Flag name   |
 
 **Returns:** The flag value (type inferred from schema), or undefined
 
 ### Best Practice: Custom Params Class
 
-**Always create a custom Params class with getters.** This is the recommended pattern
-from the fathym-cli implementation:
+**Always create a custom Params class with getters.** This is the recommended pattern from the fathym-cli implementation:
 
 ```typescript
-import { Command, CommandParams } from '@fathym/cli';
-import { z } from 'zod';
+import { Command, CommandParams } from "@fathym/cli";
+import { z } from "zod";
 
 // 1. Define schemas
 const ArgsSchema = z.tuple([
-  z.string().optional().describe('Project name'),
+  z.string().optional().describe("Project name"),
 ]);
 
 const FlagsSchema = z.object({
-  template: z.string().optional().describe('Template to use'),
-  force: z.boolean().optional().describe('Skip confirmation'),
+  template: z.string().optional().describe("Template to use"),
+  force: z.boolean().optional().describe("Skip confirmation"),
 });
 
 // 2. Create custom Params class with public getters
@@ -379,23 +373,23 @@ class InitParams extends CommandParams<
 > {
   /** Get project name with smart defaults */
   get Name(): string {
-    const arg = this.Arg(0);  // Protected method
-    return !arg || arg === '.' ? '.' : arg;
+    const arg = this.Arg(0); // Protected method
+    return !arg || arg === "." ? "." : arg;
   }
 
   /** Get template with default */
   get Template(): string {
-    return this.Flag('template') ?? 'init';  // Protected method
+    return this.Flag("template") ?? "init"; // Protected method
   }
 
   /** Check if force mode is enabled */
   get Force(): boolean {
-    return this.Flag('force') ?? false;  // Protected method
+    return this.Flag("force") ?? false; // Protected method
   }
 }
 
 // 3. Use in command - access via public getters
-export default Command('init', 'Initialize a new project')
+export default Command("init", "Initialize a new project")
   .Args(ArgsSchema)
   .Flags(FlagsSchema)
   .Params(InitParams)
@@ -404,7 +398,7 @@ export default Command('init', 'Initialize a new project')
     Log.Info(`Creating ${Params.Name} from ${Params.Template} template`);
 
     if (Params.Force) {
-      Log.Info('Force mode enabled, skipping confirmation');
+      Log.Info("Force mode enabled, skipping confirmation");
     }
   });
 ```
@@ -446,8 +440,7 @@ interface CommandMetadata {
 
 ## CommandLog
 
-The logging interface available in command handlers. Provides **four methods** for
-output with semantic meaning.
+The logging interface available in command handlers. Provides **four methods** for output with semantic meaning.
 
 ```typescript
 type CommandLog = {
@@ -460,15 +453,14 @@ type CommandLog = {
 
 ### Methods
 
-| Method | Purpose | Usage |
-|--------|---------|-------|
-| `Info` | Standard informational output | Progress updates, status messages |
-| `Warn` | Warning messages | Non-fatal issues, deprecations |
-| `Error` | Error messages | Failures, exceptions |
-| `Success` | Success indicators | Completion messages |
+| Method    | Purpose                       | Usage                             |
+| --------- | ----------------------------- | --------------------------------- |
+| `Info`    | Standard informational output | Progress updates, status messages |
+| `Warn`    | Warning messages              | Non-fatal issues, deprecations    |
+| `Error`   | Error messages                | Failures, exceptions              |
+| `Success` | Success indicators            | Completion messages               |
 
-> **Note:** There is no `Debug` or `Trace` method. For debug output, use
-> conditional logging based on a verbose flag in your command.
+> **Note:** There is no `Debug` or `Trace` method. For debug output, use conditional logging based on a verbose flag in your command.
 
 ### Usage
 
@@ -497,21 +489,21 @@ If you need debug-level output, implement it with a flag:
 
 ```typescript
 const FlagsSchema = z.object({
-  verbose: z.boolean().optional().describe('Enable verbose output'),
+  verbose: z.boolean().optional().describe("Enable verbose output"),
 });
 
 class MyParams extends CommandParams<TArgs, TFlags> {
   get Verbose(): boolean {
-    return this.Flag('verbose') ?? false;
+    return this.Flag("verbose") ?? false;
   }
 }
 
-Command('build', 'Build the project')
+Command("build", "Build the project")
   .Flags(FlagsSchema)
   .Params(MyParams)
   .Run(({ Params, Log }) => {
     if (Params.Verbose) {
-      Log.Info('Debug: Loading configuration...');
+      Log.Info("Debug: Loading configuration...");
     }
     // ...
   });

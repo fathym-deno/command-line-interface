@@ -1,5 +1,5 @@
-import { type DFSFileHandler, Handlebars, join } from '../.deps.ts';
-import type { TemplateLocator } from '../templates/TemplateLocator.ts';
+import { type DFSFileHandler, Handlebars, join } from "../.deps.ts";
+import type { TemplateLocator } from "../templates/TemplateLocator.ts";
 
 /**
  * Options for scaffolding a template.
@@ -85,18 +85,18 @@ export class TemplateScaffolder {
     const mergedContext = { ...this.baseContext, ...context };
 
     // Normalize template root - remove leading ./ and normalize slashes
-    const templateRoot = `templates/${templateName}`.replace(/\\/g, '/');
+    const templateRoot = `templates/${templateName}`.replace(/\\/g, "/");
 
     const files = await this.locator.ListFiles(`./templates/${templateName}`);
 
     for (const fullPath of files) {
       // Normalize the full path: forward slashes, remove leading ./
       const normalizedFullPath = fullPath
-        .replace(/\\/g, '/')
-        .replace(/^\.\//, '');
+        .replace(/\\/g, "/")
+        .replace(/^\.\//, "");
 
       // Strip the template root prefix to get the relative path
-      const relPath = normalizedFullPath.startsWith(templateRoot + '/')
+      const relPath = normalizedFullPath.startsWith(templateRoot + "/")
         ? normalizedFullPath.substring(templateRoot.length + 1)
         : normalizedFullPath.startsWith(templateRoot)
         ? normalizedFullPath.substring(templateRoot.length)
@@ -105,11 +105,11 @@ export class TemplateScaffolder {
       // Skip if relPath is empty (would be the template directory itself)
       if (!relPath) continue;
 
-      const targetPath = join(outputDir || '.', relPath.replace(/\.hbs$/, ''));
+      const targetPath = join(outputDir || ".", relPath.replace(/\.hbs$/, ""));
       const raw = await this.locator.ReadTemplateFile(fullPath);
 
       let rendered: string;
-      if (fullPath.endsWith('.hbs')) {
+      if (fullPath.endsWith(".hbs")) {
         rendered = Handlebars.compile(raw)(mergedContext);
       } else {
         rendered = raw;

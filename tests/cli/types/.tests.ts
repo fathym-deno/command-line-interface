@@ -1,1 +1,1 @@
-import './CLIConfig.tests.ts';
+import "./CLIConfig.tests.ts";

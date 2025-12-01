@@ -1,9 +1,9 @@
 // CommandIntentsBuilder.ts
-import type { CLIInitFn } from '../types/CLIInitFn.ts';
-import type { CommandParams } from '../commands/CommandParams.ts';
-import type { CommandModule } from '../commands/CommandModule.ts';
-import type { CommandInvokerMap } from '../commands/CommandContext.ts';
-import { CommandIntentBuilder } from './CommandIntentBuilder.ts';
+import type { CLIInitFn } from "../types/CLIInitFn.ts";
+import type { CommandParams } from "../commands/CommandParams.ts";
+import type { CommandModule } from "../commands/CommandModule.ts";
+import type { CommandInvokerMap } from "../commands/CommandContext.ts";
+import { CommandIntentBuilder } from "./CommandIntentBuilder.ts";
 
 /**
  * Suite-based test builder for grouping multiple intents for a single command.

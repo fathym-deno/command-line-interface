@@ -1,6 +1,6 @@
 // deno-lint-ignore-file no-explicit-any
-import type { ZodSchema } from '../.deps.ts';
-import type { ValidationError, ValidationResult } from './types.ts';
+import type { ZodSchema } from "../.deps.ts";
+import type { ValidationError, ValidationResult } from "./types.ts";
 
 /**
  * Validates resolved values against Zod schemas.
@@ -40,7 +40,7 @@ export class SchemaValidator {
     flags: Record<string, unknown>,
     schema: ZodSchema,
   ): ValidationResult {
-    return this.validate(flags, schema, 'flags');
+    return this.validate(flags, schema, "flags");
   }
 
   /**
@@ -54,7 +54,7 @@ export class SchemaValidator {
     args: unknown[],
     schema: ZodSchema,
   ): ValidationResult {
-    return this.validate(args, schema, 'args');
+    return this.validate(args, schema, "args");
   }
 
   /**
@@ -117,16 +117,16 @@ export class SchemaValidator {
   protected validate(
     value: unknown,
     schema: ZodSchema,
-    prefix: 'args' | 'flags',
+    prefix: "args" | "flags",
   ): ValidationResult {
     const schemaAny = schema as any;
 
     // Use safeParse for non-throwing validation
     let result: { success: boolean; data?: any; error?: any };
 
-    if (typeof schemaAny.safeParse === 'function') {
+    if (typeof schemaAny.safeParse === "function") {
       result = schemaAny.safeParse(value);
-    } else if (typeof schemaAny.parse === 'function') {
+    } else if (typeof schemaAny.parse === "function") {
       // Fallback for schemas without safeParse
       try {
         const data = schemaAny.parse(value);
@@ -138,7 +138,7 @@ export class SchemaValidator {
       // No parse method available, pass through
       return {
         success: true,
-        data: prefix === 'args'
+        data: prefix === "args"
           ? { args: value as unknown[], flags: {} }
           : { args: [], flags: value as Record<string, unknown> },
       };
@@ -147,7 +147,7 @@ export class SchemaValidator {
     if (result.success) {
       return {
         success: true,
-        data: prefix === 'args'
+        data: prefix === "args"
           ? { args: result.data, flags: {} }
           : { args: [], flags: result.data },
       };
@@ -169,7 +169,7 @@ export class SchemaValidator {
    */
   protected transformZodErrors(
     zodError: any,
-    prefix: 'args' | 'flags',
+    prefix: "args" | "flags",
   ): ValidationError[] {
     const errors: ValidationError[] = [];
 
@@ -218,14 +218,14 @@ export class SchemaValidator {
    */
   formatErrors(errors: ValidationError[]): string {
     if (errors.length === 0) {
-      return '';
+      return "";
     }
 
     const lines = errors.map((err) => {
-      const pathStr = err.path?.length ? err.path.join('.') : 'value';
+      const pathStr = err.path?.length ? err.path.join(".") : "value";
       return `  • ${pathStr}: ${err.message}`;
     });
 
-    return `Validation errors:\n${lines.join('\n')}`;
+    return `Validation errors:\n${lines.join("\n")}`;
   }
 }

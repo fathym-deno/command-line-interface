@@ -48,20 +48,24 @@ The `Params` object provides type-safe access to parsed arguments and flags.
 ### Accessing Arguments
 
 ```typescript
-import { Command, CommandParams } from '@fathym/cli';
-import { z } from 'zod';
+import { Command, CommandParams } from "@fathym/cli";
+import { z } from "zod";
 
 const ArgsSchema = z.tuple([
-  z.string().describe('Name'),
-  z.number().optional().describe('Times to greet'),
+  z.string().describe("Name"),
+  z.number().optional().describe("Times to greet"),
 ]);
 
 class GreetParams extends CommandParams<z.infer<typeof ArgsSchema>, {}> {
-  get Name(): string { return this.Arg(0)!; }
-  get Times(): number { return this.Arg(1) ?? 1; }
+  get Name(): string {
+    return this.Arg(0)!;
+  }
+  get Times(): number {
+    return this.Arg(1) ?? 1;
+  }
 }
 
-Command('greet', 'Greet users')
+Command("greet", "Greet users")
   .Args(ArgsSchema)
   .Params(GreetParams)
   .Run(({ Params }) => {
@@ -75,22 +79,30 @@ Command('greet', 'Greet users')
 
 ```typescript
 const FlagsSchema = z.object({
-  env: z.string().default('production'),
+  env: z.string().default("production"),
   force: z.boolean().optional(),
   replicas: z.number().default(1),
 });
 
 class DeployParams extends CommandParams<[], z.infer<typeof FlagsSchema>> {
-  get Environment(): string { return this.Flag('env') ?? 'production'; }
-  get Force(): boolean { return this.Flag('force') ?? false; }
-  get Replicas(): number { return this.Flag('replicas') ?? 1; }
+  get Environment(): string {
+    return this.Flag("env") ?? "production";
+  }
+  get Force(): boolean {
+    return this.Flag("force") ?? false;
+  }
+  get Replicas(): number {
+    return this.Flag("replicas") ?? 1;
+  }
 }
 
-Command('deploy', 'Deploy application')
+Command("deploy", "Deploy application")
   .Flags(FlagsSchema)
   .Params(DeployParams)
   .Run(({ Params }) => {
-    console.log(`Deploying to ${Params.Environment} with ${Params.Replicas} replicas`);
+    console.log(
+      `Deploying to ${Params.Environment} with ${Params.Replicas} replicas`,
+    );
   });
 ```
 
@@ -99,34 +111,36 @@ Command('deploy', 'Deploy application')
 For complex argument logic, extend `CommandParams`:
 
 ```typescript
-import { CommandParams } from '@fathym/cli';
+import { CommandParams } from "@fathym/cli";
 
 class DeployParams extends CommandParams<TArgs, TFlags> {
   /** Get target environment with fallback logic */
   get Environment(): string {
-    return this.Flag('env') ??
-           Deno.env.get('DEPLOY_ENV') ??
-           'development';
+    return this.Flag("env") ??
+      Deno.env.get("DEPLOY_ENV") ??
+      "development";
   }
 
   /** Check if deploying to production */
   get IsProduction(): boolean {
-    return this.Environment === 'production';
+    return this.Environment === "production";
   }
 
   /** Get replica count with production minimum */
   get Replicas(): number {
-    const requested = this.Flag('replicas') ?? 1;
+    const requested = this.Flag("replicas") ?? 1;
     return this.IsProduction ? Math.max(requested, 3) : requested;
   }
 }
 
-Command('deploy', 'Deploy application')
+Command("deploy", "Deploy application")
   .Args(ArgsSchema)
   .Flags(FlagsSchema)
   .Params(DeployParams)
   .Run(({ Params }) => {
-    console.log(`Deploying ${Params.Replicas} replicas to ${Params.Environment}`);
+    console.log(
+      `Deploying ${Params.Replicas} replicas to ${Params.Environment}`,
+    );
   });
 ```
 
@@ -137,18 +151,20 @@ Services are dependencies injected via the IoC container.
 ### Resolving Services
 
 ```typescript
-import { CLIDFSContextManager, CommandParams } from '@fathym/cli';
-import type { IoCContainer } from '@fathym/cli';
+import { CLIDFSContextManager, CommandParams } from "@fathym/cli";
+import type { IoCContainer } from "@fathym/cli";
 
 const FlagsSchema = z.object({
-  target: z.string().default('web').describe('Build target'),
+  target: z.string().default("web").describe("Build target"),
 });
 
 class BuildParams extends CommandParams<[], z.infer<typeof FlagsSchema>> {
-  get Target(): string { return this.Flag('target') ?? 'web'; }
+  get Target(): string {
+    return this.Flag("target") ?? "web";
+  }
 }
 
-Command('build', 'Build project')
+Command("build", "Build project")
   .Flags(FlagsSchema)
   .Params(BuildParams)
   .Services(async (ctx, ioc: IoCContainer) => ({
@@ -156,7 +172,7 @@ Command('build', 'Build project')
     dfs: await ioc.Resolve(CLIDFSContextManager),
 
     // Resolve by symbol (for interfaces)
-    config: await ioc.Resolve<ConfigService>(ioc.Symbol('ConfigService')),
+    config: await ioc.Resolve<ConfigService>(ioc.Symbol("ConfigService")),
 
     // Create inline service using Params getter
     builder: new ProjectBuilder(ctx.Params.Target),
@@ -190,12 +206,12 @@ The `.Services()` method receives two parameters:
 
 The framework provides several built-in services:
 
-| Service | Purpose |
-|---------|---------|
+| Service                | Purpose                |
+| ---------------------- | ---------------------- |
 | `CLIDFSContextManager` | DFS context management |
-| `CLILogger` | Logging facade |
-| `CLIConfig` | Configuration access |
-| `TemplateLocator` | Template discovery |
+| `CLILogger`            | Logging facade         |
+| `CLIConfig`            | Configuration access   |
+| `TemplateLocator`      | Template discovery     |
 
 ## DFS Integration
 
@@ -204,9 +220,9 @@ The CLI integrates with the Distributed File System (DFS) for file operations.
 ### DFS Context Manager
 
 ```typescript
-import { CLIDFSContextManager } from '@fathym/cli';
+import { CLIDFSContextManager } from "@fathym/cli";
 
-Command('info', 'Show project info')
+Command("info", "Show project info")
   .Services(async (ctx, ioc) => ({
     dfs: await ioc.Resolve(CLIDFSContextManager),
   }))
@@ -214,9 +230,9 @@ Command('info', 'Show project info')
     const { dfs } = Services;
 
     // Get different DFS contexts
-    const executionDfs = await dfs.GetExecutionDFS();  // Current directory
-    const projectDfs = await dfs.GetProjectDFS();      // Project root
-    const buildDfs = await dfs.GetBuildDFS();          // Build output
+    const executionDfs = await dfs.GetExecutionDFS(); // Current directory
+    const projectDfs = await dfs.GetProjectDFS(); // Project root
+    const buildDfs = await dfs.GetBuildDFS(); // Build output
 
     Log.Info(`Execution: ${executionDfs.Root}`);
     Log.Info(`Project: ${projectDfs.Root}`);
@@ -226,29 +242,29 @@ Command('info', 'Show project info')
 
 ### DFS Contexts
 
-| Context | Description | Resolution |
-|---------|-------------|------------|
-| `ExecutionDFS` | Where CLI was invoked | `Deno.cwd()` |
-| `ProjectDFS` | Project root | Walk up to find `.cli.json` |
-| `BuildDFS` | Build artifacts | Configured in `.cli.json` |
-| `TemplateDFS` | Template files | Configured or default |
+| Context        | Description           | Resolution                  |
+| -------------- | --------------------- | --------------------------- |
+| `ExecutionDFS` | Where CLI was invoked | `Deno.cwd()`                |
+| `ProjectDFS`   | Project root          | Walk up to find `.cli.json` |
+| `BuildDFS`     | Build artifacts       | Configured in `.cli.json`   |
+| `TemplateDFS`  | Template files        | Configured or default       |
 
 ### Custom DFS Registration
 
 ```typescript
-Command('deploy', 'Deploy from custom path')
+Command("deploy", "Deploy from custom path")
   .Services(async (ctx, ioc) => {
     const dfs = await ioc.Resolve(CLIDFSContextManager);
 
     // Register custom DFS context
-    const targetPath = ctx.Params.Flag('targetDir');
+    const targetPath = ctx.Params.Flag("targetDir");
     if (targetPath) {
-      dfs.RegisterCustomDFS('Target', { FileRoot: targetPath });
+      dfs.RegisterCustomDFS("Target", { FileRoot: targetPath });
     }
 
     return {
-      sourceDfs: ctx.Params.Flag('targetDir')
-        ? await dfs.GetDFS('Target')
+      sourceDfs: ctx.Params.Flag("targetDir")
+        ? await dfs.GetDFS("Target")
         : await dfs.GetExecutionDFS(),
     };
   })
@@ -379,13 +395,13 @@ The `Metadata` object provides invocation details.
 
 ### Metadata Properties
 
-| Property | Type | Description |
-|----------|------|-------------|
-| `CommandKey` | `string` | Matched command key |
-| `InvokedAt` | `Date` | Invocation timestamp |
-| `RawArgs` | `string[]` | Original argv |
-| `IsDryRun` | `boolean` | Dry-run mode active |
-| `ParentCommand` | `string?` | Parent command group (for nested commands) |
+| Property        | Type       | Description                                |
+| --------------- | ---------- | ------------------------------------------ |
+| `CommandKey`    | `string`   | Matched command key                        |
+| `InvokedAt`     | `Date`     | Invocation timestamp                       |
+| `RawArgs`       | `string[]` | Original argv                              |
+| `IsDryRun`      | `boolean`  | Dry-run mode active                        |
+| `ParentCommand` | `string?`  | Parent command group (for nested commands) |
 
 ## IoC Container
 
@@ -397,30 +413,30 @@ Services are registered in `.cli.init.ts`:
 
 ```typescript
 // .cli.init.ts
-import { CLIInitFn } from '@fathym/cli';
-import { ConfigService } from './services/ConfigService.ts';
-import { DatabaseClient } from './services/DatabaseClient.ts';
+import { CLIInitFn } from "@fathym/cli";
+import { ConfigService } from "./services/ConfigService.ts";
+import { DatabaseClient } from "./services/DatabaseClient.ts";
 
 export default (async (ioc, _config) => {
   // Singleton - one instance for entire CLI run
   ioc.Register(() => new ConfigService(), {
-    Type: ioc.Symbol('ConfigService'),
+    Type: ioc.Symbol("ConfigService"),
   });
 
   // Each resolution creates a new instance
   ioc.Register(() => new DatabaseClient(), {
-    Type: ioc.Symbol('DatabaseClient'),
+    Type: ioc.Symbol("DatabaseClient"),
   });
 }) as CLIInitFn;
 ```
 
 ### Service Lifetimes
 
-| Lifetime | Description |
-|----------|-------------|
-| `Singleton` | One instance for entire CLI run |
-| `Transient` | New instance per resolution |
-| `Scoped` | One instance per command execution |
+| Lifetime    | Description                        |
+| ----------- | ---------------------------------- |
+| `Singleton` | One instance for entire CLI run    |
+| `Transient` | New instance per resolution        |
+| `Scoped`    | One instance per command execution |
 
 ### Resolving Services
 

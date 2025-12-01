@@ -23,7 +23,7 @@ API reference for the CLI help system including automatic help generation, conte
 The help system provides automatic `--help` support for all commands and groups, with structured output that includes usage, arguments, flags, and examples.
 
 ```typescript
-import { CLIHelpBuilder, HelpCommand, HelpContext } from '@fathym/cli';
+import { CLIHelpBuilder, HelpCommand, HelpContext } from "@fathym/cli";
 ```
 
 ---
@@ -33,7 +33,7 @@ import { CLIHelpBuilder, HelpCommand, HelpContext } from '@fathym/cli';
 The structured data type used to render help output.
 
 ```typescript
-import type { HelpContext } from '@fathym/cli';
+import type { HelpContext } from "@fathym/cli";
 ```
 
 ### Type Definition
@@ -54,34 +54,34 @@ type HelpContext = {
 
   /** Ordered list of help sections to render */
   Sections?: Array<
-    | { type: 'CommandDetails' } & CommandModuleMetadata
-    | { type: 'GroupDetails' } & CommandModuleMetadata
-    | { type: 'CommandList'; title: string; items: CommandModuleMetadata[] }
-    | { type: 'GroupList'; title: string; items: CommandModuleMetadata[] }
-    | { type: 'Error'; message: string; suggestion?: string }
+    | { type: "CommandDetails" } & CommandModuleMetadata
+    | { type: "GroupDetails" } & CommandModuleMetadata
+    | { type: "CommandList"; title: string; items: CommandModuleMetadata[] }
+    | { type: "GroupList"; title: string; items: CommandModuleMetadata[] }
+    | { type: "Error"; message: string; suggestion?: string }
   >;
 };
 ```
 
 ### Section Types
 
-| Type | Purpose |
-|------|---------|
+| Type             | Purpose                                               |
+| ---------------- | ----------------------------------------------------- |
 | `CommandDetails` | Full command documentation with args, flags, examples |
-| `GroupDetails` | Group documentation with description and usage |
-| `CommandList` | List of available commands |
-| `GroupList` | List of available subgroups |
-| `Error` | Error message with optional "did you mean" suggestion |
+| `GroupDetails`   | Group documentation with description and usage        |
+| `CommandList`    | List of available commands                            |
+| `GroupList`      | List of available subgroups                           |
+| `Error`          | Error message with optional "did you mean" suggestion |
 
 ### Validation
 
 ```typescript
-import { HelpContextSchema, isHelpContext } from '@fathym/cli';
+import { HelpContextSchema, isHelpContext } from "@fathym/cli";
 
 // Validate a HelpContext object
 const result = HelpContextSchema.safeParse(context);
 if (!result.success) {
-  console.error('Invalid help context:', result.error);
+  console.error("Invalid help context:", result.error);
 }
 
 // Type guard
@@ -97,7 +97,7 @@ if (isHelpContext(value)) {
 Builds `HelpContext` from CLI configuration and command maps.
 
 ```typescript
-import { CLIHelpBuilder } from '@fathym/cli';
+import { CLIHelpBuilder } from "@fathym/cli";
 ```
 
 ### Constructor
@@ -106,8 +106,8 @@ import { CLIHelpBuilder } from '@fathym/cli';
 constructor(resolver: CLICommandResolver)
 ```
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
+| Parameter  | Type                 | Description                                    |
+| ---------- | -------------------- | ---------------------------------------------- |
 | `resolver` | `CLICommandResolver` | Command resolver for loading command instances |
 
 ### Methods
@@ -127,14 +127,14 @@ async Build(
 
 Build a `HelpContext` for a given command key.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `config` | `CLIConfig` | CLI configuration |
-| `commandMap` | `Map<string, CLICommandEntry>` | Registered commands |
-| `key` | `string \| undefined` | Command key (undefined for root help) |
-| `flags` | `Record<string, unknown>` | Parsed flags |
-| `cmdInst` | `CommandRuntime` | Resolved command instance |
-| `groupInst` | `CommandRuntime` | Resolved group instance |
+| Parameter    | Type                           | Description                           |
+| ------------ | ------------------------------ | ------------------------------------- |
+| `config`     | `CLIConfig`                    | CLI configuration                     |
+| `commandMap` | `Map<string, CLICommandEntry>` | Registered commands                   |
+| `key`        | `string \| undefined`          | Command key (undefined for root help) |
+| `flags`      | `Record<string, unknown>`      | Parsed flags                          |
+| `cmdInst`    | `CommandRuntime`               | Resolved command instance             |
+| `groupInst`  | `CommandRuntime`               | Resolved group instance               |
 
 **Returns:** `HelpContext` or `undefined` if no help available
 
@@ -147,10 +147,23 @@ const builder = new CLIHelpBuilder(resolver);
 const rootHelp = await builder.Build(config, commandMap, undefined, {});
 
 // Command help
-const cmdHelp = await builder.Build(config, commandMap, 'deploy', {}, deployCmd);
+const cmdHelp = await builder.Build(
+  config,
+  commandMap,
+  "deploy",
+  {},
+  deployCmd,
+);
 
 // Group help
-const grpHelp = await builder.Build(config, commandMap, 'scaffold', {}, undefined, scaffoldGroup);
+const grpHelp = await builder.Build(
+  config,
+  commandMap,
+  "scaffold",
+  {},
+  undefined,
+  scaffoldGroup,
+);
 ```
 
 ---
@@ -160,7 +173,7 @@ const grpHelp = await builder.Build(config, commandMap, 'scaffold', {}, undefine
 Runtime command that renders `HelpContext` to the terminal.
 
 ```typescript
-import { HelpCommand, HelpCommandParams } from '@fathym/cli';
+import { HelpCommand, HelpCommandParams } from "@fathym/cli";
 ```
 
 ### Class Definition
@@ -177,8 +190,8 @@ class HelpCommand extends CommandRuntime<HelpCommandParams> {
 ```typescript
 class HelpCommandParams extends CommandParams<[], HelpContext> {
   get Header(): string | undefined;
-  get Intro(): HelpContext['Intro'];
-  get Sections(): HelpContext['Sections'];
+  get Intro(): HelpContext["Intro"];
+  get Sections(): HelpContext["Sections"];
 }
 ```
 
@@ -247,11 +260,11 @@ mycli scaffold --help
 Help content comes from command metadata:
 
 ```typescript
-Command('deploy', 'Deploy to production')
-  .Args(z.tuple([z.string().describe('Target environment')]))
+Command("deploy", "Deploy to production")
+  .Args(z.tuple([z.string().describe("Target environment")]))
   .Flags(z.object({
-    force: z.boolean().optional().describe('Skip confirmation'),
-    config: z.string().optional().describe('Config file path'),
+    force: z.boolean().optional().describe("Skip confirmation"),
+    config: z.string().optional().describe("Config file path"),
   }))
   .Run(/* ... */);
 ```
@@ -280,12 +293,12 @@ Groups use `.metadata.ts` files:
 ```typescript
 // commands/scaffold/.metadata.ts
 export default {
-  Name: 'scaffold',
-  Description: 'Code generation and scaffolding commands',
-  Usage: 'mycli scaffold <generator> [options]',
+  Name: "scaffold",
+  Description: "Code generation and scaffolding commands",
+  Usage: "mycli scaffold <generator> [options]",
   Examples: [
-    'mycli scaffold component MyComponent',
-    'mycli scaffold service AuthService',
+    "mycli scaffold component MyComponent",
+    "mycli scaffold service AuthService",
   ],
 };
 ```

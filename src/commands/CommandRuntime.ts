@@ -1,10 +1,10 @@
 // deno-lint-ignore-file no-explicit-any
-import type { IoCContainer, ZodSchema } from '../.deps.ts';
-import type { CommandParams } from './CommandParams.ts';
-import type { CommandContext, CommandInvokerMap } from './CommandContext.ts';
-import type { CommandSuggestions } from './CommandSuggestions.ts';
-import type { CommandModuleMetadata } from './CommandModuleMetadata.ts';
-import { SchemaIntrospector } from '../validation/SchemaIntrospector.ts';
+import type { IoCContainer, ZodSchema } from "../.deps.ts";
+import type { CommandParams } from "./CommandParams.ts";
+import type { CommandContext, CommandInvokerMap } from "./CommandContext.ts";
+import type { CommandSuggestions } from "./CommandSuggestions.ts";
+import type { CommandModuleMetadata } from "./CommandModuleMetadata.ts";
+import { SchemaIntrospector } from "../validation/SchemaIntrospector.ts";
 
 /**
  * Abstract base class for all CLI commands.
@@ -211,12 +211,12 @@ export abstract class CommandRuntime<
     ctx: CommandContext<P, S, C>,
     ioc: IoCContainer,
   ): Promise<CommandContext<P, S, C>> {
-    if (typeof this.injectServices === 'function') {
+    if (typeof this.injectServices === "function") {
       const services = await this.injectServices(ctx, ioc);
       ctx.Services = { ...ctx.Services, ...services };
     }
 
-    if (typeof this.injectCommands === 'function') {
+    if (typeof this.injectCommands === "function") {
       const commands = await this.injectCommands(ctx, ioc);
       (ctx as any).Commands = commands;
     }
@@ -283,8 +283,8 @@ export abstract class CommandRuntime<
 
     if (
       flagsSchema &&
-      typeof flagsSchema === 'object' &&
-      'shape' in flagsSchema
+      typeof flagsSchema === "object" &&
+      "shape" in flagsSchema
     ) {
       flags.push(...Object.keys((flagsSchema as any).shape));
     }
@@ -332,18 +332,21 @@ export abstract class CommandRuntime<
     flagsSchema?: ZodSchema,
   ): CommandModuleMetadata {
     const usageParts: string[] = [];
-    const argsMeta: CommandModuleMetadata['Args'] = [];
-    const flagsMeta: CommandModuleMetadata['Flags'] = [];
+    const argsMeta: CommandModuleMetadata["Args"] = [];
+    const flagsMeta: CommandModuleMetadata["Flags"] = [];
     const introspector = new SchemaIntrospector();
 
     if ((argsSchema as any)?._def?.items?.length) {
       (argsSchema as any)._def.items.forEach((item: any, i: number) => {
         // Zod 4: meta is accessed via .meta() method, fallback to _def.meta for older versions
-        const meta = typeof item.meta === 'function' ? item.meta() : item._def?.meta;
+        const meta = typeof item.meta === "function"
+          ? item.meta()
+          : item._def?.meta;
         const argName = meta?.argName ?? `arg${i + 1}`;
-        const optional = typeof item.isOptional === 'function'
+        const optional = typeof item.isOptional === "function"
           ? item.isOptional()
-          : item._def?.typeName === 'ZodOptional' || item._def?.type === 'optional';
+          : item._def?.typeName === "ZodOptional" ||
+            item._def?.type === "optional";
         // Zod 4: description is a direct property, fallback to _def for older versions
         const itemDescription = item.description ?? item._def?.description;
         // Check if this arg accepts file paths
@@ -361,36 +364,38 @@ export abstract class CommandRuntime<
 
     if (
       flagsSchema &&
-      typeof flagsSchema === 'object' &&
-      'shape' in flagsSchema
+      typeof flagsSchema === "object" &&
+      "shape" in flagsSchema
     ) {
-      Object.entries((flagsSchema as any).shape).forEach(([flagKey, schema]) => {
-        // Zod 4: meta is accessed via .meta() method, fallback to _def.meta for older versions
-        const meta = typeof (schema as any).meta === 'function'
-          ? (schema as any).meta()
-          : (schema as any)._def?.meta;
-        const displayName = meta?.flagName ?? flagKey;
-        const optional = typeof (schema as any).isOptional === 'function'
-          ? (schema as any).isOptional()
-          : (schema as any)._def?.typeName === 'ZodOptional' ||
-            (schema as any)._def?.type === 'optional';
-        // Zod 4: description is a direct property, fallback to _def for older versions
-        const flagDescription = (schema as any).description ??
-          (schema as any)._def?.description;
-        // Check if this flag accepts file paths
-        const acceptsFile = introspector.shouldFileCheck(schema as ZodSchema);
-        flagsMeta.push({
-          Name: displayName,
-          Description: flagDescription,
-          Optional: optional,
-          AcceptsFile: acceptsFile || undefined,
-        });
-      });
+      Object.entries((flagsSchema as any).shape).forEach(
+        ([flagKey, schema]) => {
+          // Zod 4: meta is accessed via .meta() method, fallback to _def.meta for older versions
+          const meta = typeof (schema as any).meta === "function"
+            ? (schema as any).meta()
+            : (schema as any)._def?.meta;
+          const displayName = meta?.flagName ?? flagKey;
+          const optional = typeof (schema as any).isOptional === "function"
+            ? (schema as any).isOptional()
+            : (schema as any)._def?.typeName === "ZodOptional" ||
+              (schema as any)._def?.type === "optional";
+          // Zod 4: description is a direct property, fallback to _def for older versions
+          const flagDescription = (schema as any).description ??
+            (schema as any)._def?.description;
+          // Check if this flag accepts file paths
+          const acceptsFile = introspector.shouldFileCheck(schema as ZodSchema);
+          flagsMeta.push({
+            Name: displayName,
+            Description: flagDescription,
+            Optional: optional,
+            AcceptsFile: acceptsFile || undefined,
+          });
+        },
+      );
 
       usageParts.push(...flagsMeta.map((f) => `[--${f.Name}]`));
     }
 
-    const usage = usageParts.join(' ');
+    const usage = usageParts.join(" ");
     const examples = usage ? [usage] : [];
 
     return {

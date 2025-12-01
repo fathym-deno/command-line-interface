@@ -1,11 +1,11 @@
-import { z } from '../.deps.ts';
+import { z } from "../.deps.ts";
 import {
   type CommandContext,
   CommandParams,
   CommandRuntime,
   defineCommandModule,
-} from '../../src/commands/.exports.ts';
-import type { IoCContainer } from '../.deps.ts';
+} from "../../src/commands/.exports.ts";
+import type { IoCContainer } from "../.deps.ts";
 
 /**
  * Copy command for testing mixed arg/flag naming scenarios.
@@ -18,15 +18,17 @@ import type { IoCContainer } from '../.deps.ts';
  */
 
 export const CopyFlagsSchema = z.object({
-  force: z.boolean().optional().describe('Overwrite existing files'),
-  v: z.boolean().optional().describe('Verbose output').meta({ flagName: 'verbose' }),
-  'dry-run': z.boolean().optional().describe('Show what would happen'),
+  force: z.boolean().optional().describe("Overwrite existing files"),
+  v: z.boolean().optional().describe("Verbose output").meta({
+    flagName: "verbose",
+  }),
+  "dry-run": z.boolean().optional().describe("Show what would happen"),
 });
 
 export const CopyArgsSchema = z.tuple([
-  z.string().describe('Source file').meta({ argName: 'source' }),
-  z.string().describe('Destination'),
-  z.string().optional().describe('Copy mode').meta({ argName: 'mode' }),
+  z.string().describe("Source file").meta({ argName: "source" }),
+  z.string().describe("Destination"),
+  z.string().optional().describe("Copy mode").meta({ argName: "mode" }),
 ]);
 
 export class CopyCommandParams extends CommandParams<
@@ -34,11 +36,11 @@ export class CopyCommandParams extends CommandParams<
   z.infer<typeof CopyFlagsSchema>
 > {
   get Source(): string {
-    return this.Arg(0) ?? '';
+    return this.Arg(0) ?? "";
   }
 
   get Destination(): string {
-    return this.Arg(1) ?? '';
+    return this.Arg(1) ?? "";
   }
 
   get Mode(): string | undefined {
@@ -46,18 +48,18 @@ export class CopyCommandParams extends CommandParams<
   }
 
   get Force(): boolean {
-    return this.Flag('force') ?? false;
+    return this.Flag("force") ?? false;
   }
 
   get Verbose(): boolean {
-    return this.Flag('v') ?? false;
+    return this.Flag("v") ?? false;
   }
 }
 
 export class CopyCommand extends CommandRuntime<CopyCommandParams> {
   public override async Run(
     ctx: CommandContext<CopyCommandParams>,
-    _ioc: IoCContainer
+    _ioc: IoCContainer,
   ): Promise<void | number> {
     const { Source, Destination, Mode, Force, Verbose, DryRun } = ctx.Params;
 
@@ -80,10 +82,10 @@ export class CopyCommand extends CommandRuntime<CopyCommandParams> {
 
   public override BuildMetadata() {
     return this.buildMetadataFromSchemas(
-      'Copy',
-      'Copies a file to a destination.',
+      "Copy",
+      "Copies a file to a destination.",
       CopyArgsSchema,
-      CopyFlagsSchema
+      CopyFlagsSchema,
     );
   }
 }

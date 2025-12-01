@@ -1,4 +1,4 @@
-import type { Spinner } from '../spinners/Spinner.ts';
+import type { Spinner } from "../spinners/Spinner.ts";
 
 /**
  * Arc-based spinner with circular motion animation.
@@ -18,6 +18,6 @@ import type { Spinner } from '../spinners/Spinner.ts';
  * Visual: ◜ → ◠ → ◝ → ◞ → ◡ → ◟
  */
 export const ArcSpinner: Spinner = {
-  Frames: ['◜', '◠', '◝', '◞', '◡', '◟'],
+  Frames: ["◜", "◠", "◝", "◞", "◡", "◟"],
   Interval: 80,
 };

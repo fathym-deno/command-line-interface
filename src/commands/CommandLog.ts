@@ -1,4 +1,4 @@
-import { z } from '../.deps.ts';
+import { z } from "../.deps.ts";
 
 /**
  * Logging interface available in command handlers.
@@ -36,15 +36,15 @@ export type CommandLog = {
 const fnSchema = (desc: string) =>
   z
     .custom<(...args: unknown[]) => void>(
-      (val): val is (...args: unknown[]) => void => typeof val === 'function',
+      (val): val is (...args: unknown[]) => void => typeof val === "function",
     )
     .describe(desc);
 
 export const CommandLogSchema = z.object({
-  Info: fnSchema('Log info output'),
-  Warn: fnSchema('Log warning output'),
-  Error: fnSchema('Log error output'),
-  Success: fnSchema('Log success output'),
+  Info: fnSchema("Log info output"),
+  Warn: fnSchema("Log warning output"),
+  Error: fnSchema("Log error output"),
+  Success: fnSchema("Log success output"),
 }) as unknown as z.ZodType<CommandLog>;
 
 export function isCommandLog(value: unknown): value is CommandLog {

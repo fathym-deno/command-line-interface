@@ -21,6 +21,7 @@ This guide covers creating and using templates for project scaffolding with the 
 ## Overview
 
 The scaffolding system lets you generate projects from Handlebars templates. It supports:
+
 - Dynamic file content with Handlebars syntax
 - Dynamic file and directory names
 - Multiple template sources (filesystem, embedded)
@@ -69,7 +70,7 @@ Use Handlebars syntax for dynamic content:
 }
 ```
 
-```handlebars
+````handlebars
 {{! templates/init/{{name}}/README.md.hbs }}
 # {{name}}
 
@@ -81,13 +82,13 @@ Use Handlebars syntax for dynamic content:
 
 ```bash
 deno task build
-```
+````
 
 ## License
 
 MIT
-```
 
+````
 ```handlebars
 {{! templates/init/{{name}}/src/mod.ts.hbs }}
 /**
@@ -98,7 +99,7 @@ MIT
 export function hello(name: string = 'World'): string {
   return `Hello, ${name}!`;
 }
-```
+````
 
 ---
 
@@ -170,12 +171,12 @@ templates/component/
 Register custom helpers for case transformations:
 
 ```typescript
-import Handlebars from 'handlebars';
-import { kebabCase, pascalCase, camelCase } from '@luca/cases';
+import Handlebars from "handlebars";
+import { camelCase, kebabCase, pascalCase } from "@luca/cases";
 
-Handlebars.registerHelper('kebabCase', kebabCase);
-Handlebars.registerHelper('pascalCase', pascalCase);
-Handlebars.registerHelper('camelCase', camelCase);
+Handlebars.registerHelper("kebabCase", kebabCase);
+Handlebars.registerHelper("pascalCase", pascalCase);
+Handlebars.registerHelper("camelCase", camelCase);
 ```
 
 Usage in templates:
@@ -193,24 +194,37 @@ export class {{pascalCase name}}Component {
 ### Basic Scaffold Command
 
 ```typescript
-import { Command, CommandParams, CLIDFSContextManager, TemplateLocator, TemplateScaffolder } from '@fathym/cli';
-import type { IoCContainer } from '@fathym/cli';
-import { z } from 'zod';
+import {
+  CLIDFSContextManager,
+  Command,
+  CommandParams,
+  TemplateLocator,
+  TemplateScaffolder,
+} from "@fathym/cli";
+import type { IoCContainer } from "@fathym/cli";
+import { z } from "zod";
 
 const ArgsSchema = z.tuple([
-  z.string().optional().describe('Project name'),
+  z.string().optional().describe("Project name"),
 ]);
 
 const FlagsSchema = z.object({
-  template: z.string().optional().describe('Template to use'),
+  template: z.string().optional().describe("Template to use"),
 });
 
-class InitParams extends CommandParams<z.infer<typeof ArgsSchema>, z.infer<typeof FlagsSchema>> {
-  get Name(): string { return this.Arg(0) ?? 'my-project'; }
-  get Template(): string { return this.Flag('template') ?? 'init'; }
+class InitParams extends CommandParams<
+  z.infer<typeof ArgsSchema>,
+  z.infer<typeof FlagsSchema>
+> {
+  get Name(): string {
+    return this.Arg(0) ?? "my-project";
+  }
+  get Template(): string {
+    return this.Flag("template") ?? "init";
+  }
 }
 
-export default Command('init', 'Initialize a new project')
+export default Command("init", "Initialize a new project")
   .Args(ArgsSchema)
   .Flags(FlagsSchema)
   .Params(InitParams)
@@ -220,7 +234,7 @@ export default Command('init', 'Initialize a new project')
     return {
       buildDfs: await dfsCtxMgr.GetExecutionDFS(),
       scaffolder: new TemplateScaffolder(
-        await ioc.Resolve<TemplateLocator>(ioc.Symbol('TemplateLocator')),
+        await ioc.Resolve<TemplateLocator>(ioc.Symbol("TemplateLocator")),
         await dfsCtxMgr.GetExecutionDFS(),
         { name: ctx.Params.Name },
       ),
@@ -274,13 +288,19 @@ class ScaffoldParams extends CommandParams<TArgs, TFlags> {
 ### List Available Templates
 
 ```typescript
-import { Command, CommandParams, CLIDFSContextManager, TemplateLocator, TemplateScaffolder } from '@fathym/cli';
-import type { IoCContainer } from '@fathym/cli';
-import { z } from 'zod';
+import {
+  CLIDFSContextManager,
+  Command,
+  CommandParams,
+  TemplateLocator,
+  TemplateScaffolder,
+} from "@fathym/cli";
+import type { IoCContainer } from "@fathym/cli";
+import { z } from "zod";
 
 class ListParams extends CommandParams<[], {}> {}
 
-Command('templates', 'List available templates')
+Command("templates", "List available templates")
   .Args(z.tuple([]))
   .Flags(z.object({}))
   .Params(ListParams)
@@ -288,7 +308,7 @@ Command('templates', 'List available templates')
     const dfsCtxMgr = await ioc.Resolve(CLIDFSContextManager);
     return {
       scaffolder: new TemplateScaffolder(
-        await ioc.Resolve<TemplateLocator>(ioc.Symbol('TemplateLocator')),
+        await ioc.Resolve<TemplateLocator>(ioc.Symbol("TemplateLocator")),
         await dfsCtxMgr.GetExecutionDFS(),
         {},
       ),
@@ -297,8 +317,8 @@ Command('templates', 'List available templates')
   .Run(async ({ Services, Log }) => {
     const templates = await Services.scaffolder.ListTemplates();
 
-    Log.Info('Available templates:');
-    templates.forEach(t => Log.Info(`  - ${t}`));
+    Log.Info("Available templates:");
+    templates.forEach((t) => Log.Info(`  - ${t}`));
   });
 ```
 
@@ -311,14 +331,14 @@ Command('templates', 'List available templates')
 For development, load templates from the filesystem:
 
 ```typescript
-import { DFSTemplateLocator } from '@fathym/cli';
-import { LocalDFSFileHandler } from '@fathym/dfs/handlers';
+import { DFSTemplateLocator } from "@fathym/cli";
+import { LocalDFSFileHandler } from "@fathym/dfs/handlers";
 
 const dfs = new LocalDFSFileHandler({
-  FileRoot: import.meta.resolve('../'),
+  FileRoot: import.meta.resolve("../"),
 });
 
-const locator = new DFSTemplateLocator(dfs, 'templates');
+const locator = new DFSTemplateLocator(dfs, "templates");
 ```
 
 ### EmbeddedTemplateLocator
@@ -326,8 +346,8 @@ const locator = new DFSTemplateLocator(dfs, 'templates');
 For compiled CLIs, load templates from an embedded JSON bundle:
 
 ```typescript
-import { EmbeddedTemplateLocator } from '@fathym/cli';
-import templates from './.build/embedded-templates.json' with { type: 'json' };
+import { EmbeddedTemplateLocator } from "@fathym/cli";
+import templates from "./.build/embedded-templates.json" with { type: "json" };
 
 const locator = new EmbeddedTemplateLocator(templates);
 ```
@@ -350,12 +370,12 @@ Register the TemplateLocator in `.cli.init.ts`:
 
 ```typescript
 // .cli.init.ts
-import { CLIInitFn } from '@fathym/cli';
-import { createTemplateLocator } from './services/createTemplateLocator.ts';
+import { CLIInitFn } from "@fathym/cli";
+import { createTemplateLocator } from "./services/createTemplateLocator.ts";
 
 export default (async (ioc, _config) => {
   ioc.Register(await createTemplateLocator(), {
-    Type: ioc.Symbol('TemplateLocator'),
+    Type: ioc.Symbol("TemplateLocator"),
   });
 }) as CLIInitFn;
 ```
@@ -364,22 +384,22 @@ Factory:
 
 ```typescript
 // services/createTemplateLocator.ts
-import { DFSTemplateLocator, EmbeddedTemplateLocator } from '@fathym/cli';
-import { LocalDFSFileHandler } from '@fathym/dfs/handlers';
+import { DFSTemplateLocator, EmbeddedTemplateLocator } from "@fathym/cli";
+import { LocalDFSFileHandler } from "@fathym/dfs/handlers";
 
 export async function createTemplateLocator(): Promise<TemplateLocator> {
   // Try embedded first (for compiled CLI)
   try {
-    const templates = await import('./.build/embedded-templates.json', {
-      with: { type: 'json' },
+    const templates = await import("./.build/embedded-templates.json", {
+      with: { type: "json" },
     });
     return new EmbeddedTemplateLocator(templates.default);
   } catch {
     // Fall back to filesystem
     const dfs = new LocalDFSFileHandler({
-      FileRoot: import.meta.resolve('../'),
+      FileRoot: import.meta.resolve("../"),
     });
-    return new DFSTemplateLocator(dfs, 'templates');
+    return new DFSTemplateLocator(dfs, "templates");
   }
 }
 ```
@@ -435,22 +455,22 @@ For compiled/distributed CLIs, embed templates into a JSON file:
 
 ```typescript
 // scripts/embed-templates.ts
-import { walk } from '@std/fs';
-import { relative } from '@std/path';
+import { walk } from "@std/fs";
+import { relative } from "@std/path";
 
 const templates: Record<string, string> = {};
-const templatesDir = './templates';
+const templatesDir = "./templates";
 
 for await (const entry of walk(templatesDir)) {
   if (entry.isFile) {
     const relativePath = relative(templatesDir, entry.path);
     const content = await Deno.readTextFile(entry.path);
-    templates[relativePath] = btoa(content);  // Base64 encode
+    templates[relativePath] = btoa(content); // Base64 encode
   }
 }
 
 await Deno.writeTextFile(
-  './.build/embedded-templates.json',
+  "./.build/embedded-templates.json",
   JSON.stringify(templates, null, 2),
 );
 ```

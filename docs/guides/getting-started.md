@@ -64,6 +64,7 @@ Create `.cli.json`:
 ```
 
 This configuration tells the CLI framework:
+
 - **Name**: Display name shown in help output
 - **Tokens**: Command names users type (e.g., `mycli greet`)
 - **Version**: Semantic version for `--version` output
@@ -74,16 +75,16 @@ This configuration tells the CLI framework:
 Create `commands/greet.ts`:
 
 ```typescript
-import { Command, CommandParams } from '@fathym/cli';
-import { z } from 'zod';
+import { Command, CommandParams } from "@fathym/cli";
+import { z } from "zod";
 
 // 1. Define schemas for arguments and flags
 const ArgsSchema = z.tuple([
-  z.string().optional().describe('Name to greet').meta({ argName: 'name' }),
+  z.string().optional().describe("Name to greet").meta({ argName: "name" }),
 ]);
 
 const FlagsSchema = z.object({
-  loud: z.boolean().optional().describe('Shout the greeting'),
+  loud: z.boolean().optional().describe("Shout the greeting"),
 });
 
 // 2. Create a custom Params class with getters
@@ -93,16 +94,16 @@ class GreetParams extends CommandParams<
   z.infer<typeof FlagsSchema>
 > {
   get Name(): string {
-    return this.Arg(0) ?? 'World';
+    return this.Arg(0) ?? "World";
   }
 
   get IsLoud(): boolean {
-    return this.Flag('loud') ?? false;
+    return this.Flag("loud") ?? false;
   }
 }
 
 // 3. Build the command with all required parts
-export default Command('greet', 'Greet someone by name')
+export default Command("greet", "Greet someone by name")
   .Args(ArgsSchema)
   .Flags(FlagsSchema)
   .Params(GreetParams)
@@ -117,16 +118,14 @@ export default Command('greet', 'Greet someone by name')
   });
 ```
 
-> **Important:** The `Arg()` and `Flag()` methods are **protected** and can only be
-> called from within your Params class getters. Access values via the public getters
-> (`Params.Name`, `Params.IsLoud`) in your command handlers.
+> **Important:** The `Arg()` and `Flag()` methods are **protected** and can only be called from within your Params class getters. Access values via the public getters (`Params.Name`, `Params.IsLoud`) in your command handlers.
 
 ## Step 3: Create the Entry Point
 
 Create `main.ts`:
 
 ```typescript
-import { CLI } from '@fathym/cli';
+import { CLI } from "@fathym/cli";
 
 const cli = new CLI();
 
@@ -180,14 +179,13 @@ deno task cli greet Alice --loud
 
 ## Service Registration with .cli.init.ts
 
-For CLIs that need shared services (API clients, configuration, utilities), create a
-`.cli.init.ts` file at the project root. This function runs once before command execution.
+For CLIs that need shared services (API clients, configuration, utilities), create a `.cli.init.ts` file at the project root. This function runs once before command execution.
 
 Create `.cli.init.ts`:
 
 ```typescript
-import type { IoCContainer } from '@fathym/cli';
-import type { CLIInitFn } from '@fathym/cli';
+import type { IoCContainer } from "@fathym/cli";
+import type { CLIInitFn } from "@fathym/cli";
 
 // Define your service interface
 export interface ConfigService {
@@ -205,7 +203,7 @@ class EnvConfigService implements ConfigService {
 export default ((ioc: IoCContainer, _config) => {
   // Register services in the IoC container
   ioc.Register(() => new EnvConfigService(), {
-    Type: ioc.Symbol('ConfigService'),
+    Type: ioc.Symbol("ConfigService"),
   });
 }) as CLIInitFn;
 ```
@@ -213,35 +211,37 @@ export default ((ioc: IoCContainer, _config) => {
 Use services in commands:
 
 ```typescript
-import { Command, CommandParams } from '@fathym/cli';
-import type { IoCContainer } from '@fathym/cli';
-import { z } from 'zod';
-import type { ConfigService } from '../.cli.init.ts';
+import { Command, CommandParams } from "@fathym/cli";
+import type { IoCContainer } from "@fathym/cli";
+import { z } from "zod";
+import type { ConfigService } from "../.cli.init.ts";
 
-const ArgsSchema = z.tuple([z.string().describe('Variable name')]);
+const ArgsSchema = z.tuple([z.string().describe("Variable name")]);
 const FlagsSchema = z.object({});
 
-class EnvParams extends CommandParams<z.infer<typeof ArgsSchema>, z.infer<typeof FlagsSchema>> {
+class EnvParams extends CommandParams<
+  z.infer<typeof ArgsSchema>,
+  z.infer<typeof FlagsSchema>
+> {
   get Key(): string {
     return this.Arg(0)!;
   }
 }
 
-export default Command('env', 'Show environment variable')
+export default Command("env", "Show environment variable")
   .Args(ArgsSchema)
   .Flags(FlagsSchema)
   .Params(EnvParams)
   .Services(async (_ctx, ioc: IoCContainer) => ({
-    config: await ioc.Resolve<ConfigService>(ioc.Symbol('ConfigService')),
+    config: await ioc.Resolve<ConfigService>(ioc.Symbol("ConfigService")),
   }))
   .Run(({ Params, Services, Log }) => {
-    const value = Services.config.Get(Params.Key) ?? '(not set)';
+    const value = Services.config.Get(Params.Key) ?? "(not set)";
     Log.Info(`${Params.Key}=${value}`);
   });
 ```
 
-> **Note:** The `.cli.init.ts` file is automatically discovered when placed next to
-> `.cli.json`. For testing, use `.WithInit(initFn)` on your test suite.
+> **Note:** The `.cli.init.ts` file is automatically discovered when placed next to `.cli.json`. For testing, use `.WithInit(initFn)` on your test suite.
 
 ---
 
@@ -252,16 +252,19 @@ export default Command('env', 'Show environment variable')
 Create `commands/info.ts`:
 
 ```typescript
-import { Command, CommandParams, CLIDFSContextManager } from '@fathym/cli';
-import type { IoCContainer } from '@fathym/cli';
-import { z } from 'zod';
+import { CLIDFSContextManager, Command, CommandParams } from "@fathym/cli";
+import type { IoCContainer } from "@fathym/cli";
+import { z } from "zod";
 
 const ArgsSchema = z.tuple([]);
 const FlagsSchema = z.object({});
 
-class InfoParams extends CommandParams<z.infer<typeof ArgsSchema>, z.infer<typeof FlagsSchema>> {}
+class InfoParams extends CommandParams<
+  z.infer<typeof ArgsSchema>,
+  z.infer<typeof FlagsSchema>
+> {}
 
-export default Command('info', 'Show project information')
+export default Command("info", "Show project information")
   .Args(ArgsSchema)
   .Flags(FlagsSchema)
   .Params(InfoParams)
@@ -295,42 +298,44 @@ commands/
 Create `commands/config/.metadata.ts` for group help:
 
 ```typescript
-import { CommandModuleMetadata } from '@fathym/cli';
+import { CommandModuleMetadata } from "@fathym/cli";
 
 export default {
-  Name: 'config',
-  Description: 'Manage configuration settings',
+  Name: "config",
+  Description: "Manage configuration settings",
 } as CommandModuleMetadata;
 ```
 
 Create `commands/config/get.ts`:
 
 ```typescript
-import { Command, CommandParams } from '@fathym/cli';
-import { z } from 'zod';
+import { Command, CommandParams } from "@fathym/cli";
+import { z } from "zod";
 
-const ArgsSchema = z.tuple([z.string().describe('Config key')]);
+const ArgsSchema = z.tuple([z.string().describe("Config key")]);
 const FlagsSchema = z.object({});
 
-class ConfigGetParams extends CommandParams<z.infer<typeof ArgsSchema>, z.infer<typeof FlagsSchema>> {
+class ConfigGetParams extends CommandParams<
+  z.infer<typeof ArgsSchema>,
+  z.infer<typeof FlagsSchema>
+> {
   get Key(): string {
     return this.Arg(0)!;
   }
 }
 
 // Display name is 'get', command key is 'config/get' (from file path)
-export default Command('get', 'Get a configuration value')
+export default Command("get", "Get a configuration value")
   .Args(ArgsSchema)
   .Flags(FlagsSchema)
   .Params(ConfigGetParams)
   .Run(({ Params, Log }) => {
-    const value = Deno.env.get(Params.Key) ?? '(not set)';
+    const value = Deno.env.get(Params.Key) ?? "(not set)";
     Log.Info(`${Params.Key}=${value}`);
   });
 ```
 
-> **Important:** The command key (`config/get`) comes from the file path, not the
-> first parameter to `Command()`. The first parameter is the display name shown in help.
+> **Important:** The command key (`config/get`) comes from the file path, not the first parameter to `Command()`. The first parameter is the display name shown in help.
 
 ---
 
@@ -339,46 +344,44 @@ export default Command('get', 'Get a configuration value')
 Create `tests/intents/greet.intents.ts`:
 
 ```typescript
-import { CommandIntents } from '@fathym/cli';
-import GreetCommand from '../../commands/greet.ts';
-import initFn from '../../.cli.init.ts';
+import { CommandIntents } from "@fathym/cli";
+import GreetCommand from "../../commands/greet.ts";
+import initFn from "../../.cli.init.ts";
 
-const cmd = GreetCommand.Build();  // Important: call .Build() for fluent commands
-const configPath = import.meta.resolve('../../.cli.json');
+const cmd = GreetCommand.Build(); // Important: call .Build() for fluent commands
+const configPath = import.meta.resolve("../../.cli.json");
 
-CommandIntents('Greet Command', cmd, configPath)
-  .WithInit(initFn)  // Optional: register services for testing
-  .Intent('greets with default name', (int) =>
+CommandIntents("Greet Command", cmd, configPath)
+  .WithInit(initFn) // Optional: register services for testing
+  .Intent("greets with default name", (int) =>
     int
       .Args([undefined])
       .Flags({})
-      .ExpectLogs('Hello, World!')
+      .ExpectLogs("Hello, World!")
       .ExpectExit(0))
-  .Intent('greets by name', (int) =>
+  .Intent("greets by name", (int) =>
     int
-      .Args(['Alice'])
+      .Args(["Alice"])
       .Flags({})
-      .ExpectLogs('Hello, Alice!')
+      .ExpectLogs("Hello, Alice!")
       .ExpectExit(0))
-  .Intent('greets loudly', (int) =>
+  .Intent("greets loudly", (int) =>
     int
-      .Args(['Bob'])
+      .Args(["Bob"])
       .Flags({ loud: true })
-      .ExpectLogs('HELLO, BOB!')
+      .ExpectLogs("HELLO, BOB!")
       .ExpectExit(0))
   .Run();
 ```
 
-> **Note:** When testing fluent commands created with `Command()`, you must call
-> `.Build()` to get the CommandModule before passing it to `CommandIntents`.
+> **Note:** When testing fluent commands created with `Command()`, you must call `.Build()` to get the CommandModule before passing it to `CommandIntents`.
 >
-> **Tip:** If you encounter type errors with the testing API, you may need to use
-> type assertions (e.g., `cmd as any`) due to TypeScript's strict generic inference.
+> **Tip:** If you encounter type errors with the testing API, you may need to use type assertions (e.g., `cmd as any`) due to TypeScript's strict generic inference.
 
 Create `tests/.tests.ts`:
 
 ```typescript
-import './intents/greet.intents.ts';
+import "./intents/greet.intents.ts";
 ```
 
 Update `deno.json`:
@@ -416,15 +419,15 @@ deno task test
 ```typescript
 // First param is display name (shown in help), NOT the command key
 // Command key comes from file path: commands/deploy.ts → 'deploy'
-Command('name', 'description')
-  .Args(argsSchema)        // Positional arguments (Zod tuple)
-  .Flags(flagsSchema)      // Flags/options (Zod object)
-  .Params(ParamsClass)     // Custom params accessor (REQUIRED)
-  .Services(servicesFn)    // Dependency injection
-  .Init(initFn)            // Initialization
-  .Run(runFn)              // Main logic
-  .DryRun(dryRunFn)        // Preview mode
-  .Cleanup(cleanupFn);     // Cleanup
+Command("name", "description")
+  .Args(argsSchema) // Positional arguments (Zod tuple)
+  .Flags(flagsSchema) // Flags/options (Zod object)
+  .Params(ParamsClass) // Custom params accessor (REQUIRED)
+  .Services(servicesFn) // Dependency injection
+  .Init(initFn) // Initialization
+  .Run(runFn) // Main logic
+  .DryRun(dryRunFn) // Preview mode
+  .Cleanup(cleanupFn); // Cleanup
 ```
 
 ### The Params Pattern
@@ -440,21 +443,21 @@ class MyParams extends CommandParams<
   z.infer<typeof FlagsSchema>
 > {
   get Name(): string {
-    return this.Arg(0) ?? 'default';  // Protected method in getter
+    return this.Arg(0) ?? "default"; // Protected method in getter
   }
   get Verbose(): boolean {
-    return this.Flag('verbose') ?? false;  // Protected method in getter
+    return this.Flag("verbose") ?? false; // Protected method in getter
   }
 }
 
 // 3. Use in command
-Command('my-cmd', 'Description')
+Command("my-cmd", "Description")
   .Args(ArgsSchema)
   .Flags(FlagsSchema)
-  .Params(MyParams)          // REQUIRED!
+  .Params(MyParams) // REQUIRED!
   .Run(({ Params }) => {
-    console.log(Params.Name);     // Access via getter
-    console.log(Params.Verbose);  // Access via getter
+    console.log(Params.Name); // Access via getter
+    console.log(Params.Verbose); // Access via getter
   });
 ```
 
@@ -466,17 +469,17 @@ z.object({
   verbose: z.boolean().optional(),
 
   // String: --env=production
-  env: z.string().default('development'),
+  env: z.string().default("development"),
 
   // Number: --count=5
   count: z.number().optional(),
 
   // Enum: --level=info
-  level: z.enum(['debug', 'info', 'warn', 'error']),
+  level: z.enum(["debug", "info", "warn", "error"]),
 
   // Array: --tag=one --tag=two
   tags: z.array(z.string()).optional(),
-})
+});
 ```
 
 ### Logging

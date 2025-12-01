@@ -1,20 +1,20 @@
 // deno-lint-ignore-file no-explicit-any
-import { assert, IoCContainer } from '../.deps.ts';
+import { assert, IoCContainer } from "../.deps.ts";
 import {
   captureLogs,
   CLICommandExecutor,
   CLICommandResolver,
   type CLIConfig,
   type CLIInitFn,
-} from '../.exports.ts';
+} from "../.exports.ts";
 
-import type { CommandRuntime } from '../commands/CommandRuntime.ts';
-import type { CommandModule } from '../commands/CommandModule.ts';
-import type { CommandParams } from '../commands/CommandParams.ts';
-import type { CommandInvokerMap } from '../commands/CommandContext.ts';
-import { CLICommandInvocationParser } from '../parser/CLICommandInvocationParser.ts';
-import { CLIDFSContextManager } from '../CLIDFSContextManager.ts';
-import { LocalDevCLIFileSystemHooks } from '../hooks/LocalDevCLIFileSystemHooks.ts';
+import type { CommandRuntime } from "../commands/CommandRuntime.ts";
+import type { CommandModule } from "../commands/CommandModule.ts";
+import type { CommandParams } from "../commands/CommandParams.ts";
+import type { CommandInvokerMap } from "../commands/CommandContext.ts";
+import { CLICommandInvocationParser } from "../parser/CLICommandInvocationParser.ts";
+import { CLIDFSContextManager } from "../CLIDFSContextManager.ts";
+import { LocalDevCLIFileSystemHooks } from "../hooks/LocalDevCLIFileSystemHooks.ts";
 
 /**
  * Runtime for executing command tests and validating expectations.
@@ -50,7 +50,7 @@ export class CommandIntentRuntime<
   protected dfsCtxMgr: CLIDFSContextManager;
   protected expectedLogs: string[] = [];
   protected expectedExitCode: number | null = null;
-  protected capturedOutput = '';
+  protected capturedOutput = "";
   protected actualExitCode: number | null = null;
 
   protected runtime: CommandRuntime<P, S, C>;
@@ -61,7 +61,7 @@ export class CommandIntentRuntime<
   }
 
   public get Logs(): string[] {
-    return this.capturedOutput.split('\n').filter(Boolean);
+    return this.capturedOutput.split("\n").filter(Boolean);
   }
 
   public get ExitCode(): number | null {
@@ -96,7 +96,8 @@ export class CommandIntentRuntime<
     this.ioc.Register(CLIDFSContextManager, () => this.dfsCtxMgr);
     this.ioc.Register(
       CLICommandResolver,
-      () => new CLICommandResolver(new LocalDevCLIFileSystemHooks(this.dfsCtxMgr)),
+      () =>
+        new CLICommandResolver(new LocalDevCLIFileSystemHooks(this.dfsCtxMgr)),
     );
     this.ioc.Register(
       CLICommandInvocationParser,
@@ -120,7 +121,10 @@ export class CommandIntentRuntime<
     const originalInjectServices = runtime.injectServices?.bind(runtime);
     const mocks = this.mockServices!;
 
-    runtime.injectServices = async (ctx: any, ioc: any): Promise<Partial<S>> => {
+    runtime.injectServices = async (
+      ctx: any,
+      ioc: any,
+    ): Promise<Partial<S>> => {
       // Get real services first (if original exists)
       const realServices = originalInjectServices
         ? await originalInjectServices(ctx, ioc)
@@ -163,7 +167,7 @@ export class CommandIntentRuntime<
 
       const projectDFS = await dfsCtx.GetProjectDFS();
 
-      const cliConfigFile = await projectDFS.GetFileInfo('.cli.json');
+      const cliConfigFile = await projectDFS.GetFileInfo(".cli.json");
 
       const configText = cliConfigFile
         ? await new Response(cliConfigFile.Contents).text()
@@ -192,8 +196,8 @@ export class CommandIntentRuntime<
       );
 
       const baseTemplatesDir = await this.dfsCtxMgr.ResolvePath(
-        'project',
-        './templates',
+        "project",
+        "./templates",
       );
 
       this.capturedOutput = await captureLogs(async () => {
@@ -247,7 +251,7 @@ export class CommandIntentRuntime<
     assert(
       failures.length === 0,
       `❌ Test "${this.testName}" failed with ${failures.length} issue(s):\n\n` +
-        failures.map((f, i) => `${i + 1}. ${f}`).join('\n') +
+        failures.map((f, i) => `${i + 1}. ${f}`).join("\n") +
         `\n\n📋 Captured Output:\n${this.capturedOutput.trim()}`,
     );
   }

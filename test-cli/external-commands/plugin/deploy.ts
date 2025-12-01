@@ -1,10 +1,10 @@
-import { z } from '../../.deps.ts';
+import { z } from "../../.deps.ts";
 import {
   type CommandContext,
   CommandParams,
   CommandRuntime,
   defineCommandModule,
-} from '../../../src/commands/.exports.ts';
+} from "../../../src/commands/.exports.ts";
 
 export const FlagsSchema = z.object({
   target: z.string().optional(),
@@ -16,7 +16,7 @@ export class DeployCommandParams extends CommandParams<
   z.infer<typeof FlagsSchema>
 > {
   get Target(): string {
-    return this.Flags?.target ?? 'production';
+    return this.Flags?.target ?? "production";
   }
 }
 
@@ -27,8 +27,8 @@ export class DeployCommand extends CommandRuntime<DeployCommandParams> {
 
   public override BuildMetadata() {
     return this.buildMetadataFromSchemas(
-      'Deploy',
-      'Deploy the application to a target environment.',
+      "Deploy",
+      "Deploy the application to a target environment.",
       ArgsSchema,
       FlagsSchema,
     );

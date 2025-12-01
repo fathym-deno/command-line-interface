@@ -1,4 +1,4 @@
-import { join, z, type ZodType } from '../.deps.ts';
+import { join, z, type ZodType } from "../.deps.ts";
 
 /**
  * Emits a given Zod schema as a JSON Schema to the `schemas/` directory.
@@ -10,7 +10,7 @@ import { join, z, type ZodType } from '../.deps.ts';
 export async function emitSchema(
   schema: ZodType,
   schemaName: string,
-  outputDir = './schemas',
+  outputDir = "./schemas",
 ) {
   const jsonSchema = z.toJSONSchema(schema);
 

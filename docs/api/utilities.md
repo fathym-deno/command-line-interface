@@ -25,7 +25,7 @@ API reference for utility functions including log capture, command execution, te
 Capture all console and telemetry output during a function execution.
 
 ```typescript
-import { captureLogs } from '@fathym/cli';
+import { captureLogs } from "@fathym/cli";
 ```
 
 #### Signature
@@ -33,14 +33,14 @@ import { captureLogs } from '@fathym/cli';
 ```typescript
 function captureLogs(
   fn: () => Promise<void>,
-  useOrig?: boolean
-): Promise<string>
+  useOrig?: boolean,
+): Promise<string>;
 ```
 
-| Parameter | Type | Default | Description |
-|-----------|------|---------|-------------|
-| `fn` | `() => Promise<void>` | - | Async function to execute |
-| `useOrig` | `boolean` | `false` | Also write to original console |
+| Parameter | Type                  | Default | Description                    |
+| --------- | --------------------- | ------- | ------------------------------ |
+| `fn`      | `() => Promise<void>` | -       | Async function to execute      |
+| `useOrig` | `boolean`             | `false` | Also write to original console |
 
 **Returns:** Promise resolving to captured output string
 
@@ -48,8 +48,8 @@ function captureLogs(
 
 ```typescript
 const output = await captureLogs(async () => {
-  console.log('Hello');
-  console.error('World');
+  console.log("Hello");
+  console.error("World");
 });
 
 console.log(output); // "Hello\nWorld\n"
@@ -58,14 +58,14 @@ console.log(output); // "Hello\nWorld\n"
 #### Testing Commands
 
 ```typescript
-import { captureLogs, CLI } from '@fathym/cli';
+import { captureLogs, CLI } from "@fathym/cli";
 
-Deno.test('command output', async () => {
+Deno.test("command output", async () => {
   const output = await captureLogs(async () => {
-    await cli.run(['greet', 'World']);
+    await cli.run(["greet", "World"]);
   });
 
-  assert(output.includes('Hello, World'));
+  assert(output.includes("Hello, World"));
 });
 ```
 
@@ -75,7 +75,7 @@ Pass `true` to also display output during capture:
 
 ```typescript
 const output = await captureLogs(async () => {
-  console.log('Processing...');
+  console.log("Processing...");
 }, true); // Also shows in terminal
 ```
 
@@ -88,7 +88,7 @@ const output = await captureLogs(async () => {
 Execute a shell command with output routed to the command logger.
 
 ```typescript
-import { runCommandWithLogs } from '@fathym/cli';
+import { runCommandWithLogs } from "@fathym/cli";
 ```
 
 #### Signature
@@ -100,40 +100,40 @@ async function runCommandWithLogs(
   options: {
     command?: string;
     exitOnFail?: boolean;
-    stdin?: 'inherit' | 'null';
+    stdin?: "inherit" | "null";
     prefix?: string;
     cwd: string;
-  }
-): Promise<{ code: number; success: boolean }>
+  },
+): Promise<{ code: number; success: boolean }>;
 ```
 
-| Option | Type | Default | Description |
-|--------|------|---------|-------------|
-| `command` | `string` | `'deno'` | Executable to run |
-| `exitOnFail` | `boolean` | `true` | Exit process on non-zero code |
-| `stdin` | `'inherit' \| 'null'` | `'inherit'` | Stdin handling |
-| `prefix` | `string` | `''` | Prefix for log output |
-| `cwd` | `string` | (required) | Working directory |
+| Option       | Type                  | Default     | Description                   |
+| ------------ | --------------------- | ----------- | ----------------------------- |
+| `command`    | `string`              | `'deno'`    | Executable to run             |
+| `exitOnFail` | `boolean`             | `true`      | Exit process on non-zero code |
+| `stdin`      | `'inherit' \| 'null'` | `'inherit'` | Stdin handling                |
+| `prefix`     | `string`              | `''`        | Prefix for log output         |
+| `cwd`        | `string`              | (required)  | Working directory             |
 
 **Returns:** Object with `code` and `success`
 
 #### Usage
 
 ```typescript
-Command('build', 'Build the project')
+Command("build", "Build the project")
   .Params(BuildParams)
   .Run(async ({ Log }) => {
     const result = await runCommandWithLogs(
-      ['task', 'build'],
+      ["task", "build"],
       Log,
       {
         cwd: Deno.cwd(),
-        prefix: '[build] ',
-      }
+        prefix: "[build] ",
+      },
     );
 
     if (result.success) {
-      Log.Success('Build complete');
+      Log.Success("Build complete");
     }
   });
 ```
@@ -143,7 +143,7 @@ Command('build', 'Build the project')
 Execute a Deno.Command with output passthrough.
 
 ```typescript
-import { runWithPassthroughLogs } from '@fathym/cli';
+import { runWithPassthroughLogs } from "@fathym/cli";
 ```
 
 #### Signature
@@ -155,26 +155,26 @@ async function runWithPassthroughLogs(
   options?: {
     exitOnFail?: boolean;
     prefix?: string;
-  }
-): Promise<{ code: number; success: boolean }>
+  },
+): Promise<{ code: number; success: boolean }>;
 ```
 
-| Option | Type | Default | Description |
-|--------|------|---------|-------------|
-| `exitOnFail` | `boolean` | `true` | Exit on failure |
-| `prefix` | `string` | `''` | Prefix for log lines |
+| Option       | Type      | Default | Description          |
+| ------------ | --------- | ------- | -------------------- |
+| `exitOnFail` | `boolean` | `true`  | Exit on failure      |
+| `prefix`     | `string`  | `''`    | Prefix for log lines |
 
 #### Usage
 
 ```typescript
-const cmd = new Deno.Command('npm', {
-  args: ['install'],
-  stdout: 'piped',
-  stderr: 'piped',
+const cmd = new Deno.Command("npm", {
+  args: ["install"],
+  stdout: "piped",
+  stderr: "piped",
 });
 
 const result = await runWithPassthroughLogs(cmd, Log, {
-  prefix: '[npm] ',
+  prefix: "[npm] ",
   exitOnFail: false,
 });
 ```
@@ -188,7 +188,7 @@ const result = await runWithPassthroughLogs(cmd, Log, {
 Clear terminal lines using ANSI escape codes.
 
 ```typescript
-import { clearLine } from '@fathym/cli';
+import { clearLine } from "@fathym/cli";
 ```
 
 #### Signature
@@ -198,16 +198,16 @@ function clearLine(
   writer: WriterSync,
   encoder: TextEncoder,
   lineCount?: number,
-  startLine?: number
-): void
+  startLine?: number,
+): void;
 ```
 
-| Parameter | Type | Default | Description |
-|-----------|------|---------|-------------|
-| `writer` | `WriterSync` | - | Output writer (e.g., Deno.stdout) |
-| `encoder` | `TextEncoder` | - | Text encoder |
-| `lineCount` | `number` | `1` | Number of lines to clear |
-| `startLine` | `number` | (current) | Line to start clearing from |
+| Parameter   | Type          | Default   | Description                       |
+| ----------- | ------------- | --------- | --------------------------------- |
+| `writer`    | `WriterSync`  | -         | Output writer (e.g., Deno.stdout) |
+| `encoder`   | `TextEncoder` | -         | Text encoder                      |
+| `lineCount` | `number`      | `1`       | Number of lines to clear          |
+| `startLine` | `number`      | (current) | Line to start clearing from       |
 
 #### Usage
 
@@ -229,13 +229,13 @@ clearLine(Deno.stdout, encoder, 1, 5);
 Hide the terminal cursor.
 
 ```typescript
-import { hideCursor } from '@fathym/cli';
+import { hideCursor } from "@fathym/cli";
 ```
 
 #### Signature
 
 ```typescript
-function hideCursor(writer: WriterSync, encoder: TextEncoder): void
+function hideCursor(writer: WriterSync, encoder: TextEncoder): void;
 ```
 
 #### Usage
@@ -258,13 +258,13 @@ try {
 Show the terminal cursor (after hiding it).
 
 ```typescript
-import { showCursor } from '@fathym/cli';
+import { showCursor } from "@fathym/cli";
 ```
 
 #### Signature
 
 ```typescript
-function showCursor(writer: WriterSync, encoder: TextEncoder): void
+function showCursor(writer: WriterSync, encoder: TextEncoder): void;
 ```
 
 #### Usage
@@ -273,7 +273,7 @@ function showCursor(writer: WriterSync, encoder: TextEncoder): void
 const encoder = new TextEncoder();
 
 // Always restore cursor on exit
-Deno.addSignalListener('SIGINT', () => {
+Deno.addSignalListener("SIGINT", () => {
   showCursor(Deno.stdout, encoder);
   Deno.exit(1);
 });
@@ -288,18 +288,18 @@ Deno.addSignalListener('SIGINT', () => {
 Apply a style option to a text string.
 
 ```typescript
-import { appendStyles } from '@fathym/cli';
+import { appendStyles } from "@fathym/cli";
 ```
 
 #### Signature
 
 ```typescript
-function appendStyles(text: string, styleKey: StyleOptions): string
+function appendStyles(text: string, styleKey: StyleOptions): string;
 ```
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `text` | `string` | Text to style |
+| Parameter  | Type           | Description                                         |
+| ---------- | -------------- | --------------------------------------------------- |
+| `text`     | `string`       | Text to style                                       |
 | `styleKey` | `StyleOptions` | Style option (e.g., 'bold', 'red', 'rgb24:255:0:0') |
 
 **Returns:** Styled text string with ANSI codes
@@ -307,21 +307,21 @@ function appendStyles(text: string, styleKey: StyleOptions): string
 #### Usage
 
 ```typescript
-import { appendStyles } from '@fathym/cli';
+import { appendStyles } from "@fathym/cli";
 
 // Basic style
-const bold = appendStyles('Hello', 'bold');
+const bold = appendStyles("Hello", "bold");
 
 // Color
-const red = appendStyles('Error', 'red');
+const red = appendStyles("Error", "red");
 
 // RGB color
-const orange = appendStyles('Warning', 'rgb24:255:128:0');
+const orange = appendStyles("Warning", "rgb24:255:128:0");
 
 // Chain styles
-let text = 'Important';
-text = appendStyles(text, 'bold');
-text = appendStyles(text, 'yellow');
+let text = "Important";
+text = appendStyles(text, "bold");
+text = appendStyles(text, "yellow");
 ```
 
 ### buildTextContent
@@ -329,17 +329,17 @@ text = appendStyles(text, 'yellow');
 Build a styled string from a TextContent object or plain string.
 
 ```typescript
-import { buildTextContent } from '@fathym/cli';
+import { buildTextContent } from "@fathym/cli";
 ```
 
 #### Signature
 
 ```typescript
-function buildTextContent(content?: string | TextContent): string
+function buildTextContent(content?: string | TextContent): string;
 ```
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
+| Parameter | Type                    | Description                        |
+| --------- | ----------------------- | ---------------------------------- |
 | `content` | `string \| TextContent` | Plain string or TextContent object |
 
 **Returns:** Styled text string
@@ -347,21 +347,21 @@ function buildTextContent(content?: string | TextContent): string
 #### Usage
 
 ```typescript
-import { buildTextContent } from '@fathym/cli';
+import { buildTextContent } from "@fathym/cli";
 
 // Plain string
-const text1 = buildTextContent('Hello');
+const text1 = buildTextContent("Hello");
 
 // With styles
 const text2 = buildTextContent({
-  Text: 'Success!',
-  Styles: ['green', 'bold'],
+  Text: "Success!",
+  Styles: ["green", "bold"],
 });
 
 // Multiple styles
 const text3 = buildTextContent({
-  Text: 'Warning',
-  Styles: ['yellow', 'underline'],
+  Text: "Warning",
+  Styles: ["yellow", "underline"],
 });
 ```
 
@@ -374,7 +374,7 @@ const text3 = buildTextContent({
 Emit a Zod schema as a JSON Schema file.
 
 ```typescript
-import { emitSchema } from '@fathym/cli';
+import { emitSchema } from "@fathym/cli";
 ```
 
 #### Signature
@@ -383,21 +383,21 @@ import { emitSchema } from '@fathym/cli';
 async function emitSchema(
   schema: ZodType,
   schemaName: string,
-  outputDir?: string
-): Promise<void>
+  outputDir?: string,
+): Promise<void>;
 ```
 
-| Parameter | Type | Default | Description |
-|-----------|------|---------|-------------|
-| `schema` | `ZodType` | - | Zod schema to convert |
-| `schemaName` | `string` | - | Name for output file |
-| `outputDir` | `string` | `'./schemas'` | Output directory |
+| Parameter    | Type      | Default       | Description           |
+| ------------ | --------- | ------------- | --------------------- |
+| `schema`     | `ZodType` | -             | Zod schema to convert |
+| `schemaName` | `string`  | -             | Name for output file  |
+| `outputDir`  | `string`  | `'./schemas'` | Output directory      |
 
 #### Usage
 
 ```typescript
-import { emitSchema } from '@fathym/cli';
-import { z } from 'zod';
+import { emitSchema } from "@fathym/cli";
+import { z } from "zod";
 
 const ConfigSchema = z.object({
   name: z.string(),
@@ -406,10 +406,10 @@ const ConfigSchema = z.object({
 });
 
 // Emits to ./schemas/config.schema.json
-await emitSchema(ConfigSchema, 'config');
+await emitSchema(ConfigSchema, "config");
 
 // Custom output directory
-await emitSchema(ConfigSchema, 'config', './dist/schemas');
+await emitSchema(ConfigSchema, "config", "./dist/schemas");
 ```
 
 ---
@@ -421,7 +421,7 @@ await emitSchema(ConfigSchema, 'config', './dist/schemas');
 Dynamically import a module from a DFS with support for compiled mode.
 
 ```typescript
-import { importModule } from '@fathym/cli';
+import { importModule } from "@fathym/cli";
 ```
 
 #### Signature
@@ -431,38 +431,39 @@ async function importModule<T = unknown>(
   log: CommandLog,
   filePath: string,
   rootDFS: DFSFileHandler,
-  buildDFS: DFSFileHandler
-): Promise<T>
+  buildDFS: DFSFileHandler,
+): Promise<T>;
 ```
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `log` | `CommandLog` | Logger for output |
-| `filePath` | `string` | Path to module file |
-| `rootDFS` | `DFSFileHandler` | Root DFS for source resolution |
-| `buildDFS` | `DFSFileHandler` | Build DFS for compiled output |
+| Parameter  | Type             | Description                    |
+| ---------- | ---------------- | ------------------------------ |
+| `log`      | `CommandLog`     | Logger for output              |
+| `filePath` | `string`         | Path to module file            |
+| `rootDFS`  | `DFSFileHandler` | Root DFS for source resolution |
+| `buildDFS` | `DFSFileHandler` | Build DFS for compiled output  |
 
 **Returns:** Imported module
 
 #### Usage
 
 ```typescript
-import { importModule, CLIDFSContextManager } from '@fathym/cli';
+import { CLIDFSContextManager, importModule } from "@fathym/cli";
 
 const dfsCtx = await ioc.Resolve(CLIDFSContextManager);
 const rootDfs = await dfsCtx.GetProjectDFS();
-const buildDfs = await dfsCtx.GetDFS('build');
+const buildDfs = await dfsCtx.GetDFS("build");
 
 // Import TypeScript module (bundles if compiled)
 const config = await importModule<{ default: Config }>(
   Log,
-  'config.ts',
+  "config.ts",
   rootDfs,
   buildDfs,
 );
 ```
 
 **Behavior:**
+
 - In development: Directly imports TypeScript files
 - In compiled mode: Bundles `.ts` to `.js` via `deno bundle`, then imports via Blob URL
 
@@ -475,29 +476,29 @@ const config = await importModule<{ default: Config }>(
 Normalize the Commands config to a consistent array format.
 
 ```typescript
-import { normalizeCommandSources } from '@fathym/cli';
+import { normalizeCommandSources } from "@fathym/cli";
 ```
 
 #### Signature
 
 ```typescript
 function normalizeCommandSources(
-  commands: string | CLICommandSource[] | undefined
-): CLICommandSource[]
+  commands: string | CLICommandSource[] | undefined,
+): CLICommandSource[];
 ```
 
-| Input | Output |
-|-------|--------|
-| `undefined` | `[{ Path: './commands' }]` |
-| `'./src/commands'` | `[{ Path: './src/commands' }]` |
-| `[{ Path: './commands' }]` | `[{ Path: './commands' }]` |
+| Input                      | Output                         |
+| -------------------------- | ------------------------------ |
+| `undefined`                | `[{ Path: './commands' }]`     |
+| `'./src/commands'`         | `[{ Path: './src/commands' }]` |
+| `[{ Path: './commands' }]` | `[{ Path: './commands' }]`     |
 
 #### Usage
 
 ```typescript
-import { normalizeCommandSources } from '@fathym/cli';
+import { normalizeCommandSources } from "@fathym/cli";
 
-const config = JSON.parse(await Deno.readTextFile('.cli.json'));
+const config = JSON.parse(await Deno.readTextFile(".cli.json"));
 
 // Always get an array
 const sources = normalizeCommandSources(config.Commands);
@@ -516,13 +517,13 @@ for (const source of sources) {
 Create a CLI instance for testing.
 
 ```typescript
-import { createTestCLI } from '@fathym/cli';
+import { createTestCLI } from "@fathym/cli";
 ```
 
 #### Signature
 
 ```typescript
-function createTestCLI(): CLI
+function createTestCLI(): CLI;
 ```
 
 **Returns:** A new CLI instance with default options
@@ -530,16 +531,16 @@ function createTestCLI(): CLI
 #### Usage
 
 ```typescript
-import { createTestCLI, captureLogs } from '@fathym/cli';
+import { captureLogs, createTestCLI } from "@fathym/cli";
 
-Deno.test('CLI integration', async () => {
+Deno.test("CLI integration", async () => {
   const cli = createTestCLI();
 
   const output = await captureLogs(async () => {
-    await cli.run(['help']);
+    await cli.run(["help"]);
   });
 
-  assert(output.includes('Available Commands'));
+  assert(output.includes("Available Commands"));
 });
 ```
 
@@ -550,16 +551,11 @@ Deno.test('CLI integration', async () => {
 Combine terminal control with spinners for progress indication:
 
 ```typescript
-import {
-  hideCursor,
-  showCursor,
-  clearLine,
-  ArcSpinner
-} from '@fathym/cli';
+import { ArcSpinner, clearLine, hideCursor, showCursor } from "@fathym/cli";
 
 async function withSpinner<T>(
   message: string,
-  fn: () => Promise<T>
+  fn: () => Promise<T>,
 ): Promise<T> {
   const encoder = new TextEncoder();
   const spinner = ArcSpinner;
@@ -591,8 +587,8 @@ async function withSpinner<T>(
 }
 
 // Usage
-await withSpinner('Installing dependencies...', async () => {
-  await runCommand(['npm', 'install']);
+await withSpinner("Installing dependencies...", async () => {
+  await runCommand(["npm", "install"]);
 });
 ```
 
@@ -606,7 +602,7 @@ await withSpinner('Installing dependencies...', async () => {
 async function safeRun(
   args: string[],
   log: CommandLog,
-  cwd: string
+  cwd: string,
 ): Promise<boolean> {
   try {
     const { success } = await runCommandWithLogs(args, log, {
@@ -626,7 +622,7 @@ async function safeRun(
 ```typescript
 async function captureWithTimeout(
   fn: () => Promise<void>,
-  timeoutMs: number
+  timeoutMs: number,
 ): Promise<string | null> {
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), timeoutMs);
@@ -634,7 +630,7 @@ async function captureWithTimeout(
   try {
     return await captureLogs(fn);
   } catch (error) {
-    if (error.name === 'AbortError') {
+    if (error.name === "AbortError") {
       return null;
     }
     throw error;
@@ -655,15 +651,15 @@ function updateProgress(lines: string[]) {
 
   // Write new lines
   for (const line of lines) {
-    Deno.stdout.writeSync(encoder.encode(line + '\n'));
+    Deno.stdout.writeSync(encoder.encode(line + "\n"));
   }
 }
 
 // Usage
 updateProgress([
-  '📦 Installing: package-a',
-  '📦 Installing: package-b',
-  '✓ Completed: 5/10',
+  "📦 Installing: package-a",
+  "📦 Installing: package-b",
+  "✓ Completed: 5/10",
 ]);
 ```
 

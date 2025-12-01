@@ -1,8 +1,8 @@
-import { assertEquals } from '../../test.deps.ts';
-import { captureLogs } from '../../../src/utils/captureLogs.ts';
+import { assertEquals } from "../../test.deps.ts";
+import { captureLogs } from "../../../src/utils/captureLogs.ts";
 
 Deno.test(
-  'captureLogs – captures console output and restores originals',
+  "captureLogs – captures console output and restores originals",
   async () => {
     const originalLog = console.log;
     const originalError = console.error;
@@ -11,10 +11,10 @@ Deno.test(
     const globalAny = globalThis as { __telemetryWriter?: unknown };
 
     const output = await captureLogs(() => {
-      console.log('hello');
-      console.error('oops');
-      console.warn('warned');
-      console.info('noted');
+      console.log("hello");
+      console.error("oops");
+      console.warn("warned");
+      console.info("noted");
 
       return Promise.resolve();
     });
@@ -24,17 +24,17 @@ Deno.test(
     assertEquals(console.warn, originalWarn);
     assertEquals(console.info, originalInfo);
     assertEquals(globalAny.__telemetryWriter, undefined);
-    assertEquals(output.trim().split('\n'), [
-      'hello',
-      'oops',
-      'warned',
-      'noted',
+    assertEquals(output.trim().split("\n"), [
+      "hello",
+      "oops",
+      "warned",
+      "noted",
     ]);
   },
 );
 
 Deno.test(
-  'captureLogs – useOrig forwards to existing console methods',
+  "captureLogs – useOrig forwards to existing console methods",
   async () => {
     let forwarded = 0;
     const originalLog = console.log;
@@ -44,12 +44,12 @@ Deno.test(
 
     try {
       const output = await captureLogs(() => {
-        console.log('hi');
+        console.log("hi");
 
         return Promise.resolve();
       }, true);
 
-      assertEquals(output.trim(), 'hi');
+      assertEquals(output.trim(), "hi");
       assertEquals(forwarded, 1);
     } finally {
       console.log = originalLog;
@@ -58,20 +58,20 @@ Deno.test(
 );
 
 Deno.test(
-  'captureLogs – preserves existing global writer and captures warn/error',
+  "captureLogs – preserves existing global writer and captures warn/error",
   async () => {
     const globalAny = globalThis as { __telemetryWriter?: unknown };
     const existingWriter = { writeSync: () => 0 };
     globalAny.__telemetryWriter = existingWriter;
 
     const output = await captureLogs(() => {
-      console.warn('warn here');
-      console.error('error here');
+      console.warn("warn here");
+      console.error("error here");
 
       return Promise.resolve();
     });
 
     assertEquals(globalAny.__telemetryWriter, existingWriter);
-    assertEquals(output.trim().split('\n'), ['warn here', 'error here']);
+    assertEquals(output.trim().split("\n"), ["warn here", "error here"]);
   },
 );

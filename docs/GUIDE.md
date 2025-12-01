@@ -24,6 +24,7 @@ Use this playbook to keep CLI framework development predictable and fast.
 ## Current Status
 
 The CLI framework provides a stable API for:
+
 - Fluent command building with type-safe Zod schemas
 - Command lifecycle management (Init → Run → Cleanup)
 - Dependency injection via IoC container
@@ -42,6 +43,7 @@ deno task test               # Run tests
 ```
 
 Key files to understand:
+
 - `src/CLI.ts` - Main orchestrator
 - `src/commands/CommandRuntime.ts` - Command lifecycle
 - `src/fluent/Command.ts` - Fluent builder entry point
@@ -50,6 +52,7 @@ Key files to understand:
 ### 2. Make Changes
 
 Follow these patterns:
+
 - Commands use fluent API starting with `Command()`
 - Args/Flags defined with Zod schemas
 - Services injected via `.Services()` method
@@ -75,25 +78,28 @@ deno task build              # Full build (fmt, lint, test)
 1. **Create command file**
    ```typescript
    // commands/my-command.ts
-   import { Command, CommandParams } from '@fathym/cli';
-   import { z } from 'zod';
+   import { Command, CommandParams } from "@fathym/cli";
+   import { z } from "zod";
 
    const FlagsSchema = z.object({
-     verbose: z.boolean().optional().describe('Enable verbose output'),
+     verbose: z.boolean().optional().describe("Enable verbose output"),
    });
 
-   class MyCommandParams extends CommandParams<[], z.infer<typeof FlagsSchema>> {
-     get Verbose(): boolean { return this.Flag('verbose') ?? false; }
+   class MyCommandParams
+     extends CommandParams<[], z.infer<typeof FlagsSchema>> {
+     get Verbose(): boolean {
+       return this.Flag("verbose") ?? false;
+     }
    }
 
-   export default Command('my-command', 'Description of command')
+   export default Command("my-command", "Description of command")
      .Flags(FlagsSchema)
      .Params(MyCommandParams)
      .Run(({ Params, Log }) => {
        if (Params.Verbose) {
-         Log.Info('Verbose mode enabled');
+         Log.Info("Verbose mode enabled");
        }
-       Log.Info('Command executed!');
+       Log.Info("Command executed!");
      });
    ```
 
@@ -104,12 +110,16 @@ deno task build              # Full build (fmt, lint, test)
 3. **Add intent tests**
    ```typescript
    // tests/intents/my-command.intents.ts
-   import { CommandIntent } from '@fathym/cli';
-   import MyCommand from '../../commands/my-command.ts';
+   import { CommandIntent } from "@fathym/cli";
+   import MyCommand from "../../commands/my-command.ts";
 
-   CommandIntent('executes with verbose', MyCommand, import.meta.resolve('../../.cli.json'))
+   CommandIntent(
+     "executes with verbose",
+     MyCommand,
+     import.meta.resolve("../../.cli.json"),
+   )
      .Flags({ verbose: true })
-     .ExpectLogs('Verbose mode enabled', 'Command executed!')
+     .ExpectLogs("Verbose mode enabled", "Command executed!")
      .ExpectExit(0)
      .Run();
    ```
@@ -119,24 +129,24 @@ deno task build              # Full build (fmt, lint, test)
 1. **Register services in .cli.init.ts**
    ```typescript
    // .cli.init.ts
-   import type { CLIInitFn, IoCContainer } from '@fathym/cli';
-   import { ConfigService } from './services/ConfigService.ts';
+   import type { CLIInitFn, IoCContainer } from "@fathym/cli";
+   import { ConfigService } from "./services/ConfigService.ts";
 
    export default ((ioc: IoCContainer, _config) => {
      ioc.Register(() => new ConfigService(), {
-       Type: ioc.Symbol('ConfigService'),
+       Type: ioc.Symbol("ConfigService"),
      });
    }) as CLIInitFn;
    ```
 
 2. **Inject in command**
    ```typescript
-   import { Command, CommandParams } from '@fathym/cli';
-   import type { IoCContainer } from '@fathym/cli';
+   import { Command, CommandParams } from "@fathym/cli";
+   import type { IoCContainer } from "@fathym/cli";
 
    class DeployParams extends CommandParams<[], {}> {}
 
-   Command('deploy', 'Deploy project')
+   Command("deploy", "Deploy project")
      .Params(DeployParams)
      .Services(async (ctx, ioc: IoCContainer) => ({
        config: await ioc.Resolve(ConfigService),
@@ -169,18 +179,18 @@ deno task build              # Full build (fmt, lint, test)
 
 3. **Scaffold in command**
    ```typescript
-   Command('init', 'Initialize project')
+   Command("init", "Initialize project")
      .Services(async (ctx, ioc) => ({
        scaffolder: new TemplateScaffolder(
-         await ioc.Resolve<TemplateLocator>(ioc.Symbol('TemplateLocator')),
+         await ioc.Resolve<TemplateLocator>(ioc.Symbol("TemplateLocator")),
          await dfsCtxMgr.GetExecutionDFS(),
-         { name: ctx.Params.Arg(0) }
+         { name: ctx.Params.Arg(0) },
        ),
      }))
      .Run(async ({ Services }) => {
        await Services.scaffolder.Scaffold({
-         templateName: 'my-template',
-         outputDir: '.',
+         templateName: "my-template",
+         outputDir: ".",
        });
      });
    ```
@@ -194,6 +204,7 @@ The command lifecycle is in `src/commands/CommandRuntime.ts`:
 - **Cleanup phase**: `Cleanup()` method
 
 When modifying:
+
 1. Understand the lifecycle order
 2. Consider async cleanup with try/finally
 3. Add tests for lifecycle changes
@@ -202,25 +213,28 @@ When modifying:
 ### Debugging Commands
 
 Use a verbose flag for detailed output:
+
 ```typescript
 const FlagsSchema = z.object({
-  verbose: z.boolean().optional().describe('Verbose output'),
+  verbose: z.boolean().optional().describe("Verbose output"),
 });
 
 class DebugParams extends CommandParams<[], z.infer<typeof FlagsSchema>> {
-  get Verbose(): boolean { return this.Flag('verbose') ?? false; }
+  get Verbose(): boolean {
+    return this.Flag("verbose") ?? false;
+  }
 }
 
-Command('example', 'Example command')
+Command("example", "Example command")
   .Flags(FlagsSchema)
   .Params(DebugParams)
   .Run(({ Params, Log }) => {
     if (Params.Verbose) {
-      Log.Info('Detailed info');  // Show when verbose
+      Log.Info("Detailed info"); // Show when verbose
     }
-    Log.Info('Standard info');
-    Log.Warn('Warning');
-    Log.Error('Error');
+    Log.Info("Standard info");
+    Log.Warn("Warning");
+    Log.Error("Error");
   });
 ```
 
@@ -306,6 +320,7 @@ Before submitting changes:
 ## Roadmap Considerations
 
 Future enhancements to consider:
+
 - Interactive prompts with inquirer-style API
 - Plugin system for third-party commands
 - Watch mode for development

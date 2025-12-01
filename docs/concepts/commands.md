@@ -58,7 +58,7 @@ Called automatically by the executor to set up the command's IoC container and s
 
 ```typescript
 // Fluent API: defined via .Services()
-Command('deploy', 'Deploy the project')
+Command("deploy", "Deploy the project")
   .Services(async (ctx, ioc) => ({
     config: await ioc.Resolve(ConfigService),
     dfs: await ioc.Resolve(CLIDFSContextManager),
@@ -82,11 +82,11 @@ Optional initialization phase for setting up state or validating preconditions.
 
 ```typescript
 // Fluent API: use .Init()
-Command('deploy', 'Deploy the project')
+Command("deploy", "Deploy the project")
   .Init(async ({ Log, Services }) => {
-    Log.Info('Checking deployment prerequisites...');
+    Log.Info("Checking deployment prerequisites...");
     if (!await Services.config.IsConfigured()) {
-      throw new Error('Project not configured');
+      throw new Error("Project not configured");
     }
   });
 
@@ -104,24 +104,26 @@ The main execution phase. `Run` performs the action; `DryRun` shows what would h
 
 ```typescript
 const FlagsSchema = z.object({
-  env: z.string().default('production').describe('Target environment'),
+  env: z.string().default("production").describe("Target environment"),
 });
 
 class DeployParams extends CommandParams<[], z.infer<typeof FlagsSchema>> {
-  get Environment(): string { return this.Flag('env') ?? 'production'; }
+  get Environment(): string {
+    return this.Flag("env") ?? "production";
+  }
 }
 
-Command('deploy', 'Deploy the project')
+Command("deploy", "Deploy the project")
   .Flags(FlagsSchema)
   .Params(DeployParams)
   .Run(async ({ Params, Log, Services }) => {
     Log.Info(`Deploying to ${Params.Environment}...`);
     await Services.deployer.Deploy(Params.Environment);
-    Log.Success('Deployment complete!');
+    Log.Success("Deployment complete!");
   })
   .DryRun(async ({ Params, Log }) => {
     Log.Info(`Would deploy to ${Params.Environment}`);
-    Log.Info('Files that would be deployed:');
+    Log.Info("Files that would be deployed:");
     // List files without actually deploying
   });
 ```
@@ -131,7 +133,7 @@ Command('deploy', 'Deploy the project')
 Optional cleanup phase, called even if `Run` throws an error.
 
 ```typescript
-Command('process', 'Process files')
+Command("process", "Process files")
   .Services(async (ctx, ioc) => ({
     tempDir: await createTempDir(),
   }))
@@ -140,7 +142,7 @@ Command('process', 'Process files')
   })
   .Cleanup(async ({ Services, Log }) => {
     await Deno.remove(Services.tempDir, { recursive: true });
-    Log.Info('Temporary files cleaned up');
+    Log.Info("Temporary files cleaned up");
   });
 ```
 
@@ -151,11 +153,11 @@ Command('process', 'Process files')
 A minimal command with no arguments or flags:
 
 ```typescript
-import { Command, CommandParams } from '@fathym/cli';
+import { Command, CommandParams } from "@fathym/cli";
 
 class VersionParams extends CommandParams<[], {}> {}
 
-export default Command('version', 'Show version information')
+export default Command("version", "Show version information")
   .Params(VersionParams)
   .Run(({ Log, Config }) => {
     Log.Info(`${Config.Name} v${Config.Version}`);
@@ -167,20 +169,26 @@ export default Command('version', 'Show version information')
 Positional arguments are defined with Zod tuple schemas:
 
 ```typescript
-import { Command, CommandParams } from '@fathym/cli';
-import { z } from 'zod';
+import { Command, CommandParams } from "@fathym/cli";
+import { z } from "zod";
 
 const ArgsSchema = z.tuple([
-  z.string().describe('Name to greet').meta({ argName: 'name' }),
-  z.string().optional().describe('Custom greeting').meta({ argName: 'greeting' }),
+  z.string().describe("Name to greet").meta({ argName: "name" }),
+  z.string().optional().describe("Custom greeting").meta({
+    argName: "greeting",
+  }),
 ]);
 
 class GreetParams extends CommandParams<z.infer<typeof ArgsSchema>, {}> {
-  get Name(): string { return this.Arg(0)!; }
-  get Greeting(): string { return this.Arg(1) ?? 'Hello'; }
+  get Name(): string {
+    return this.Arg(0)!;
+  }
+  get Greeting(): string {
+    return this.Arg(1) ?? "Hello";
+  }
 }
 
-export default Command('greet', 'Greet someone')
+export default Command("greet", "Greet someone")
   .Args(ArgsSchema)
   .Params(GreetParams)
   .Run(({ Params, Log }) => {
@@ -193,26 +201,34 @@ export default Command('greet', 'Greet someone')
 Flags are defined with Zod object schemas:
 
 ```typescript
-import { Command, CommandParams } from '@fathym/cli';
-import { z } from 'zod';
+import { Command, CommandParams } from "@fathym/cli";
+import { z } from "zod";
 
 const FlagsSchema = z.object({
-  env: z.string().default('production').describe('Target environment'),
-  force: z.boolean().optional().describe('Force deployment'),
-  replicas: z.number().default(1).describe('Number of replicas'),
+  env: z.string().default("production").describe("Target environment"),
+  force: z.boolean().optional().describe("Force deployment"),
+  replicas: z.number().default(1).describe("Number of replicas"),
 });
 
 class DeployParams extends CommandParams<[], z.infer<typeof FlagsSchema>> {
-  get Environment(): string { return this.Flag('env') ?? 'production'; }
-  get Force(): boolean { return this.Flag('force') ?? false; }
-  get Replicas(): number { return this.Flag('replicas') ?? 1; }
+  get Environment(): string {
+    return this.Flag("env") ?? "production";
+  }
+  get Force(): boolean {
+    return this.Flag("force") ?? false;
+  }
+  get Replicas(): number {
+    return this.Flag("replicas") ?? 1;
+  }
 }
 
-export default Command('deploy', 'Deploy the project')
+export default Command("deploy", "Deploy the project")
   .Flags(FlagsSchema)
   .Params(DeployParams)
   .Run(({ Params, Log }) => {
-    Log.Info(`Deploying to ${Params.Environment} with ${Params.Replicas} replicas`);
+    Log.Info(
+      `Deploying to ${Params.Environment} with ${Params.Replicas} replicas`,
+    );
   });
 ```
 
@@ -221,12 +237,12 @@ export default Command('deploy', 'Deploy the project')
 Inject dependencies via the IoC container:
 
 ```typescript
-import { Command, CommandParams, CLIDFSContextManager } from '@fathym/cli';
-import type { IoCContainer } from '@fathym/cli';
+import { CLIDFSContextManager, Command, CommandParams } from "@fathym/cli";
+import type { IoCContainer } from "@fathym/cli";
 
 class BuildParams extends CommandParams<[], {}> {}
 
-export default Command('build', 'Build the project')
+export default Command("build", "Build the project")
   .Params(BuildParams)
   .Services(async (ctx, ioc: IoCContainer) => ({
     dfs: await ioc.Resolve(CLIDFSContextManager),
@@ -244,15 +260,15 @@ export default Command('build', 'Build the project')
 Create a custom params class for complex argument access:
 
 ```typescript
-import { Command, CommandParams } from '@fathym/cli';
-import { z } from 'zod';
+import { Command, CommandParams } from "@fathym/cli";
+import { z } from "zod";
 
 const ArgsSchema = z.tuple([
-  z.string().optional().describe('Project name'),
+  z.string().optional().describe("Project name"),
 ]);
 
 const FlagsSchema = z.object({
-  template: z.string().optional().describe('Template to use'),
+  template: z.string().optional().describe("Template to use"),
 });
 
 class InitParams extends CommandParams<
@@ -261,15 +277,15 @@ class InitParams extends CommandParams<
 > {
   get ProjectName(): string {
     const arg = this.Arg(0);
-    return !arg || arg === '.' ? Deno.cwd().split('/').pop()! : arg;
+    return !arg || arg === "." ? Deno.cwd().split("/").pop()! : arg;
   }
 
   get Template(): string {
-    return this.Flag('template') ?? 'default';
+    return this.Flag("template") ?? "default";
   }
 }
 
-export default Command('init', 'Initialize a new project')
+export default Command("init", "Initialize a new project")
   .Args(ArgsSchema)
   .Flags(FlagsSchema)
   .Params(InitParams)
@@ -292,24 +308,26 @@ commands/
 
 ```typescript
 // commands/git/.metadata.ts
-import { CommandModuleMetadata } from '@fathym/cli';
+import { CommandModuleMetadata } from "@fathym/cli";
 
 export default {
-  Name: 'git',
-  Description: 'Git operations',
+  Name: "git",
+  Description: "Git operations",
 } as CommandModuleMetadata;
 
 // commands/git/commit.ts
 const FlagsSchema = z.object({
-  message: z.string().describe('Commit message'),
+  message: z.string().describe("Commit message"),
 });
 
 class CommitParams extends CommandParams<[], z.infer<typeof FlagsSchema>> {
-  get Message(): string { return this.Flag('message')!; }
+  get Message(): string {
+    return this.Flag("message")!;
+  }
 }
 
 // Display name is 'commit', command key is 'git/commit' (from file path)
-export default Command('commit', 'Commit changes')
+export default Command("commit", "Commit changes")
   .Flags(FlagsSchema)
   .Params(CommitParams)
   .Run(({ Params, Log }) => {
@@ -318,6 +336,7 @@ export default Command('commit', 'Commit changes')
 ```
 
 Command matching:
+
 - `mycli git commit -m "msg"` → matches `git/commit`
 - `mycli git --help` → shows git group commands
 
@@ -327,18 +346,20 @@ Commands can throw errors to indicate failure:
 
 ```typescript
 const FlagsSchema = z.object({
-  env: z.string().default('staging').describe('Environment'),
+  env: z.string().default("staging").describe("Environment"),
 });
 
 class DeployParams extends CommandParams<[], z.infer<typeof FlagsSchema>> {
-  get Environment(): string { return this.Flag('env') ?? 'staging'; }
+  get Environment(): string {
+    return this.Flag("env") ?? "staging";
+  }
 }
 
-Command('deploy', 'Deploy the project')
+Command("deploy", "Deploy the project")
   .Flags(FlagsSchema)
   .Params(DeployParams)
   .Run(async ({ Params, Log }) => {
-    if (!['staging', 'production'].includes(Params.Environment)) {
+    if (!["staging", "production"].includes(Params.Environment)) {
       throw new Error(`Invalid environment: ${Params.Environment}`);
     }
 
@@ -352,6 +373,7 @@ Command('deploy', 'Deploy the project')
 ```
 
 Exit codes:
+
 - `0` - Success (no errors)
 - `1` - General error (thrown exception)
 - Custom codes via `Deno.exit(code)`
@@ -377,14 +399,14 @@ Command and flag names should be self-documenting:
 
 ```typescript
 // Good: Clear intent
-Command('generate-config', 'Generate configuration file')
+Command("generate-config", "Generate configuration file")
   .Flags(z.object({
-    outputPath: z.string().describe('Output file path'),
-    overwrite: z.boolean().describe('Overwrite existing file'),
+    outputPath: z.string().describe("Output file path"),
+    overwrite: z.boolean().describe("Overwrite existing file"),
   }));
 
 // Avoid: Cryptic names
-Command('gc', 'gc')
+Command("gc", "gc")
   .Flags(z.object({
     o: z.string(),
     w: z.boolean(),
@@ -396,19 +418,19 @@ Command('gc', 'gc')
 All commands, arguments, and flags should have descriptions:
 
 ```typescript
-Command('deploy', 'Deploy the application to a target environment')
+Command("deploy", "Deploy the application to a target environment")
   .Args(z.tuple([
     z.string()
-      .describe('Deployment target (e.g., staging, production)')
-      .meta({ argName: 'target' }),
+      .describe("Deployment target (e.g., staging, production)")
+      .meta({ argName: "target" }),
   ]))
   .Flags(z.object({
     dryRun: z.boolean()
       .optional()
-      .describe('Preview changes without deploying'),
+      .describe("Preview changes without deploying"),
     timeout: z.number()
       .default(300)
-      .describe('Deployment timeout in seconds'),
+      .describe("Deployment timeout in seconds"),
   }));
 ```
 
@@ -417,7 +439,7 @@ Command('deploy', 'Deploy the application to a target environment')
 Use async/await properly and handle cleanup:
 
 ```typescript
-Command('process', 'Process files')
+Command("process", "Process files")
   .Run(async ({ Log }) => {
     const handle = await openResource();
     try {

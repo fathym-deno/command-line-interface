@@ -1,13 +1,13 @@
-import { z } from '../../.deps.ts';
+import { z } from "../../.deps.ts";
 import {
   type CommandContext,
   CommandParams,
   CommandRuntime,
   defineCommandModule,
-} from '../../../src/commands/.exports.ts';
+} from "../../../src/commands/.exports.ts";
 
 export const FlagsSchema = z.object({
-  name: z.string().describe('The name')
+  name: z.string().describe("The name"),
 });
 export const ArgsSchema = z.tuple([]);
 
@@ -20,13 +20,13 @@ export class CloudCommandParams extends CommandParams<
 
 export class CloudCommand extends CommandRuntime<CloudCommandParams> {
   public override Run(ctx: CommandContext): void | number {
-    ctx.Log.Info('🔧 Scaffolding Cloud...');
+    ctx.Log.Info("🔧 Scaffolding Cloud...");
   }
 
   public override BuildMetadata() {
     return this.buildMetadataFromSchemas(
-      'Scaffold Cloud',
-      'Generate a new Cloud file.',
+      "Scaffold Cloud",
+      "Generate a new Cloud file.",
       ArgsSchema,
       FlagsSchema,
     );

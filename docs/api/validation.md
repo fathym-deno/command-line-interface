@@ -5,6 +5,7 @@ The validation module provides schema-based validation and complex type resoluti
 ## Overview
 
 The validation system provides:
+
 - **Schema Validation**: Validate args/flags against Zod schemas at runtime
 - **Complex Type Resolution**: Automatically load objects/arrays from file paths or inline JSON
 - **fileCheck Meta**: Control file resolution behavior via `.meta({ fileCheck: true/false })`
@@ -14,8 +15,8 @@ The validation system provides:
 ## Quick Start
 
 ```typescript
-import { Command } from '@fathym/cli';
-import { z } from 'zod';
+import { Command } from "@fathym/cli";
+import { z } from "zod";
 
 // Define a complex config schema
 const ConfigSchema = z.object({
@@ -24,22 +25,23 @@ const ConfigSchema = z.object({
   features: z.array(z.string()).optional(),
 });
 
-export default Command('deploy', 'Deploy with config')
-  .Args(z.tuple([z.string().meta({ argName: 'environment' })]))
+export default Command("deploy", "Deploy with config")
+  .Args(z.tuple([z.string().meta({ argName: "environment" })]))
   .Flags(z.object({
-    config: ConfigSchema.describe('Deployment configuration'),
+    config: ConfigSchema.describe("Deployment configuration"),
     force: z.boolean().optional(),
   }))
   .Params(DeployParams)
   .Run(async ({ Params, Log }) => {
     // config is already resolved - either from file or inline JSON
-    const config = Params.Flag('config');
+    const config = Params.Flag("config");
     Log.Info(`Deploying to ${config.host}:${config.port}`);
   })
   .Build();
 ```
 
 Users can now invoke:
+
 ```bash
 # From file
 mycli deploy prod --config ./deploy-config.json
@@ -55,8 +57,8 @@ mycli deploy prod --config '{"host":"localhost","port":3000}'
 Analyzes Zod schemas to determine type information and metadata.
 
 ```typescript
-import { SchemaIntrospector } from '@fathym/cli';
-import { z } from 'zod';
+import { SchemaIntrospector } from "@fathym/cli";
+import { z } from "zod";
 
 const introspector = new SchemaIntrospector();
 
@@ -72,7 +74,7 @@ introspector.shouldFileCheck(z.string().meta({ fileCheck: true })); // true (exp
 introspector.shouldFileCheck(z.object({}).meta({ fileCheck: false })); // false (explicit disable)
 
 // Get metadata
-const meta = introspector.getMeta(z.string().meta({ argName: 'myArg' }));
+const meta = introspector.getMeta(z.string().meta({ argName: "myArg" }));
 // { argName: 'myArg' }
 ```
 
@@ -81,13 +83,13 @@ const meta = introspector.getMeta(z.string().meta({ argName: 'myArg' }));
 Resolves CLI values from file paths or inline JSON strings.
 
 ```typescript
-import { ValueResolver } from '@fathym/cli';
-import { z } from 'zod';
+import { ValueResolver } from "@fathym/cli";
+import { z } from "zod";
 
 const resolver = new ValueResolver();
 
 // Resolve from file path
-const result1 = await resolver.resolve('./config.json', z.object({}));
+const result1 = await resolver.resolve("./config.json", z.object({}));
 // { success: true, value: { ...fileContents }, fromFile: true }
 
 // Resolve from inline JSON
@@ -95,7 +97,7 @@ const result2 = await resolver.resolve('{"key":"value"}', z.object({}));
 // { success: true, value: { key: 'value' }, fromFile: false }
 
 // Primitive value passes through
-const result3 = await resolver.resolve('hello', z.string());
+const result3 = await resolver.resolve("hello", z.string());
 // { success: true, value: 'hello', fromFile: false }
 ```
 
@@ -104,15 +106,15 @@ const result3 = await resolver.resolve('hello', z.string());
 Validates resolved values against Zod schemas.
 
 ```typescript
-import { SchemaValidator } from '@fathym/cli';
-import { z } from 'zod';
+import { SchemaValidator } from "@fathym/cli";
+import { z } from "zod";
 
 const validator = new SchemaValidator();
 
 // Validate flags
 const result = validator.validateFlags(
-  { port: 3000, host: 'localhost' },
-  z.object({ port: z.number(), host: z.string() })
+  { port: 3000, host: "localhost" },
+  z.object({ port: z.number(), host: z.string() }),
 );
 
 if (!result.success) {
@@ -125,19 +127,19 @@ if (!result.success) {
 Orchestrates the complete validation flow.
 
 ```typescript
-import { ValidationPipeline } from '@fathym/cli';
+import { ValidationPipeline } from "@fathym/cli";
 
 const pipeline = new ValidationPipeline();
 
 const result = await pipeline.execute(
-  ['deploy'],           // positional args
-  { config: './c.json' }, // flags
-  params,               // CommandParams instance
+  ["deploy"], // positional args
+  { config: "./c.json" }, // flags
+  params, // CommandParams instance
   {
     argsSchema: z.tuple([z.string()]),
     flagsSchema: z.object({ config: ConfigSchema }),
     log: consoleLog,
-  }
+  },
 );
 
 if (!result.success) {
@@ -176,6 +178,7 @@ Command('deploy', 'Deploy application')
 ### Validation Patterns
 
 **Pre-validation (check before schema)**:
+
 ```typescript
 .Validate(async ({ Flags, RootValidate }) => {
   if (Flags['a'] && Flags['b']) {
@@ -186,6 +189,7 @@ Command('deploy', 'Deploy application')
 ```
 
 **Post-validation (check after schema)**:
+
 ```typescript
 .Validate(async ({ Params, RootValidate }) => {
   const result = await RootValidate();
@@ -200,6 +204,7 @@ Command('deploy', 'Deploy application')
 ```
 
 **Full custom control (skip RootValidate)**:
+
 ```typescript
 .Validate(async ({ Flags }) => {
   // Completely custom validation
@@ -214,11 +219,11 @@ Command('deploy', 'Deploy application')
 Complex types (objects, arrays, records, maps) automatically enable file resolution:
 
 ```typescript
-z.object({ key: z.string() })  // fileCheck: true (auto)
-z.array(z.number())             // fileCheck: true (auto)
-z.record(z.string())            // fileCheck: true (auto)
-z.string()                      // fileCheck: false (default)
-z.number()                      // fileCheck: false (default)
+z.object({ key: z.string() }); // fileCheck: true (auto)
+z.array(z.number()); // fileCheck: true (auto)
+z.record(z.string()); // fileCheck: true (auto)
+z.string(); // fileCheck: false (default)
+z.number(); // fileCheck: false (default)
 ```
 
 ### Explicit Control with `.meta()`
@@ -227,15 +232,16 @@ Override defaults with metadata:
 
 ```typescript
 // Disable file resolution for complex type
-z.object({}).meta({ fileCheck: false })
+z.object({}).meta({ fileCheck: false });
 
 // Enable file resolution for primitive
-z.string().meta({ fileCheck: true })
+z.string().meta({ fileCheck: true });
 ```
 
 ### File Path Detection
 
 A string is treated as a file path if it:
+
 - Starts with `./` or `../` (relative paths)
 - Starts with `/` (absolute Unix paths)
 - Matches `C:\` pattern (Windows paths)

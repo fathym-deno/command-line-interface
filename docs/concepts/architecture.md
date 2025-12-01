@@ -70,18 +70,19 @@ The CLI framework provides a modular, extensible architecture for building comma
 The `CLI` class is the main entry point and orchestrator:
 
 ```typescript
-import { CLI } from '@fathym/cli';
+import { CLI } from "@fathym/cli";
 
 const cli = new CLI({
-  name: 'mycli',
-  version: '1.0.0',
-  config: import.meta.resolve('./.cli.json'),
+  name: "mycli",
+  version: "1.0.0",
+  config: import.meta.resolve("./.cli.json"),
 });
 
 await cli.Run(Deno.args);
 ```
 
 Responsibilities:
+
 - Initialize IoC container with default services
 - Set up DFS context manager
 - Coordinate command discovery and resolution
@@ -100,6 +101,7 @@ const resolver = new ProgrammaticCLICommandResolver(commandMap);
 ```
 
 Resolution strategies:
+
 1. **DFS-based**: Loads from filesystem using DFS handler
 2. **Programmatic**: Uses in-memory command registry
 3. **Composite**: Combines multiple resolvers
@@ -114,6 +116,7 @@ The `CLICommandMatcher` resolves a command key to a registered command:
 ```
 
 Matching rules:
+
 - Exact key match first
 - Command group patterns (e.g., `git commit` → `git/commit`)
 - Fallback to help command
@@ -128,6 +131,7 @@ The `CLICommandInvocationParser` extracts arguments and flags from argv:
 ```
 
 Parsing features:
+
 - Positional arguments
 - Boolean flags (`--flag`)
 - Value flags (`--key=value` or `--key value`)
@@ -193,6 +197,7 @@ User Input → Parser → Matcher → Resolver → Executor → Command → Outp
 ### Custom Commands
 
 Commands can be added via:
+
 1. **Fluent API**: `Command('name', 'desc').Run(...)`
 2. **Class extension**: `class MyCmd extends CommandRuntime`
 3. **Programmatic registration**: `resolver.Register('key', command)`
@@ -200,6 +205,7 @@ Commands can be added via:
 ### Custom Services
 
 Services are injected via IoC:
+
 1. **Config-based**: Define in `.cli.json` ioc section
 2. **Code-based**: Register in command's `Services()` method
 3. **Symbol-based**: Use IoC symbols for interfaces
@@ -207,6 +213,7 @@ Services are injected via IoC:
 ### Custom DFS Handlers
 
 File operations use pluggable DFS handlers:
+
 1. **Local**: `LocalDFSFileHandler` for filesystem
 2. **Memory**: `MemoryDFSFileHandler` for testing
 3. **Remote**: `RemoteFetchDFSFileHandler` for HTTP
@@ -252,11 +259,11 @@ For multiple command sources with prefixes:
 
 ### Environment Variables
 
-| Variable | Purpose |
-|----------|---------|
-| `LOG_LEVEL` | Set logging verbosity (debug, info, warn, error) |
-| `CLI_DRY_RUN` | Enable dry-run mode globally |
-| `NO_COLOR` | Disable colored output |
+| Variable      | Purpose                                          |
+| ------------- | ------------------------------------------------ |
+| `LOG_LEVEL`   | Set logging verbosity (debug, info, warn, error) |
+| `CLI_DRY_RUN` | Enable dry-run mode globally                     |
+| `NO_COLOR`    | Disable colored output                           |
 
 ## Related
 

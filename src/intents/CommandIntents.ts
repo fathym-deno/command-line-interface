@@ -1,9 +1,9 @@
 // CommandIntents.ts
-import type { CommandModule } from '../commands/CommandModule.ts';
-import type { CommandParams } from '../commands/CommandParams.ts';
-import type { CommandInvokerMap } from '../commands/CommandContext.ts';
-import { CommandIntentsBuilder } from './CommandIntentsBuilder.ts';
-import { CommandModuleBuilder } from '../fluent/CommandModuleBuilder.ts';
+import type { CommandModule } from "../commands/CommandModule.ts";
+import type { CommandParams } from "../commands/CommandParams.ts";
+import type { CommandInvokerMap } from "../commands/CommandContext.ts";
+import { CommandIntentsBuilder } from "./CommandIntentsBuilder.ts";
+import { CommandModuleBuilder } from "../fluent/CommandModuleBuilder.ts";
 
 /**
  * Factory function for creating a suite-based command test.
@@ -37,5 +37,9 @@ export function CommandIntents<
     command = command.Build() as CommandModule<A, F, P, S, C>;
   }
 
-  return new CommandIntentsBuilder<A, F, P, S, C>(suiteName, command, cliConfigUrl);
+  return new CommandIntentsBuilder<A, F, P, S, C>(
+    suiteName,
+    command,
+    cliConfigUrl,
+  );
 }

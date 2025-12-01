@@ -1,1 +1,1 @@
-import './cli/.tests.ts';
+import "./cli/.tests.ts";

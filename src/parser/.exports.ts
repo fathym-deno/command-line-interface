@@ -1,1 +1,1 @@
-export * from './CLICommandInvocationParser.ts';
+export * from "./CLICommandInvocationParser.ts";

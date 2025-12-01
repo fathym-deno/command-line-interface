@@ -1,1 +1,1 @@
-import './TemplateScaffolder.tests.ts';
+import "./TemplateScaffolder.tests.ts";

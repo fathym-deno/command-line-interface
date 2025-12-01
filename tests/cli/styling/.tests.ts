@@ -1,1 +1,1 @@
-import './UpdateInline.tests.ts';
+import "./UpdateInline.tests.ts";

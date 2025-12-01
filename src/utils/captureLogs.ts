@@ -1,4 +1,4 @@
-import type { WriterSync } from '../.deps.ts';
+import type { WriterSync } from "../.deps.ts";
 
 type TelemetryWriterGlobal = { __telemetryWriter?: WriterSync };
 
@@ -35,19 +35,27 @@ export function captureLogs(
   const originalWarn = console.warn;
 
   console.log = (...args: unknown[]) => {
-    writer.writeSync(encoder.encode(args.map((a) => String(a)).join(' ') + '\n'));
+    writer.writeSync(
+      encoder.encode(args.map((a) => String(a)).join(" ") + "\n"),
+    );
     if (useOrig) originalLog(...args);
   };
   console.info = (...args: unknown[]) => {
-    writer.writeSync(encoder.encode(args.map((a) => String(a)).join(' ') + '\n'));
+    writer.writeSync(
+      encoder.encode(args.map((a) => String(a)).join(" ") + "\n"),
+    );
     if (useOrig) originalInfo(...args);
   };
   console.warn = (...args: unknown[]) => {
-    writer.writeSync(encoder.encode(args.map((a) => String(a)).join(' ') + '\n'));
+    writer.writeSync(
+      encoder.encode(args.map((a) => String(a)).join(" ") + "\n"),
+    );
     if (useOrig) originalWarn(...args);
   };
   console.error = (...args: unknown[]) => {
-    writer.writeSync(encoder.encode(args.map((a) => String(a)).join(' ') + '\n'));
+    writer.writeSync(
+      encoder.encode(args.map((a) => String(a)).join(" ") + "\n"),
+    );
     if (useOrig) originalError(...args);
   };
 

@@ -1,4 +1,4 @@
-import type { CommandLog } from '../commands/CommandLog.ts';
+import type { CommandLog } from "../commands/CommandLog.ts";
 
 export async function runWithPassthroughLogs(
   cmd: Deno.Command,
@@ -18,10 +18,10 @@ export async function runWithPassthroughLogs(
   const stderr = await new Response(proc.stderr).text();
 
   if (stdout.trim()) {
-    log.Info(`${prefix ?? ''}${stdout.trim()}`);
+    log.Info(`${prefix ?? ""}${stdout.trim()}`);
   }
   if (stderr.trim()) {
-    log.Error(`${prefix ?? ''}${stderr.trim()}`);
+    log.Error(`${prefix ?? ""}${stderr.trim()}`);
   }
 
   if (!success && exitOnFail) {

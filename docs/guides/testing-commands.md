@@ -25,21 +25,31 @@ The CLI framework provides `CommandIntents` (suite-based) and `CommandIntent` (s
 **Use `CommandIntents` for most cases** - it provides better organization, shared setup, and groups related tests.
 
 ```typescript
-import { CommandIntents } from '@fathym/cli';
-import GreetCommand from '../commands/greet.ts';
-import initFn from '../.cli.init.ts';
+import { CommandIntents } from "@fathym/cli";
+import GreetCommand from "../commands/greet.ts";
+import initFn from "../.cli.init.ts";
 
-const cmd = GreetCommand.Build();  // Important: call .Build()
-const configPath = import.meta.resolve('../.cli.json');
+const cmd = GreetCommand.Build(); // Important: call .Build()
+const configPath = import.meta.resolve("../.cli.json");
 
-CommandIntents('Greet Command', cmd, configPath)
+CommandIntents("Greet Command", cmd, configPath)
   .WithInit(initFn)
-  .Intent('greets with default name', (int) =>
-    int.Args([undefined]).Flags({}).ExpectLogs('Hello, World!').ExpectExit(0))
-  .Intent('greets by name', (int) =>
-    int.Args(['Alice']).Flags({}).ExpectLogs('Hello, Alice!').ExpectExit(0))
-  .Intent('greets loudly', (int) =>
-    int.Args(['World']).Flags({ loud: true }).ExpectLogs('HELLO, WORLD!').ExpectExit(0))
+  .Intent(
+    "greets with default name",
+    (int) =>
+      int.Args([undefined]).Flags({}).ExpectLogs("Hello, World!").ExpectExit(0),
+  )
+  .Intent(
+    "greets by name",
+    (int) =>
+      int.Args(["Alice"]).Flags({}).ExpectLogs("Hello, Alice!").ExpectExit(0),
+  )
+  .Intent(
+    "greets loudly",
+    (int) =>
+      int.Args(["World"]).Flags({ loud: true }).ExpectLogs("HELLO, WORLD!")
+        .ExpectExit(0),
+  )
   .Run();
 ```
 
@@ -70,8 +80,8 @@ Create `tests/.tests.ts`:
 
 ```typescript
 // Import all intent test files
-import './intents/greet.intents.ts';
-import './intents/deploy.intents.ts';
+import "./intents/greet.intents.ts";
+import "./intents/deploy.intents.ts";
 ```
 
 ### Deno Task
@@ -100,19 +110,25 @@ deno task test
 
 ```typescript
 // tests/intents/greet.intents.ts
-import { CommandIntents } from '@fathym/cli';
-import GreetCommand from '../../commands/greet.ts';
-import initFn from '../../.cli.init.ts';
+import { CommandIntents } from "@fathym/cli";
+import GreetCommand from "../../commands/greet.ts";
+import initFn from "../../.cli.init.ts";
 
 const cmd = GreetCommand.Build();
-const configPath = import.meta.resolve('../../.cli.json');
+const configPath = import.meta.resolve("../../.cli.json");
 
-CommandIntents('Greet Command', cmd, configPath)
+CommandIntents("Greet Command", cmd, configPath)
   .WithInit(initFn)
-  .Intent('greets with default', (int) =>
-    int.Args([undefined]).Flags({}).ExpectLogs('Hello, World!').ExpectExit(0))
-  .Intent('greets by name', (int) =>
-    int.Args(['Alice']).Flags({}).ExpectLogs('Hello, Alice!').ExpectExit(0))
+  .Intent(
+    "greets with default",
+    (int) =>
+      int.Args([undefined]).Flags({}).ExpectLogs("Hello, World!").ExpectExit(0),
+  )
+  .Intent(
+    "greets by name",
+    (int) =>
+      int.Args(["Alice"]).Flags({}).ExpectLogs("Hello, Alice!").ExpectExit(0),
+  )
   .Run();
 ```
 
@@ -121,36 +137,56 @@ CommandIntents('Greet Command', cmd, configPath)
 Use `.BeforeAll()` for setup that runs before all tests in the suite:
 
 ```typescript
-CommandIntents('Init Command', InitCommand.Build(), configPath)
+CommandIntents("Init Command", InitCommand.Build(), configPath)
   .WithInit(initFn)
   .BeforeAll(async () => {
     // Clean up temp directory before tests
-    await Deno.remove('./tests/.temp', { recursive: true }).catch(() => {});
+    await Deno.remove("./tests/.temp", { recursive: true }).catch(() => {});
   })
-  .Intent('creates project structure', (int) =>
-    int.Args(['my-project']).Flags({}).ExpectLogs('Project initialized!').ExpectExit(0))
-  .Intent('fails on existing directory', (int) =>
-    int.Args(['existing-project']).Flags({}).ExpectExit(1))
+  .Intent(
+    "creates project structure",
+    (int) =>
+      int.Args(["my-project"]).Flags({}).ExpectLogs("Project initialized!")
+        .ExpectExit(0),
+  )
+  .Intent(
+    "fails on existing directory",
+    (int) => int.Args(["existing-project"]).Flags({}).ExpectExit(1),
+  )
   .Run();
 ```
 
 ### With Flags
 
 ```typescript
-CommandIntents('Deploy Command', DeployCommand.Build(), configPath)
+CommandIntents("Deploy Command", DeployCommand.Build(), configPath)
   .WithInit(initFn)
-  .Intent('deploys to development by default', (int) =>
-    int.Args([]).Flags({}).ExpectLogs('Deploying to development...').ExpectExit(0))
-  .Intent('deploys to staging', (int) =>
-    int.Args([]).Flags({ env: 'staging' }).ExpectLogs('Deploying to staging...').ExpectExit(0))
-  .Intent('deploys to production with force', (int) =>
+  .Intent(
+    "deploys to development by default",
+    (int) =>
+      int.Args([]).Flags({}).ExpectLogs("Deploying to development...")
+        .ExpectExit(0),
+  )
+  .Intent(
+    "deploys to staging",
+    (int) =>
+      int.Args([]).Flags({ env: "staging" }).ExpectLogs(
+        "Deploying to staging...",
+      ).ExpectExit(0),
+  )
+  .Intent("deploys to production with force", (int) =>
     int
       .Args([])
-      .Flags({ env: 'production', force: true })
-      .ExpectLogs('Deploying to production...', 'Deployment complete!')
+      .Flags({ env: "production", force: true })
+      .ExpectLogs("Deploying to production...", "Deployment complete!")
       .ExpectExit(0))
-  .Intent('sets replica count', (int) =>
-    int.Args([]).Flags({ replicas: 3 }).ExpectLogs('Replicas: 3').ExpectExit(0))
+  .Intent(
+    "sets replica count",
+    (int) =>
+      int.Args([]).Flags({ replicas: 3 }).ExpectLogs("Replicas: 3").ExpectExit(
+        0,
+      ),
+  )
   .Run();
 ```
 
@@ -159,14 +195,22 @@ CommandIntents('Deploy Command', DeployCommand.Build(), configPath)
 Test failure scenarios using `ExpectExit(1)`:
 
 ```typescript
-CommandIntents('Validate Command', ValidateCommand.Build(), configPath)
+CommandIntents("Validate Command", ValidateCommand.Build(), configPath)
   .WithInit(initFn)
-  .Intent('succeeds with valid input', (int) =>
-    int.Args(['valid-input']).Flags({}).ExpectLogs('Validation passed').ExpectExit(0))
-  .Intent('fails with empty input', (int) =>
-    int.Args(['']).Flags({}).ExpectExit(1))
-  .Intent('fails with invalid format', (int) =>
-    int.Args(['invalid@#$']).Flags({}).ExpectExit(1))
+  .Intent(
+    "succeeds with valid input",
+    (int) =>
+      int.Args(["valid-input"]).Flags({}).ExpectLogs("Validation passed")
+        .ExpectExit(0),
+  )
+  .Intent(
+    "fails with empty input",
+    (int) => int.Args([""]).Flags({}).ExpectExit(1),
+  )
+  .Intent(
+    "fails with invalid format",
+    (int) => int.Args(["invalid@#$"]).Flags({}).ExpectExit(1),
+  )
   .Run();
 ```
 
@@ -177,15 +221,15 @@ CommandIntents('Validate Command', ValidateCommand.Build(), configPath)
 Use `CommandIntent` when you only need one test case:
 
 ```typescript
-import { CommandIntent } from '@fathym/cli';
-import VersionCommand from '../../commands/version.ts';
+import { CommandIntent } from "@fathym/cli";
+import VersionCommand from "../../commands/version.ts";
 
-const configPath = import.meta.resolve('../../.cli.json');
+const configPath = import.meta.resolve("../../.cli.json");
 
-CommandIntent('shows version info', VersionCommand.Build(), configPath)
+CommandIntent("shows version info", VersionCommand.Build(), configPath)
   .Args([])
   .Flags({})
-  .ExpectLogs('v1.0.0')
+  .ExpectLogs("v1.0.0")
   .ExpectExit(0)
   .Run();
 ```
@@ -237,31 +281,38 @@ Multiple messages are checked in sequence within the log output.
 ### Testing Default Values
 
 ```typescript
-CommandIntents('Serve Command', ServeCommand.Build(), configPath)
+CommandIntents("Serve Command", ServeCommand.Build(), configPath)
   .WithInit(initFn)
-  .Intent('uses default port', (int) =>
-    int.Args([]).Flags({}).ExpectLogs('Starting on port 3000').ExpectExit(0))
-  .Intent('uses custom port', (int) =>
-    int.Args([]).Flags({ port: 8080 }).ExpectLogs('Starting on port 8080').ExpectExit(0))
+  .Intent(
+    "uses default port",
+    (int) =>
+      int.Args([]).Flags({}).ExpectLogs("Starting on port 3000").ExpectExit(0),
+  )
+  .Intent(
+    "uses custom port",
+    (int) =>
+      int.Args([]).Flags({ port: 8080 }).ExpectLogs("Starting on port 8080")
+        .ExpectExit(0),
+  )
   .Run();
 ```
 
 ### Testing Dry Run
 
 ```typescript
-CommandIntents('Delete Command', DeleteCommand.Build(), configPath)
+CommandIntents("Delete Command", DeleteCommand.Build(), configPath)
   .WithInit(initFn)
-  .Intent('dry run shows preview', (int) =>
+  .Intent("dry run shows preview", (int) =>
     int
-      .Args(['important-file.txt'])
+      .Args(["important-file.txt"])
       .Flags({ dryRun: true })
-      .ExpectLogs('Would delete: important-file.txt')
+      .ExpectLogs("Would delete: important-file.txt")
       .ExpectExit(0))
-  .Intent('actually deletes', (int) =>
+  .Intent("actually deletes", (int) =>
     int
-      .Args(['temp-file.txt'])
+      .Args(["temp-file.txt"])
       .Flags({})
-      .ExpectLogs('Deleted: temp-file.txt')
+      .ExpectLogs("Deleted: temp-file.txt")
       .ExpectExit(0))
   .Run();
 ```
@@ -270,18 +321,28 @@ CommandIntents('Delete Command', DeleteCommand.Build(), configPath)
 
 ```typescript
 // Test each command in a group separately
-CommandIntents('Db Migrate Command', DbMigrateCommand.Build(), configPath)
+CommandIntents("Db Migrate Command", DbMigrateCommand.Build(), configPath)
   .WithInit(initFn)
-  .Intent('runs migrations', (int) =>
-    int.Args([]).Flags({ steps: 5 }).ExpectLogs('Running 5 migrations').ExpectExit(0))
-  .Intent('runs all migrations by default', (int) =>
-    int.Args([]).Flags({}).ExpectLogs('Running all migrations').ExpectExit(0))
+  .Intent(
+    "runs migrations",
+    (int) =>
+      int.Args([]).Flags({ steps: 5 }).ExpectLogs("Running 5 migrations")
+        .ExpectExit(0),
+  )
+  .Intent(
+    "runs all migrations by default",
+    (int) =>
+      int.Args([]).Flags({}).ExpectLogs("Running all migrations").ExpectExit(0),
+  )
   .Run();
 
-CommandIntents('Db Seed Command', DbSeedCommand.Build(), configPath)
+CommandIntents("Db Seed Command", DbSeedCommand.Build(), configPath)
   .WithInit(initFn)
-  .Intent('seeds database', (int) =>
-    int.Args([]).Flags({}).ExpectLogs('Seeding database').ExpectExit(0))
+  .Intent(
+    "seeds database",
+    (int) =>
+      int.Args([]).Flags({}).ExpectLogs("Seeding database").ExpectExit(0),
+  )
   .Run();
 ```
 
@@ -321,15 +382,15 @@ tests/intents/
 ```typescript
 // tests/.tests.ts
 // Group by feature
-import './intents/auth/login.intents.ts';
-import './intents/auth/logout.intents.ts';
-import './intents/auth/register.intents.ts';
+import "./intents/auth/login.intents.ts";
+import "./intents/auth/logout.intents.ts";
+import "./intents/auth/register.intents.ts";
 
-import './intents/deploy/deploy.intents.ts';
-import './intents/deploy/rollback.intents.ts';
+import "./intents/deploy/deploy.intents.ts";
+import "./intents/deploy/rollback.intents.ts";
 
-import './intents/config/get.intents.ts';
-import './intents/config/set.intents.ts';
+import "./intents/config/get.intents.ts";
+import "./intents/config/set.intents.ts";
 ```
 
 ---
@@ -338,67 +399,69 @@ import './intents/config/set.intents.ts';
 
 ```typescript
 // tests/intents/deploy.intents.ts
-import { CommandIntents } from '@fathym/cli';
-import DeployCommand from '../../commands/deploy.ts';
-import initFn from '../../.cli.init.ts';
+import { CommandIntents } from "@fathym/cli";
+import DeployCommand from "../../commands/deploy.ts";
+import initFn from "../../.cli.init.ts";
 
 const cmd = DeployCommand.Build();
-const configPath = import.meta.resolve('../../.cli.json');
+const configPath = import.meta.resolve("../../.cli.json");
 
-CommandIntents('Deploy Command', cmd, configPath)
+CommandIntents("Deploy Command", cmd, configPath)
   .WithInit(initFn)
   .BeforeAll(async () => {
     // Setup: ensure clean state
-    await Deno.remove('./tests/.deploy-temp', { recursive: true }).catch(() => {});
+    await Deno.remove("./tests/.deploy-temp", { recursive: true }).catch(
+      () => {},
+    );
   })
   // Happy path tests
-  .Intent('deploys to development by default', (int) =>
+  .Intent("deploys to development by default", (int) =>
     int
       .Args([])
       .Flags({})
-      .ExpectLogs('Deploying to development...')
+      .ExpectLogs("Deploying to development...")
       .ExpectExit(0))
-  .Intent('deploys to staging', (int) =>
+  .Intent("deploys to staging", (int) =>
     int
       .Args([])
-      .Flags({ env: 'staging' })
-      .ExpectLogs('Deploying to staging...')
+      .Flags({ env: "staging" })
+      .ExpectLogs("Deploying to staging...")
       .ExpectExit(0))
-  .Intent('deploys to production with force', (int) =>
+  .Intent("deploys to production with force", (int) =>
     int
       .Args([])
-      .Flags({ env: 'production', force: true })
-      .ExpectLogs('Deploying to production...', 'Deployment complete!')
+      .Flags({ env: "production", force: true })
+      .ExpectLogs("Deploying to production...", "Deployment complete!")
       .ExpectExit(0))
   // Dry run tests
-  .Intent('dry run shows changes', (int) =>
+  .Intent("dry run shows changes", (int) =>
     int
       .Args([])
-      .Flags({ env: 'staging', dryRun: true })
-      .ExpectLogs('Would deploy to staging')
+      .Flags({ env: "staging", dryRun: true })
+      .ExpectLogs("Would deploy to staging")
       .ExpectExit(0))
   // Error cases
-  .Intent('fails without confirmation for production', (int) =>
+  .Intent("fails without confirmation for production", (int) =>
     int
       .Args([])
-      .Flags({ env: 'production' })  // No force flag
+      .Flags({ env: "production" }) // No force flag
       .ExpectExit(1))
-  .Intent('fails with invalid environment', (int) =>
+  .Intent("fails with invalid environment", (int) =>
     int
       .Args([])
-      .Flags({ env: 'invalid' })
+      .Flags({ env: "invalid" })
       .ExpectExit(1))
   // Edge cases
-  .Intent('handles empty app name', (int) =>
+  .Intent("handles empty app name", (int) =>
     int
-      .Args([''])
+      .Args([""])
       .Flags({})
       .ExpectExit(1))
-  .Intent('handles special characters in app name', (int) =>
+  .Intent("handles special characters in app name", (int) =>
     int
-      .Args(['my-app_v2.0'])
+      .Args(["my-app_v2.0"])
       .Flags({})
-      .ExpectLogs('Deploying my-app_v2.0')
+      .ExpectLogs("Deploying my-app_v2.0")
       .ExpectExit(0))
   .Run();
 ```
@@ -407,41 +470,43 @@ CommandIntents('Deploy Command', cmd, configPath)
 
 ## Mocking Services
 
-The testing framework provides type-safe service mocking via `.WithServices()`. This enables
-isolated unit testing by replacing real services with test doubles.
+The testing framework provides type-safe service mocking via `.WithServices()`. This enables isolated unit testing by replacing real services with test doubles.
 
 ### Basic Service Mocking
 
 Mock services at the suite level to apply to all intents:
 
 ```typescript
-import { CommandIntents } from '@fathym/cli';
-import DeployCommand from '../../commands/deploy.ts';
+import { CommandIntents } from "@fathym/cli";
+import DeployCommand from "../../commands/deploy.ts";
 
 const cmd = DeployCommand.Build();
-const configPath = import.meta.resolve('../../.cli.json');
+const configPath = import.meta.resolve("../../.cli.json");
 
 // Create a mock deployer
 const mockDeployer = {
-  deploy: async (target: string) => ({ success: true, url: `https://${target}.example.com` }),
+  deploy: async (target: string) => ({
+    success: true,
+    url: `https://${target}.example.com`,
+  }),
   rollback: async () => {},
 };
 
-CommandIntents('Deploy Command', cmd, configPath)
+CommandIntents("Deploy Command", cmd, configPath)
   .WithServices({
-    deployer: mockDeployer,  // Applied to all intents
+    deployer: mockDeployer, // Applied to all intents
   })
-  .Intent('deploys to staging', (int) =>
+  .Intent("deploys to staging", (int) =>
     int
-      .Args(['staging'])
+      .Args(["staging"])
       .Flags({})
-      .ExpectLogs('Deployed to https://staging.example.com')
+      .ExpectLogs("Deployed to https://staging.example.com")
       .ExpectExit(0))
-  .Intent('deploys to production', (int) =>
+  .Intent("deploys to production", (int) =>
     int
-      .Args(['production'])
+      .Args(["production"])
       .Flags({})
-      .ExpectLogs('Deployed to https://production.example.com')
+      .ExpectLogs("Deployed to https://production.example.com")
       .ExpectExit(0))
   .Run();
 ```
@@ -451,36 +516,40 @@ CommandIntents('Deploy Command', cmd, configPath)
 Override suite-level mocks for specific test cases:
 
 ```typescript
-CommandIntents('Deploy Scenarios', DeployCommand.Build(), configPath)
+CommandIntents("Deploy Scenarios", DeployCommand.Build(), configPath)
   .WithServices({
-    deployer: successfulDeployer,  // Default: success
+    deployer: successfulDeployer, // Default: success
   })
-  .Intent('handles successful deployment', (int) =>
+  .Intent("handles successful deployment", (int) =>
     int
-      .Args(['staging'])
-      .ExpectLogs('Deployment successful')
+      .Args(["staging"])
+      .ExpectLogs("Deployment successful")
       .ExpectExit(0))
-  .Intent('handles deployment failure', (int) =>
+  .Intent("handles deployment failure", (int) =>
     int
       .WithServices({
         deployer: {
-          deploy: async () => { throw new Error('Connection timeout'); },
+          deploy: async () => {
+            throw new Error("Connection timeout");
+          },
         },
-      })  // Override with failing mock
-      .Args(['staging'])
-      .ExpectLogs('Connection timeout')
+      }) // Override with failing mock
+      .Args(["staging"])
+      .ExpectLogs("Connection timeout")
       .ExpectExit(1))
-  .Intent('handles rollback', (int) =>
+  .Intent("handles rollback", (int) =>
     int
       .WithServices({
         deployer: {
           deploy: async () => ({ success: true }),
-          rollback: async () => { throw new Error('Rollback failed'); },
+          rollback: async () => {
+            throw new Error("Rollback failed");
+          },
         },
       })
-      .Args(['staging'])
+      .Args(["staging"])
       .Flags({ rollbackOnFail: true })
-      .ExpectLogs('Rollback failed')
+      .ExpectLogs("Rollback failed")
       .ExpectExit(1))
   .Run();
 ```
@@ -490,14 +559,16 @@ CommandIntents('Deploy Scenarios', DeployCommand.Build(), configPath)
 Mock only the services you need. Other services use real implementations:
 
 ```typescript
-CommandIntents('Deploy with Partial Mocks', DeployCommand.Build(), configPath)
-  .WithInit(initFn)  // Registers real services
+CommandIntents("Deploy with Partial Mocks", DeployCommand.Build(), configPath)
+  .WithInit(initFn) // Registers real services
   .WithServices({
-    deployer: mockDeployer,  // Only mock the deployer
+    deployer: mockDeployer, // Only mock the deployer
     // config, logger, etc. use real implementations from initFn
   })
-  .Intent('uses mock deployer with real config', (int) =>
-    int.Args(['staging']).ExpectExit(0))
+  .Intent(
+    "uses mock deployer with real config",
+    (int) => int.Args(["staging"]).ExpectExit(0),
+  )
   .Run();
 ```
 
@@ -507,21 +578,21 @@ Service types are inferred from the command's `.Services()` definition:
 
 ```typescript
 // In your command
-export default Command('deploy', 'Deploy application')
+export default Command("deploy", "Deploy application")
   .Params(DeployParams)
   .Services(async (ctx, ioc) => ({
-    deployer: await ioc.Resolve<DeployerService>(ioc.Symbol('Deployer')),
-    config: await ioc.Resolve<ConfigService>(ioc.Symbol('Config')),
+    deployer: await ioc.Resolve<DeployerService>(ioc.Symbol("Deployer")),
+    config: await ioc.Resolve<ConfigService>(ioc.Symbol("Config")),
   }))
   .Run(({ Services }) => {
     // Services.deployer and Services.config are typed
   });
 
 // In tests - TypeScript validates mock shapes
-CommandIntent('deploys', DeployCommand.Build(), configPath)
+CommandIntent("deploys", DeployCommand.Build(), configPath)
   .WithServices({
     deployer: {
-      deploy: async (t) => ({ success: true }),  // Must match DeployerService shape
+      deploy: async (t) => ({ success: true }), // Must match DeployerService shape
     },
   })
   .ExpectExit(0)
@@ -541,20 +612,24 @@ const trackingMock = {
   },
 };
 
-CommandIntents('Deploy Tracking', DeployCommand.Build(), configPath)
+CommandIntents("Deploy Tracking", DeployCommand.Build(), configPath)
   .BeforeAll(() => {
-    deploymentHistory.length = 0;  // Reset before each suite run
+    deploymentHistory.length = 0; // Reset before each suite run
   })
   .WithServices({ deployer: trackingMock })
-  .Intent('tracks staging deployment', (int) =>
-    int.Args(['staging']).ExpectExit(0))
-  .Intent('tracks production deployment', (int) =>
-    int.Args(['production']).ExpectExit(0))
+  .Intent(
+    "tracks staging deployment",
+    (int) => int.Args(["staging"]).ExpectExit(0),
+  )
+  .Intent(
+    "tracks production deployment",
+    (int) => int.Args(["production"]).ExpectExit(0),
+  )
   .Run();
 
 // Verify calls after tests
-Deno.test('deployment history', () => {
-  assertEquals(deploymentHistory, ['staging', 'production']);
+Deno.test("deployment history", () => {
+  assertEquals(deploymentHistory, ["staging", "production"]);
 });
 ```
 
@@ -564,18 +639,24 @@ Deno.test('deployment history', () => {
 
 ```typescript
 const successMock = {
-  execute: async () => ({ status: 'ok' }),
+  execute: async () => ({ status: "ok" }),
 };
 
 const failureMock = {
-  execute: async () => { throw new Error('Operation failed'); },
+  execute: async () => {
+    throw new Error("Operation failed");
+  },
 };
 
-CommandIntents('Error Handling', MyCommand.Build(), configPath)
-  .Intent('handles success', (int) =>
-    int.WithServices({ api: successMock }).ExpectExit(0))
-  .Intent('handles failure', (int) =>
-    int.WithServices({ api: failureMock }).ExpectExit(1))
+CommandIntents("Error Handling", MyCommand.Build(), configPath)
+  .Intent(
+    "handles success",
+    (int) => int.WithServices({ api: successMock }).ExpectExit(0),
+  )
+  .Intent(
+    "handles failure",
+    (int) => int.WithServices({ api: failureMock }).ExpectExit(1),
+  )
   .Run();
 ```
 
@@ -586,16 +667,22 @@ let callCount = 0;
 const retriableMock = {
   execute: async () => {
     callCount++;
-    if (callCount < 3) throw new Error('Temporary failure');
-    return { status: 'ok' };
+    if (callCount < 3) throw new Error("Temporary failure");
+    return { status: "ok" };
   },
 };
 
-CommandIntents('Retry Logic', RetryCommand.Build(), configPath)
-  .BeforeAll(() => { callCount = 0; })
+CommandIntents("Retry Logic", RetryCommand.Build(), configPath)
+  .BeforeAll(() => {
+    callCount = 0;
+  })
   .WithServices({ api: retriableMock })
-  .Intent('succeeds after retries', (int) =>
-    int.Flags({ maxRetries: 3 }).ExpectLogs('Succeeded after 3 attempts').ExpectExit(0))
+  .Intent(
+    "succeeds after retries",
+    (int) =>
+      int.Flags({ maxRetries: 3 }).ExpectLogs("Succeeded after 3 attempts")
+        .ExpectExit(0),
+  )
   .Run();
 ```
 
@@ -625,12 +712,12 @@ deno test -A --allow-env ./tests/.tests.ts
 
 ## When to Use Each API
 
-| Scenario | API | Reason |
-|----------|-----|--------|
-| Multiple tests for one command | `CommandIntents` | Shared setup, organized suite |
-| Single smoke test | `CommandIntent` | Simple, standalone |
+| Scenario                         | API              | Reason                           |
+| -------------------------------- | ---------------- | -------------------------------- |
+| Multiple tests for one command   | `CommandIntents` | Shared setup, organized suite    |
+| Single smoke test                | `CommandIntent`  | Simple, standalone               |
 | Tests need shared initialization | `CommandIntents` | `.WithInit()` and `.BeforeAll()` |
-| Quick sanity check | `CommandIntent` | Minimal boilerplate |
+| Quick sanity check               | `CommandIntent`  | Minimal boilerplate              |
 
 ---
 

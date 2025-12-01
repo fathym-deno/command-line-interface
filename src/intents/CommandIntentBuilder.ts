@@ -1,8 +1,8 @@
-import type { CommandModule } from '../commands/CommandModule.ts';
-import type { CommandParams } from '../commands/CommandParams.ts';
-import type { CommandInvokerMap } from '../commands/CommandContext.ts';
-import { CommandIntentRuntime } from './CommandIntentRuntime.ts';
-import type { CLIInitFn } from '../types/CLIInitFn.ts';
+import type { CommandModule } from "../commands/CommandModule.ts";
+import type { CommandParams } from "../commands/CommandParams.ts";
+import type { CommandInvokerMap } from "../commands/CommandContext.ts";
+import { CommandIntentRuntime } from "./CommandIntentRuntime.ts";
+import type { CLIInitFn } from "../types/CLIInitFn.ts";
 
 /**
  * Builder for configuring a single command test intent.
@@ -66,7 +66,8 @@ export class CommandIntentBuilder<
   protected initFn?: CLIInitFn;
   protected mockServices: Partial<S> = {};
 
-  protected expectations: ((runner: CommandIntentRuntime<A, F, P, S, C>) => void)[] = [];
+  protected expectations:
+    ((runner: CommandIntentRuntime<A, F, P, S, C>) => void)[] = [];
 
   /**
    * Creates a new intent builder.
@@ -185,7 +186,7 @@ export class CommandIntentBuilder<
    *
    * @param step - Deno test step function
    */
-  public async RunStep(step: Deno.TestContext['step']): Promise<void> {
+  public async RunStep(step: Deno.TestContext["step"]): Promise<void> {
     await step(this.testName, async () => {
       await this.execute();
     });

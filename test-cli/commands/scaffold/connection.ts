@@ -1,7 +1,7 @@
-import { z } from '../../.deps.ts';
-import { Command } from '../../../src/fluent/Command.ts';
-import { CommandParams } from '../../../src/commands/CommandParams.ts';
-import { default as CloudCommand } from './cloud.ts';
+import { z } from "../../.deps.ts";
+import { Command } from "../../../src/fluent/Command.ts";
+import { CommandParams } from "../../../src/commands/CommandParams.ts";
+import { default as CloudCommand } from "./cloud.ts";
 
 export const FlagsSchema = z.object({});
 export const ArgsSchema = z.tuple([]);
@@ -13,7 +13,7 @@ export class ConnectionCommandParams extends CommandParams<
   // Add getters here when flags/args grow
 }
 
-export default Command('Scaffold Connection', 'Generate a new connection file.')
+export default Command("Scaffold Connection", "Generate a new connection file.")
   .Args(ArgsSchema)
   .Flags(FlagsSchema)
   .Params(ConnectionCommandParams)
@@ -22,8 +22,8 @@ export default Command('Scaffold Connection', 'Generate a new connection file.')
   })
   .Run(({ Log, Commands }) => {
     Commands!.cloud([], {
-      name: 'hello',
+      name: "hello",
     });
 
-    Log.Info('🔧 Scaffolding connection...');
+    Log.Info("🔧 Scaffolding connection...");
   });

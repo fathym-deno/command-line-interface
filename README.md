@@ -66,7 +66,7 @@ const FlagsSchema = z.object({
   name: z.string(),
 });
 
-Command('deploy', 'Deploy application')
+Command("deploy", "Deploy application")
   .Flags(FlagsSchema)
   .Validate(async ({ Params, RootValidate }) => {
     const result = await RootValidate();
@@ -75,7 +75,7 @@ Command('deploy', 'Deploy application')
     return { success: true };
   })
   .Run(async ({ Params }) => {
-    const config = Params.Flag('config'); // Already parsed object!
+    const config = Params.Flag("config"); // Already parsed object!
   })
   .Build();
 ```

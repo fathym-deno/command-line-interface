@@ -1,8 +1,8 @@
-import type { CommandModule } from '../commands/CommandModule.ts';
-import type { CommandParams } from '../commands/CommandParams.ts';
-import type { CommandInvokerMap } from '../commands/CommandContext.ts';
-import { CommandModuleBuilder } from '../fluent/CommandModuleBuilder.ts';
-import { CommandIntentBuilder } from './CommandIntentBuilder.ts';
+import type { CommandModule } from "../commands/CommandModule.ts";
+import type { CommandParams } from "../commands/CommandParams.ts";
+import type { CommandInvokerMap } from "../commands/CommandContext.ts";
+import { CommandModuleBuilder } from "../fluent/CommandModuleBuilder.ts";
+import { CommandIntentBuilder } from "./CommandIntentBuilder.ts";
 
 /**
  * Factory function for creating a single command test intent.
@@ -29,9 +29,10 @@ export function CommandIntent<
   command: CommandModule<A, F, P, S, C> | CommandModuleBuilder<A, F, P, S, C>,
   commandFileUrl: string,
 ): CommandIntentBuilder<A, F, P, S, C> {
-  const mod: CommandModule<A, F, P, S, C> = command instanceof CommandModuleBuilder
-    ? command.Build() as CommandModule<A, F, P, S, C>
-    : command as CommandModule<A, F, P, S, C>;
+  const mod: CommandModule<A, F, P, S, C> =
+    command instanceof CommandModuleBuilder
+      ? command.Build() as CommandModule<A, F, P, S, C>
+      : command as CommandModule<A, F, P, S, C>;
 
   return new CommandIntentBuilder<A, F, P, S, C>(testName, mod, commandFileUrl);
 }

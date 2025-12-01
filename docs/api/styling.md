@@ -23,7 +23,7 @@ API reference for terminal text styling, inline updates, and ANSI color support.
 The styling module provides utilities for colored terminal output and in-place text updates during CLI operations.
 
 ```typescript
-import { UpdateInline, TextContent, StyleOptions } from '@fathym/cli';
+import { StyleOptions, TextContent, UpdateInline } from "@fathym/cli";
 ```
 
 ---
@@ -33,13 +33,13 @@ import { UpdateInline, TextContent, StyleOptions } from '@fathym/cli';
 Class for updating text in-place in the terminal. Useful for progress indicators, status updates, and spinners.
 
 ```typescript
-import { UpdateInline } from '@fathym/cli';
+import { UpdateInline } from "@fathym/cli";
 ```
 
 ### Constructor
 
 ```typescript
-new UpdateInline()
+new UpdateInline();
 ```
 
 Creates a new inline update controller.
@@ -54,8 +54,8 @@ Configure(options: UpdateInlineOptions | string): this
 
 Configure and render the inline text. If text already exists, clears the previous output first.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
+| Parameter | Type                            | Description                                |
+| --------- | ------------------------------- | ------------------------------------------ |
 | `options` | `UpdateInlineOptions \| string` | Configuration object or simple text string |
 
 **Returns:** `this` (for chaining)
@@ -64,19 +64,19 @@ Configure and render the inline text. If text already exists, clears the previou
 const inline = new UpdateInline();
 
 // Simple text
-inline.Configure('Loading...');
+inline.Configure("Loading...");
 
 // With options
 inline.Configure({
-  Text: 'Processing files...',
-  Styles: ['cyan', 'bold'],
-  PrefixText: '→',
+  Text: "Processing files...",
+  Styles: ["cyan", "bold"],
+  PrefixText: "→",
 });
 
 // Update in place
 inline.Configure({
-  Text: 'Complete!',
-  Styles: 'green',
+  Text: "Complete!",
+  Styles: "green",
 });
 ```
 
@@ -85,7 +85,7 @@ inline.Configure({
 #### LastInlined
 
 ```typescript
-LastInlined: string
+LastInlined: string;
 ```
 
 The last rendered text content.
@@ -97,25 +97,25 @@ The last rendered text content.
 Configuration options for `UpdateInline.Configure()`.
 
 ```typescript
-import type { UpdateInlineOptions } from '@fathym/cli';
+import type { UpdateInlineOptions } from "@fathym/cli";
 ```
 
-| Property | Type | Default | Description |
-|----------|------|---------|-------------|
-| `Text` | `string \| TextContent` | - | Main text to display |
-| `PrefixText` | `string \| TextContent` | - | Text before main content |
-| `SuffixText` | `string \| TextContent` | - | Text after main content |
-| `Styles` | `StyleOptions \| StyleOptions[]` | - | Styles to apply to first line |
-| `Spinner` | `boolean` | - | Enable spinner animation |
-| `Columns` | `number` | `100` | Maximum line width |
-| `LineSpacer` | `string` | `' '` | Separator between content parts |
-| `Writer` | `WriterSync` | `Deno.stderr` | Output writer |
+| Property     | Type                             | Default       | Description                     |
+| ------------ | -------------------------------- | ------------- | ------------------------------- |
+| `Text`       | `string \| TextContent`          | -             | Main text to display            |
+| `PrefixText` | `string \| TextContent`          | -             | Text before main content        |
+| `SuffixText` | `string \| TextContent`          | -             | Text after main content         |
+| `Styles`     | `StyleOptions \| StyleOptions[]` | -             | Styles to apply to first line   |
+| `Spinner`    | `boolean`                        | -             | Enable spinner animation        |
+| `Columns`    | `number`                         | `100`         | Maximum line width              |
+| `LineSpacer` | `string`                         | `' '`         | Separator between content parts |
+| `Writer`     | `WriterSync`                     | `Deno.stderr` | Output writer                   |
 
 ```typescript
 inline.Configure({
-  PrefixText: '✓',
-  Text: 'Task completed',
-  Styles: ['green', 'bold'],
+  PrefixText: "✓",
+  Text: "Task completed",
+  Styles: ["green", "bold"],
   Columns: 80,
 });
 ```
@@ -127,7 +127,7 @@ inline.Configure({
 Type for styled text segments.
 
 ```typescript
-import type { TextContent } from '@fathym/cli';
+import type { TextContent } from "@fathym/cli";
 ```
 
 ```typescript
@@ -144,9 +144,9 @@ type TextContent = {
 
 ```typescript
 inline.Configure({
-  PrefixText: { Text: '→', Styles: 'cyan' },
-  Text: { Text: 'Building project', Styles: ['white', 'bold'] },
-  SuffixText: { Text: '(3/10)', Styles: 'dim' },
+  PrefixText: { Text: "→", Styles: "cyan" },
+  Text: { Text: "Building project", Styles: ["white", "bold"] },
+  SuffixText: { Text: "(3/10)", Styles: "dim" },
 });
 ```
 
@@ -157,46 +157,46 @@ inline.Configure({
 Available text styling options. Based on Deno's `std/fmt/colors` module.
 
 ```typescript
-import type { StyleOptions, StyleKeys, RGBStyleOptions } from '@fathym/cli';
+import type { RGBStyleOptions, StyleKeys, StyleOptions } from "@fathym/cli";
 ```
 
 ### Basic Styles
 
-| Style | Description |
-|-------|-------------|
-| `bold` | Bold text |
-| `dim` | Dimmed/faint text |
-| `italic` | Italic text |
-| `underline` | Underlined text |
-| `inverse` | Inverted colors |
-| `hidden` | Hidden text |
+| Style           | Description        |
+| --------------- | ------------------ |
+| `bold`          | Bold text          |
+| `dim`           | Dimmed/faint text  |
+| `italic`        | Italic text        |
+| `underline`     | Underlined text    |
+| `inverse`       | Inverted colors    |
+| `hidden`        | Hidden text        |
 | `strikethrough` | Strikethrough text |
 
 ### Foreground Colors
 
-| Color | Bright Variant |
-|-------|----------------|
-| `black` | `brightBlack` |
-| `red` | `brightRed` |
-| `green` | `brightGreen` |
-| `yellow` | `brightYellow` |
-| `blue` | `brightBlue` |
+| Color     | Bright Variant  |
+| --------- | --------------- |
+| `black`   | `brightBlack`   |
+| `red`     | `brightRed`     |
+| `green`   | `brightGreen`   |
+| `yellow`  | `brightYellow`  |
+| `blue`    | `brightBlue`    |
 | `magenta` | `brightMagenta` |
-| `cyan` | `brightCyan` |
-| `white` | `brightWhite` |
+| `cyan`    | `brightCyan`    |
+| `white`   | `brightWhite`   |
 
 ### Background Colors
 
-| Color | Bright Variant |
-|-------|----------------|
-| `bgBlack` | `bgBrightBlack` |
-| `bgRed` | `bgBrightRed` |
-| `bgGreen` | `bgBrightGreen` |
-| `bgYellow` | `bgBrightYellow` |
-| `bgBlue` | `bgBrightBlue` |
+| Color       | Bright Variant    |
+| ----------- | ----------------- |
+| `bgBlack`   | `bgBrightBlack`   |
+| `bgRed`     | `bgBrightRed`     |
+| `bgGreen`   | `bgBrightGreen`   |
+| `bgYellow`  | `bgBrightYellow`  |
+| `bgBlue`    | `bgBrightBlue`    |
 | `bgMagenta` | `bgBrightMagenta` |
-| `bgCyan` | `bgBrightCyan` |
-| `bgWhite` | `bgBrightWhite` |
+| `bgCyan`    | `bgBrightCyan`    |
+| `bgWhite`   | `bgBrightWhite`   |
 
 ### RGB Colors
 
@@ -217,20 +217,20 @@ type BgRGB8 = `bgRgb8:${number}`;
 ```typescript
 // 24-bit custom color
 inline.Configure({
-  Text: 'Custom color',
-  Styles: 'rgb24:255:128:0',  // Orange
+  Text: "Custom color",
+  Styles: "rgb24:255:128:0", // Orange
 });
 
 // 8-bit color palette
 inline.Configure({
-  Text: 'Palette color',
-  Styles: 'rgb8:196',  // Red from 256-color palette
+  Text: "Palette color",
+  Styles: "rgb8:196", // Red from 256-color palette
 });
 
 // Background color
 inline.Configure({
-  Text: 'Highlighted',
-  Styles: 'bgRgb24:50:50:50',
+  Text: "Highlighted",
+  Styles: "bgRgb24:50:50:50",
 });
 ```
 
@@ -246,9 +246,9 @@ const progress = new UpdateInline();
 for (let i = 0; i <= 100; i += 10) {
   progress.Configure({
     Text: `Processing: ${i}%`,
-    Styles: i === 100 ? 'green' : 'cyan',
+    Styles: i === 100 ? "green" : "cyan",
   });
-  await new Promise(r => setTimeout(r, 100));
+  await new Promise((r) => setTimeout(r, 100));
 }
 ```
 
@@ -258,16 +258,16 @@ for (let i = 0; i <= 100; i += 10) {
 const status = new UpdateInline();
 
 status.Configure({
-  PrefixText: '⏳',
-  Text: 'Connecting...',
-  Styles: 'yellow',
+  PrefixText: "⏳",
+  Text: "Connecting...",
+  Styles: "yellow",
 });
 
 // After connection
 status.Configure({
-  PrefixText: '✓',
-  Text: 'Connected',
-  Styles: 'green',
+  PrefixText: "✓",
+  Text: "Connected",
+  Styles: "green",
 });
 ```
 
@@ -275,9 +275,9 @@ status.Configure({
 
 ```typescript
 inline.Configure({
-  PrefixText: { Text: '[INFO]', Styles: ['cyan', 'bold'] },
-  Text: { Text: 'Operation completed successfully', Styles: 'white' },
-  SuffixText: { Text: '(2.3s)', Styles: 'dim' },
+  PrefixText: { Text: "[INFO]", Styles: ["cyan", "bold"] },
+  Text: { Text: "Operation completed successfully", Styles: "white" },
+  SuffixText: { Text: "(2.3s)", Styles: "dim" },
 });
 ```
 

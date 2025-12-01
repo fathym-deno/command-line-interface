@@ -1,13 +1,19 @@
-import { type DFSFileHandler, exists, join, resolve, toFileUrl } from '../.deps.ts';
-import type { CLICommandEntry } from '../types/CLICommandEntry.ts';
-import type { CLICommandSource, CLIConfig } from '../types/CLIConfig.ts';
-import type { CommandModule } from '../commands/CommandModule.ts';
-import { CommandModuleBuilder } from '../fluent/CommandModuleBuilder.ts';
-import type { TemplateLocator } from '../templates/TemplateLocator.ts';
-import type { CLIFileSystemHooks } from '../CLIFileSystemHooks.ts';
-import type { CLIInitFn } from '../types/CLIInitFn.ts';
-import type { CLIDFSContextManager } from '../CLIDFSContextManager.ts';
-import { DFSTemplateLocator } from '../templates/DFSTemplateLocator.ts';
+import {
+  type DFSFileHandler,
+  exists,
+  join,
+  resolve,
+  toFileUrl,
+} from "../.deps.ts";
+import type { CLICommandEntry } from "../types/CLICommandEntry.ts";
+import type { CLICommandSource, CLIConfig } from "../types/CLIConfig.ts";
+import type { CommandModule } from "../commands/CommandModule.ts";
+import { CommandModuleBuilder } from "../fluent/CommandModuleBuilder.ts";
+import type { TemplateLocator } from "../templates/TemplateLocator.ts";
+import type { CLIFileSystemHooks } from "../CLIFileSystemHooks.ts";
+import type { CLIInitFn } from "../types/CLIInitFn.ts";
+import type { CLIDFSContextManager } from "../CLIDFSContextManager.ts";
+import { DFSTemplateLocator } from "../templates/DFSTemplateLocator.ts";
 
 export class LocalDevCLIFileSystemHooks implements CLIFileSystemHooks {
   constructor(protected dfsCtxMgr: CLIDFSContextManager) {}
@@ -20,34 +26,34 @@ export class LocalDevCLIFileSystemHooks implements CLIFileSystemHooks {
     const rootPrefix = source.Root;
 
     // Normalize root prefix (remove leading/trailing slashes)
-    const normalizedRoot = rootPrefix?.replace(/^\/+|\/+$/g, '');
+    const normalizedRoot = rootPrefix?.replace(/^\/+|\/+$/g, "");
 
     const dfs = await this.dfsCtxMgr.GetProjectDFS();
 
     // Normalize baseDir relative to DFS root
-    const projectRoot = dfs.Root.replace(/\\/g, '/').replace(/^\.\/|\/$/, '');
+    const projectRoot = dfs.Root.replace(/\\/g, "/").replace(/^\.\/|\/$/, "");
     const cleanBaseDir = baseDir
-      .replace(/\\/g, '/')
-      .replace(projectRoot, '')
-      .replace(/^\.?\//, '')
-      .replace(/^\/+/, '');
+      .replace(/\\/g, "/")
+      .replace(projectRoot, "")
+      .replace(/^\.?\//, "")
+      .replace(/^\/+/, "");
 
     const filePaths = await dfs.LoadAllPaths();
 
     const tsFiles = filePaths
-      .map((f) => f.replace(/^\.?\//, ''))
-      .filter((f) => f.startsWith(cleanBaseDir) && f.endsWith('.ts'));
+      .map((f) => f.replace(/^\.?\//, ""))
+      .filter((f) => f.startsWith(cleanBaseDir) && f.endsWith(".ts"));
 
     for (const path of tsFiles) {
       const rel = path
-        .replace(cleanBaseDir + '/', '')
-        .replace(/\\/g, '/')
-        .replace(/\/index$/, '');
+        .replace(cleanBaseDir + "/", "")
+        .replace(/\\/g, "/")
+        .replace(/\/index$/, "");
 
       let key: string;
 
       // Special handling for root-level .metadata.ts
-      if (rel === '.metadata.ts') {
+      if (rel === ".metadata.ts") {
         // This is the root .metadata.ts - it becomes the Root group's metadata
         if (normalizedRoot) {
           key = normalizedRoot; // e.g., "testing/plus"
@@ -57,9 +63,9 @@ export class LocalDevCLIFileSystemHooks implements CLIFileSystemHooks {
         }
       } else {
         // Normal key derivation
-        key = rel.endsWith('.metadata.ts')
-          ? rel.replace(/\/\.metadata\.ts$/, '')
-          : rel.replace(/\.ts$/, '');
+        key = rel.endsWith(".metadata.ts")
+          ? rel.replace(/\/\.metadata\.ts$/, "")
+          : rel.replace(/\.ts$/, "");
 
         // Apply root prefix if specified
         if (normalizedRoot) {
@@ -68,7 +74,7 @@ export class LocalDevCLIFileSystemHooks implements CLIFileSystemHooks {
       }
 
       // Calculate ParentGroup from the FINAL key (after root applied)
-      const group = key.includes('/') ? key.split('/')[0] : undefined;
+      const group = key.includes("/") ? key.split("/")[0] : undefined;
 
       const entryData = map.get(key) || {
         CommandPath: undefined,
@@ -76,9 +82,9 @@ export class LocalDevCLIFileSystemHooks implements CLIFileSystemHooks {
         ParentGroup: group,
       };
 
-      const resolvedPath = await this.dfsCtxMgr.ResolvePath('project', path);
+      const resolvedPath = await this.dfsCtxMgr.ResolvePath("project", path);
 
-      if (rel.endsWith('.metadata.ts')) {
+      if (rel.endsWith(".metadata.ts")) {
         entryData.GroupPath = resolvedPath;
       } else {
         entryData.CommandPath = resolvedPath;
@@ -98,17 +104,17 @@ export class LocalDevCLIFileSystemHooks implements CLIFileSystemHooks {
     let configPath: string | undefined;
     let remainingArgs = args;
 
-    if (args[0]?.endsWith('.json') && (await exists(args[0]))) {
+    if (args[0]?.endsWith(".json") && (await exists(args[0]))) {
       configPath = args[0];
       remainingArgs = args.slice(1);
     } else {
-      const fallback = join(Deno.cwd(), '.cli.json');
+      const fallback = join(Deno.cwd(), ".cli.json");
       if (await exists(fallback)) {
         configPath = fallback;
       } else {
         console.error(
           `❌ Unable to locate CLI config.\n` +
-            `🧐 Tried: first arg and fallback '${args[0] || '.cli.json'}'\n` +
+            `🧐 Tried: first arg and fallback '${args[0] || ".cli.json"}'\n` +
             `👉 Create one or pass path explicitly.\n`,
         );
         Deno.exit(1);

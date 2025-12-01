@@ -1,18 +1,18 @@
-import type { CommandLog } from '../commands/CommandLog.ts';
+import type { CommandLog } from "../commands/CommandLog.ts";
 
 export async function runCommandWithLogs(
   args: string[],
   log: CommandLog,
   {
-    command = 'deno',
+    command = "deno",
     exitOnFail = true,
-    stdin = 'inherit',
-    prefix = '',
+    stdin = "inherit",
+    prefix = "",
     cwd,
   }: {
     command?: string;
     exitOnFail?: boolean;
-    stdin?: 'inherit' | 'null';
+    stdin?: "inherit" | "null";
     prefix?: string;
     cwd: string;
   },
@@ -20,8 +20,8 @@ export async function runCommandWithLogs(
   const cmd = new Deno.Command(command, {
     args,
     stdin,
-    stdout: 'piped',
-    stderr: 'piped',
+    stdout: "piped",
+    stderr: "piped",
     cwd,
   });
 

@@ -23,7 +23,7 @@ API reference for spinner animations used in CLI loading indicators and progress
 Spinners provide visual feedback during long-running operations. The framework includes several pre-built spinner configurations optimized for different terminal environments.
 
 ```typescript
-import { DotsSpinner, ArcSpinner, WindowsSpinner } from '@fathym/cli';
+import { ArcSpinner, DotsSpinner, WindowsSpinner } from "@fathym/cli";
 ```
 
 ---
@@ -42,10 +42,10 @@ type Spinner = {
 };
 ```
 
-| Property | Type | Description |
-|----------|------|-------------|
-| `Frames` | `string[]` | Array of characters/strings to cycle through |
-| `Interval` | `number` | Delay between frames in milliseconds |
+| Property   | Type       | Description                                  |
+| ---------- | ---------- | -------------------------------------------- |
+| `Frames`   | `string[]` | Array of characters/strings to cycle through |
+| `Interval` | `number`   | Delay between frames in milliseconds         |
 
 ---
 
@@ -56,7 +56,7 @@ type Spinner = {
 Braille-based spinner with smooth animation. Best for Unix terminals with full Unicode support.
 
 ```typescript
-import { DotsSpinner } from '@fathym/cli';
+import { DotsSpinner } from "@fathym/cli";
 
 const spinner: Spinner = DotsSpinner;
 // Frames: ['⠋', '⠙', '⠹', '⠸', '⠼', '⠴', '⠦', '⠧', '⠇', '⠏']
@@ -64,6 +64,7 @@ const spinner: Spinner = DotsSpinner;
 ```
 
 **Visual Preview:**
+
 ```
 ⠋ Loading...
 ⠙ Loading...
@@ -75,7 +76,7 @@ const spinner: Spinner = DotsSpinner;
 Arc-based spinner with circular motion. Good alternative for terminals without full braille support.
 
 ```typescript
-import { ArcSpinner } from '@fathym/cli';
+import { ArcSpinner } from "@fathym/cli";
 
 const spinner: Spinner = ArcSpinner;
 // Frames: ['◜', '◠', '◝', '◞', '◡', '◟']
@@ -83,6 +84,7 @@ const spinner: Spinner = ArcSpinner;
 ```
 
 **Visual Preview:**
+
 ```
 ◜ Processing...
 ◠ Processing...
@@ -94,7 +96,7 @@ const spinner: Spinner = ArcSpinner;
 Classic ASCII spinner. Compatible with all terminals including Windows Command Prompt.
 
 ```typescript
-import { WindowsSpinner } from '@fathym/cli';
+import { WindowsSpinner } from "@fathym/cli";
 
 const spinner: Spinner = WindowsSpinner;
 // Frames: ['/', '-', '\\', '|']
@@ -102,6 +104,7 @@ const spinner: Spinner = WindowsSpinner;
 ```
 
 **Visual Preview:**
+
 ```
 / Working...
 - Working...
@@ -115,23 +118,36 @@ const spinner: Spinner = WindowsSpinner;
 Create custom spinners by implementing the `Spinner` type:
 
 ```typescript
-import type { Spinner } from '@fathym/cli';
+import type { Spinner } from "@fathym/cli";
 
 // Clock spinner
 const ClockSpinner: Spinner = {
-  Frames: ['🕐', '🕑', '🕒', '🕓', '🕔', '🕕', '🕖', '🕗', '🕘', '🕙', '🕚', '🕛'],
+  Frames: [
+    "🕐",
+    "🕑",
+    "🕒",
+    "🕓",
+    "🕔",
+    "🕕",
+    "🕖",
+    "🕗",
+    "🕘",
+    "🕙",
+    "🕚",
+    "🕛",
+  ],
   Interval: 100,
 };
 
 // Bouncing ball
 const BouncingSpinner: Spinner = {
-  Frames: ['⠁', '⠂', '⠄', '⠂'],
+  Frames: ["⠁", "⠂", "⠄", "⠂"],
   Interval: 120,
 };
 
 // Growing dots
 const GrowingSpinner: Spinner = {
-  Frames: ['.  ', '.. ', '...', '.. '],
+  Frames: [".  ", ".. ", "...", ".. "],
   Interval: 300,
 };
 ```
@@ -143,18 +159,18 @@ const GrowingSpinner: Spinner = {
 Spinners integrate with the `UpdateInline` class for terminal-based progress indicators:
 
 ```typescript
-import { UpdateInline, DotsSpinner } from '@fathym/cli';
+import { DotsSpinner, UpdateInline } from "@fathym/cli";
 
 const inline = new UpdateInline();
 
 inline.Configure({
-  Text: 'Processing...',
-  Spinner: true,  // Uses default spinner
+  Text: "Processing...",
+  Spinner: true, // Uses default spinner
 });
 
 // Update text during operation
 inline.Configure({
-  Text: 'Almost done...',
+  Text: "Almost done...",
 });
 ```
 
@@ -164,12 +180,12 @@ inline.Configure({
 
 ## Platform Recommendations
 
-| Platform | Recommended Spinner | Reason |
-|----------|---------------------|--------|
-| macOS/Linux | `DotsSpinner` | Full Unicode support |
-| Windows Terminal | `DotsSpinner` | Modern Unicode support |
-| Windows CMD | `WindowsSpinner` | ASCII-only compatibility |
-| SSH sessions | `ArcSpinner` | Compact, reliable |
+| Platform         | Recommended Spinner | Reason                   |
+| ---------------- | ------------------- | ------------------------ |
+| macOS/Linux      | `DotsSpinner`       | Full Unicode support     |
+| Windows Terminal | `DotsSpinner`       | Modern Unicode support   |
+| Windows CMD      | `WindowsSpinner`    | ASCII-only compatibility |
+| SSH sessions     | `ArcSpinner`        | Compact, reliable        |
 
 ---
 

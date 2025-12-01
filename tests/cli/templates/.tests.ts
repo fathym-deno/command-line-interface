@@ -1,2 +1,2 @@
-import './DFSTemplateLocator.tests.ts';
-import './EmbeddedTemplateLocator.tests.ts';
+import "./DFSTemplateLocator.tests.ts";
+import "./EmbeddedTemplateLocator.tests.ts";

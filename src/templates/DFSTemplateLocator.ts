@@ -1,5 +1,5 @@
-import type { DFSFileHandler } from '../.deps.ts';
-import type { TemplateLocator } from './TemplateLocator.ts';
+import type { DFSFileHandler } from "../.deps.ts";
+import type { TemplateLocator } from "./TemplateLocator.ts";
 
 /**
  * Template locator that reads from a Distributed File System (DFS) handler.
