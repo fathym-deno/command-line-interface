@@ -51,6 +51,9 @@ export class CLICommandMatcher {
 
     let cmdInst = cmdDets?.Command;
     let paramsCtor = cmdDets?.Params;
+    let argsSchema = cmdDets?.ArgsSchema;
+    let flagsSchema = cmdDets?.FlagsSchema;
+    let validateFn = cmdDets?.Validate;
     const groupInst = groupDets?.Command;
 
     const isGroupOnly = !cmdInst && groupInst;
@@ -76,6 +79,11 @@ export class CLICommandMatcher {
           super([], { ...flags, ...helpCtx });
         }
       };
+
+      // Clear schemas/validate for help command
+      argsSchema = undefined;
+      flagsSchema = undefined;
+      validateFn = undefined;
     }
 
     return {
@@ -83,6 +91,9 @@ export class CLICommandMatcher {
       Flags: { ...flags, baseTemplatesDir },
       Args: remainingArgs,
       Params: paramsCtor,
+      ArgsSchema: argsSchema,
+      FlagsSchema: flagsSchema,
+      Validate: validateFn,
     };
   }
 }

@@ -9,6 +9,7 @@ import type {
   CommandInvokerMap,
 } from '../commands/CommandContext.ts';
 import type { CommandParamConstructor, CommandParams } from '../commands/CommandParams.ts';
+import type { ValidateCallback } from '../validation/types.ts';
 
 import { CommandRuntime } from '../commands/CommandRuntime.ts';
 import { CLICommandExecutor } from '../executor/CLICommandExecutor.ts';
@@ -71,6 +72,7 @@ export class CommandModuleBuilder<
   ) => Promise<TServices>;
   protected subcommands?: Record<string, CommandSource>;
   protected paramsCtor?: CommandParamConstructor<TArgs, TFlags, TParams>;
+  protected validateFn?: ValidateCallback<TArgs, TFlags, TParams>;
 
   constructor(
     protected readonly name: string,
@@ -228,6 +230,64 @@ export class CommandModuleBuilder<
     return this as any;
   }
 
+  /**
+   * Add custom validation logic to the command.
+   *
+   * The callback receives a ValidateContext with:
+   * - `Args` - Raw positional arguments
+   * - `Flags` - Raw flags object
+   * - `Params` - CommandParams instance (with defaults applied)
+   * - `Log` - Logger for output
+   * - `RootValidate` - Function to run default validation pipeline
+   *
+   * @example Extend default validation
+   * ```typescript
+   * .Validate(async ({ Params, RootValidate }) => {
+   *   const result = await RootValidate();
+   *   if (!result.success) return result;
+   *
+   *   if (Params.Flag('port') < 1024) {
+   *     return { success: false, errors: [{ message: 'Privileged port' }] };
+   *   }
+   *   return { success: true };
+   * })
+   * ```
+   *
+   * @example Pre-validation
+   * ```typescript
+   * .Validate(async ({ Flags, RootValidate }) => {
+   *   if (Flags['a'] && Flags['b']) {
+   *     return { success: false, errors: [{ message: 'Cannot use both' }] };
+   *   }
+   *   return await RootValidate();
+   * })
+   * ```
+   *
+   * @example Full custom control
+   * ```typescript
+   * .Validate(async ({ Flags }) => {
+   *   // Custom validation, RootValidate not called
+   *   return { success: true };
+   * })
+   * ```
+   */
+  public Validate(
+    fn: ValidateCallback<TArgs, TFlags, TParams>,
+  ): RemoveUsed<
+    CommandModuleBuilder<
+      TArgs,
+      TFlags,
+      TParams,
+      TServices,
+      TCommands,
+      TUsed & { Validate: true }
+    >,
+    TUsed & { Validate: true }
+  > {
+    this.validateFn = fn;
+    return this as any;
+  }
+
   public Commands<
     TSubcommands extends Record<string, CommandSource<any, any>>,
   >(
@@ -260,6 +320,7 @@ export class CommandModuleBuilder<
       servicesFactory,
       subcommands,
       paramsCtor,
+      validateFn,
     } = this;
 
     if (!argsSchema || !flagsSchema || !runFn || !paramsCtor) {
@@ -360,6 +421,7 @@ export class CommandModuleBuilder<
       FlagsSchema: flagsSchema,
       Command: BuiltCommand,
       Params: paramsCtor,
+      Validate: validateFn,
     };
   }
 }

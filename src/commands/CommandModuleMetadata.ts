@@ -13,11 +13,15 @@ export type CommandModuleMetadata = {
     Name: string;
     Description?: string;
     Optional?: boolean;
+    /** When true, this arg accepts a file path or inline JSON */
+    AcceptsFile?: boolean;
   }>;
   Flags?: Array<{
     Name: string;
     Description?: string;
     Optional?: boolean;
+    /** When true, this flag accepts a file path or inline JSON */
+    AcceptsFile?: boolean;
   }>;
 };
 
@@ -37,6 +41,7 @@ export const CommandModuleMetadataSchema: z.ZodObject<
             Name: z.ZodString;
             Description: z.ZodOptional<z.ZodString>;
             Optional: z.ZodOptional<z.ZodBoolean>;
+            AcceptsFile: z.ZodOptional<z.ZodBoolean>;
           },
           z.core.$strip
         >
@@ -49,6 +54,7 @@ export const CommandModuleMetadataSchema: z.ZodObject<
             Name: z.ZodString;
             Description: z.ZodOptional<z.ZodString>;
             Optional: z.ZodOptional<z.ZodBoolean>;
+            AcceptsFile: z.ZodOptional<z.ZodBoolean>;
           },
           z.core.$strip
         >
@@ -91,6 +97,7 @@ export const CommandModuleMetadataSchema: z.ZodObject<
         Name: z.string(),
         Description: z.string().optional(),
         Optional: z.boolean().optional(),
+        AcceptsFile: z.boolean().optional(),
       }),
     )
     .optional()
@@ -102,6 +109,7 @@ export const CommandModuleMetadataSchema: z.ZodObject<
         Name: z.string(),
         Description: z.string().optional(),
         Optional: z.boolean().optional(),
+        AcceptsFile: z.boolean().optional(),
       }),
     )
     .optional()

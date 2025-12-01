@@ -70,14 +70,16 @@ export class HelpCommand extends CommandRuntime<HelpCommandParams> {
               console.log('\nArgs:');
               for (const arg of section.Args) {
                 const desc = arg.Description ? ` - ${arg.Description}` : '';
-                console.log(`  <${arg.Name}>${desc}`);
+                const fileHint = arg.AcceptsFile ? ' (file path or inline JSON)' : '';
+                console.log(`  <${arg.Name}>${desc}${fileHint}`);
               }
             }
             if (section.Flags?.length) {
               console.log('\nFlags:');
               for (const flag of section.Flags) {
                 const desc = flag.Description ? ` - ${flag.Description}` : '';
-                console.log(`  --${flag.Name}${desc}`);
+                const fileHint = flag.AcceptsFile ? ' (file path or inline JSON)' : '';
+                console.log(`  --${flag.Name}${desc}${fileHint}`);
               }
             }
             if (section.Examples?.length) {

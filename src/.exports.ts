@@ -16,6 +16,7 @@ export * from './templates/.exports.ts';
 export * from './logging/.exports.ts';
 export * from './types/.exports.ts';
 export * from './utils/.exports.ts';
+export * from './validation/.exports.ts';
 
 export * from './CLI.ts';
 export * from './CLICommandResolver.ts';

@@ -153,13 +153,14 @@ export class CLI {
     const mergedCommandMap = this.mergeCommandMaps(commandMap);
 
     const matcher = new CLICommandMatcher(this.resolver);
-    const { Command, Flags, Args, Params } = await matcher.Resolve(
-      parsed.config,
-      mergedCommandMap,
-      parsed.key,
-      parsed.flags,
-      parsed.positional,
-    );
+    const { Command, Flags, Args, Params, ArgsSchema, FlagsSchema, Validate } = await matcher
+      .Resolve(
+        parsed.config,
+        mergedCommandMap,
+        parsed.key,
+        parsed.flags,
+        parsed.positional,
+      );
 
     const executor = new CLICommandExecutor(this.ioc, this.resolver);
 
@@ -169,6 +170,9 @@ export class CLI {
       positional: Args,
       paramsCtor: Params,
       baseTemplatesDir: parsed.baseTemplatesDir,
+      argsSchema: ArgsSchema,
+      flagsSchema: FlagsSchema,
+      validate: Validate,
     });
   }
 

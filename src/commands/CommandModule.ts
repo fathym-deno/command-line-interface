@@ -2,6 +2,7 @@ import type { ZodSchema } from '../.deps.ts';
 import type { CommandRuntime } from './CommandRuntime.ts';
 import type { CommandParamConstructor, CommandParams } from './CommandParams.ts';
 import type { CommandInvokerMap } from './CommandContext.ts';
+import type { ValidateCallback } from '../validation/types.ts';
 
 /**
  * Represents a complete, executable CLI command module.
@@ -58,6 +59,13 @@ export type CommandModule<
    * Strongly typed parameter constructor class.
    */
   Params?: CommandParamConstructor<A, F, P>;
+
+  /**
+   * Optional custom validation callback.
+   * If provided, receives ValidateContext with RootValidate function
+   * for full control over validation flow.
+   */
+  Validate?: ValidateCallback<A, F, P>;
 };
 
 /**

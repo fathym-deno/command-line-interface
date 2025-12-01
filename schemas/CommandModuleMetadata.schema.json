@@ -36,6 +36,9 @@
           },
           "Optional": {
             "type": "boolean"
+          },
+          "AcceptsFile": {
+            "type": "boolean"
           }
         },
         "required": [
@@ -57,6 +60,9 @@
             "type": "string"
           },
           "Optional": {
+            "type": "boolean"
+          },
+          "AcceptsFile": {
             "type": "boolean"
           }
         },

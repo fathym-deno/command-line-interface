@@ -9,7 +9,11 @@ class InMemoryDFS extends DFSFileHandler {
     super({});
   }
 
-  async LoadAllPaths(): Promise<string[]> {
+  override loadAllPaths(): Promise<string[]> {
+    return Promise.resolve(Array.from(this.files.keys()));
+  }
+
+  override async LoadAllPaths(): Promise<string[]> {
     return await Promise.resolve(Array.from(this.files.keys()));
   }
 

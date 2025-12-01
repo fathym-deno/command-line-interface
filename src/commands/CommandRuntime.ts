@@ -4,6 +4,7 @@ import type { CommandParams } from './CommandParams.ts';
 import type { CommandContext, CommandInvokerMap } from './CommandContext.ts';
 import type { CommandSuggestions } from './CommandSuggestions.ts';
 import type { CommandModuleMetadata } from './CommandModuleMetadata.ts';
+import { SchemaIntrospector } from '../validation/SchemaIntrospector.ts';
 
 /**
  * Abstract base class for all CLI commands.
@@ -333,6 +334,7 @@ export abstract class CommandRuntime<
     const usageParts: string[] = [];
     const argsMeta: CommandModuleMetadata['Args'] = [];
     const flagsMeta: CommandModuleMetadata['Flags'] = [];
+    const introspector = new SchemaIntrospector();
 
     if ((argsSchema as any)?._def?.items?.length) {
       (argsSchema as any)._def.items.forEach((item: any, i: number) => {
@@ -344,10 +346,13 @@ export abstract class CommandRuntime<
           : item._def?.typeName === 'ZodOptional' || item._def?.type === 'optional';
         // Zod 4: description is a direct property, fallback to _def for older versions
         const itemDescription = item.description ?? item._def?.description;
+        // Check if this arg accepts file paths
+        const acceptsFile = introspector.shouldFileCheck(item);
         argsMeta.push({
           Name: argName,
           Description: itemDescription,
           Optional: optional,
+          AcceptsFile: acceptsFile || undefined,
         });
       });
 
@@ -372,10 +377,13 @@ export abstract class CommandRuntime<
         // Zod 4: description is a direct property, fallback to _def for older versions
         const flagDescription = (schema as any).description ??
           (schema as any)._def?.description;
+        // Check if this flag accepts file paths
+        const acceptsFile = introspector.shouldFileCheck(schema as ZodSchema);
         flagsMeta.push({
           Name: displayName,
           Description: flagDescription,
           Optional: optional,
+          AcceptsFile: acceptsFile || undefined,
         });
       });
 

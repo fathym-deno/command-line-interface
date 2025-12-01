@@ -49,7 +49,11 @@ class MinimalDFS extends DFSFileHandler {
     super({ FileRoot: '.' });
   }
 
-  LoadAllPaths(): Promise<string[]> {
+  override loadAllPaths(): Promise<string[]> {
+    return Promise.resolve([]);
+  }
+
+  override LoadAllPaths(): Promise<string[]> {
     return Promise.resolve([]);
   }
 

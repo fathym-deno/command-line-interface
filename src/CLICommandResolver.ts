@@ -8,6 +8,7 @@ import type { TemplateLocator } from './templates/TemplateLocator.ts';
 import { CLICommandEntry } from './types/CLICommandEntry.ts';
 import { CLICommandSource, CLIConfig } from './types/CLIConfig.ts';
 import { CLIInitFn } from './types/CLIInitFn.ts';
+import type { ValidateCallback } from './validation/types.ts';
 
 export class CLICommandResolver {
   constructor(protected readonly hooks: CLIFileSystemHooks) {}
@@ -23,6 +24,7 @@ export class CLICommandResolver {
     Params?: CommandParamConstructor<any, any, any> | undefined;
     ArgsSchema?: ZodSchema;
     FlagsSchema?: ZodSchema;
+    Validate?: ValidateCallback;
   }> {
     const mod = await this.hooks.LoadCommandModule(path);
     const Cmd = mod?.Command;
@@ -33,6 +35,7 @@ export class CLICommandResolver {
         Params: mod.Params,
         ArgsSchema: mod.ArgsSchema,
         FlagsSchema: mod.FlagsSchema,
+        Validate: mod.Validate,
       };
     }
 

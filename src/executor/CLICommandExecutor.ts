@@ -1,6 +1,6 @@
 // deno-lint-ignore-file no-explicit-any
 import type { CLIConfig } from '../types/CLIConfig.ts';
-import type { IoCContainer, TelemetryLogger, WriterSync } from '../.deps.ts';
+import type { IoCContainer, TelemetryLogger, WriterSync, ZodSchema } from '../.deps.ts';
 
 import type { CommandRuntime } from '../commands/CommandRuntime.ts';
 import type { CommandContext, CommandInvokerMap } from '../commands/CommandContext.ts';
@@ -11,6 +11,8 @@ import type { CLICommandResolver } from '../CLICommandResolver.ts';
 import { CLIDFSContextManager } from '../CLIDFSContextManager.ts';
 import { TelemetryLogAdapter } from '../logging/TelemetryLogAdapter.ts';
 import { createCliTelemetryLogger } from '../logging/createCliTelemetryLogger.ts';
+import { ValidationPipeline } from '../validation/ValidationPipeline.ts';
+import type { ValidateCallback } from '../validation/types.ts';
 
 type TelemetryWriterGlobal = { __telemetryWriter?: WriterSync };
 
@@ -39,6 +41,15 @@ export interface CLICommandExecutorOptions {
    * this is the map of callable `(flags, args?) => Promise<void>` handlers.
    */
   commands?: CommandInvokerMap;
+
+  /** Optional Zod schema for positional arguments */
+  argsSchema?: ZodSchema;
+
+  /** Optional Zod schema for flags */
+  flagsSchema?: ZodSchema;
+
+  /** Optional custom validation callback */
+  validate?: ValidateCallback;
 }
 
 /**
@@ -89,26 +100,71 @@ export class CLICommandExecutor {
   /**
    * Constructs a fully populated CommandContext, including CLI metadata,
    * logging, parameter class, resolved commands map (if present), and hydrated services.
+   *
+   * Also runs validation pipeline if schemas are provided.
    */
   protected async buildContext(
     config: CLIConfig,
     command: CommandRuntime,
     opts: CLICommandExecutorOptions,
   ): Promise<CommandContext> {
-    const { flags, positional, paramsCtor } = opts;
+    const { flags, positional, paramsCtor, argsSchema, flagsSchema, validate } = opts;
 
-    const params = paramsCtor
-      ? new paramsCtor(positional, flags)
-      : new (class extends CommandParams<unknown[], Record<string, unknown>> {
-        constructor() {
-          super(positional, flags);
-        }
-      })();
-
+    // Create telemetry/log early so validation can use it
     const telemetry = await this.ensureTelemetryLogger(config);
     const log = new TelemetryLogAdapter(telemetry, {
       commandKey: opts.key,
     });
+
+    // Run validation pipeline if schemas are provided
+    let resolvedArgs: unknown[] = positional;
+    let resolvedFlags: Record<string, unknown> = flags;
+
+    if (argsSchema || flagsSchema) {
+      const pipeline = new ValidationPipeline();
+
+      // Create preliminary params for the validate callback
+      const prelimParams = paramsCtor
+        ? new paramsCtor(positional, flags)
+        : new (class extends CommandParams<unknown[], Record<string, unknown>> {
+          constructor() {
+            super(positional, flags);
+          }
+        })();
+
+      const validationResult = await pipeline.execute(
+        positional,
+        flags,
+        prelimParams,
+        {
+          argsSchema,
+          flagsSchema,
+          validateCallback: validate,
+          log,
+        },
+      );
+
+      if (!validationResult.success) {
+        const errorMsg = pipeline.formatErrors(validationResult);
+        log.Error(errorMsg);
+        throw new Error(errorMsg);
+      }
+
+      // Use resolved/validated values
+      if (validationResult.data) {
+        resolvedArgs = validationResult.data.args;
+        resolvedFlags = validationResult.data.flags;
+      }
+    }
+
+    // Create params with resolved values
+    const params = paramsCtor
+      ? new paramsCtor(resolvedArgs, resolvedFlags)
+      : new (class extends CommandParams<unknown[], Record<string, unknown>> {
+        constructor() {
+          super(resolvedArgs as string[], resolvedFlags);
+        }
+      })();
 
     const dfsCtxMgr = await this.ioc.Resolve(CLIDFSContextManager);
 
@@ -123,8 +179,8 @@ export class CLICommandExecutor {
     }
 
     const baseContext: CommandContext = {
-      ArgsSchema: undefined,
-      FlagsSchema: undefined,
+      ArgsSchema: argsSchema,
+      FlagsSchema: flagsSchema,
       Config: config,
       GroupMetadata: undefined,
       Key: opts.key,
@@ -132,7 +188,7 @@ export class CLICommandExecutor {
       Metadata: command.BuildMetadata(),
       Params: params,
       Services: {},
-      Commands: opts.commands ?? undefined, // <-- NEW
+      Commands: opts.commands ?? undefined,
     };
 
     return await command.ConfigureContext(baseContext, this.ioc);

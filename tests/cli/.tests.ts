@@ -14,3 +14,4 @@ import './types/.tests.ts';
 import './CLIDFSContextManager.tests.ts';
 import './utils/.tests.ts';
 import './templates/.tests.ts';
+import './validation/.tests.ts';
