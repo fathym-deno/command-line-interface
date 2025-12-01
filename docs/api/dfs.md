@@ -27,6 +27,7 @@ The DFS context system provides a unified way to manage multiple filesystem scop
 | `execution` | Current working directory where CLI was invoked | User's terminal location |
 | `project` | Project root (contains `.cli.json`) | CLI project source |
 | `user-home` | User's home directory | Global config storage |
+| `config` | User configuration directory | `~/.mycli/` via ConfigDFS |
 | `custom` | Any additional named handlers | Temp dirs, output paths |
 
 ---
@@ -140,6 +141,61 @@ dfsCtx.RegisterCustomDFS('temp', { FileRoot: '/tmp/mycli' });
 dfsCtx.RegisterCustomDFS('output', { FileRoot: './dist' });
 ```
 
+### RegisterConfigDFS
+
+```typescript
+async RegisterConfigDFS(options: ConfigDFSOptions): Promise<string>
+```
+
+Register a DFS handler for the CLI configuration directory with automatic root resolution.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `options.name` | `string` | Folder name (e.g., `.mycli`) |
+| `options.token` | `string` | CLI token for default env var |
+| `options.root` | `string?` | Explicit root override |
+| `options.rootEnvVar` | `string?` | Custom env var name |
+
+**Returns:** The absolute config directory path
+
+**Root Resolution Precedence:**
+
+| Priority | Source | Description |
+|----------|--------|-------------|
+| 1 | Custom env var | If `rootEnvVar` is set and has value |
+| 2 | Explicit root | If `root` is set in options |
+| 3 | Default env var | `{TOKEN}_CONFIG_ROOT` if `rootEnvVar` undefined |
+| 4 | User home | Falls back to `~/` |
+
+```typescript
+// Default behavior - checks MYCLI_CONFIG_ROOT, falls back to ~/
+await dfsCtx.RegisterConfigDFS({
+  name: '.mycli',
+  token: 'mycli',
+});
+
+// With explicit root
+await dfsCtx.RegisterConfigDFS({
+  name: '.mycli',
+  token: 'mycli',
+  root: '/data/config',
+});
+
+// With custom env var
+await dfsCtx.RegisterConfigDFS({
+  name: '.mycli',
+  token: 'mycli',
+  rootEnvVar: 'MYCLI_DATA_DIR',
+});
+
+// Disable env var checking entirely
+await dfsCtx.RegisterConfigDFS({
+  name: '.mycli',
+  token: 'mycli',
+  rootEnvVar: '',  // Empty string disables all env checks
+});
+```
+
 ---
 
 ## Access Methods
@@ -187,6 +243,24 @@ Get the user home DFS handler. Auto-registers the user home DFS if not already r
 ```typescript
 const homeDfs = await dfsCtx.GetUserHomeDFS();
 const configPath = await homeDfs.ResolvePath('.mycli/config.json');
+```
+
+### GetConfigDFS
+
+```typescript
+async GetConfigDFS(): Promise<DFSFileHandler>
+```
+
+Get the config DFS handler for accessing user configuration files.
+
+**Returns:** The config DFS handler
+
+**Throws:** Error if ConfigDFS was not registered (requires `ConfigDFSName` in `.cli.json`)
+
+```typescript
+const configDfs = await dfsCtx.GetConfigDFS();
+const settings = await configDfs.GetFileInfo('settings.json');
+const path = await configDfs.ResolvePath('config.json');
 ```
 
 ### GetDFS
@@ -292,9 +366,49 @@ export default Command('build', 'Build the project')
   });
 ```
 
-### User Configuration Storage
+### User Configuration with ConfigDFS
 
-Store user-specific configuration in the home directory:
+The recommended way to store user configuration is via ConfigDFS. Enable it by setting `ConfigDFSName` in `.cli.json`:
+
+```json
+{
+  "Name": "My CLI",
+  "Tokens": ["mycli"],
+  "Version": "1.0.0",
+  "ConfigDFSName": ".mycli"
+}
+```
+
+Then access in commands:
+
+```typescript
+import { Command, CommandParams, CLIDFSContextManager } from '@fathym/cli';
+
+export default Command('settings', 'Manage settings')
+  .Services(async (_, ioc) => ({
+    DfsCtx: await ioc.Resolve(CLIDFSContextManager),
+  }))
+  .Run(async ({ Services, Log }) => {
+    const dfsCtx = await Services.DfsCtx;
+    const configDfs = await dfsCtx.GetConfigDFS();
+
+    // Read config
+    const configFile = await configDfs.GetFileInfo('settings.json');
+    if (configFile) {
+      const text = await new Response(configFile.Contents).text();
+      const settings = JSON.parse(text);
+      Log.Info(`API URL: ${settings.apiUrl}`);
+    }
+
+    // Write config
+    const path = await configDfs.ResolvePath('settings.json');
+    await Deno.writeTextFile(path, JSON.stringify({ apiUrl: 'https://api.example.com' }, null, 2));
+  });
+```
+
+### User Configuration Storage (Legacy)
+
+For CLIs without ConfigDFS enabled, use the user home DFS directly:
 
 ```typescript
 const homeDfs = await dfsCtx.GetUserHomeDFS();

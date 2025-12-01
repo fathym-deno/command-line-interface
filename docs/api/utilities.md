@@ -281,6 +281,193 @@ Deno.addSignalListener('SIGINT', () => {
 
 ---
 
+## Styling Utilities
+
+### appendStyles
+
+Apply a style option to a text string.
+
+```typescript
+import { appendStyles } from '@fathym/cli';
+```
+
+#### Signature
+
+```typescript
+function appendStyles(text: string, styleKey: StyleOptions): string
+```
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `text` | `string` | Text to style |
+| `styleKey` | `StyleOptions` | Style option (e.g., 'bold', 'red', 'rgb24:255:0:0') |
+
+**Returns:** Styled text string with ANSI codes
+
+#### Usage
+
+```typescript
+import { appendStyles } from '@fathym/cli';
+
+// Basic style
+const bold = appendStyles('Hello', 'bold');
+
+// Color
+const red = appendStyles('Error', 'red');
+
+// RGB color
+const orange = appendStyles('Warning', 'rgb24:255:128:0');
+
+// Chain styles
+let text = 'Important';
+text = appendStyles(text, 'bold');
+text = appendStyles(text, 'yellow');
+```
+
+### buildTextContent
+
+Build a styled string from a TextContent object or plain string.
+
+```typescript
+import { buildTextContent } from '@fathym/cli';
+```
+
+#### Signature
+
+```typescript
+function buildTextContent(content?: string | TextContent): string
+```
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `content` | `string \| TextContent` | Plain string or TextContent object |
+
+**Returns:** Styled text string
+
+#### Usage
+
+```typescript
+import { buildTextContent } from '@fathym/cli';
+
+// Plain string
+const text1 = buildTextContent('Hello');
+
+// With styles
+const text2 = buildTextContent({
+  Text: 'Success!',
+  Styles: ['green', 'bold'],
+});
+
+// Multiple styles
+const text3 = buildTextContent({
+  Text: 'Warning',
+  Styles: ['yellow', 'underline'],
+});
+```
+
+---
+
+## Schema Utilities
+
+### emitSchema
+
+Emit a Zod schema as a JSON Schema file.
+
+```typescript
+import { emitSchema } from '@fathym/cli';
+```
+
+#### Signature
+
+```typescript
+async function emitSchema(
+  schema: ZodType,
+  schemaName: string,
+  outputDir?: string
+): Promise<void>
+```
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `schema` | `ZodType` | - | Zod schema to convert |
+| `schemaName` | `string` | - | Name for output file |
+| `outputDir` | `string` | `'./schemas'` | Output directory |
+
+#### Usage
+
+```typescript
+import { emitSchema } from '@fathym/cli';
+import { z } from 'zod';
+
+const ConfigSchema = z.object({
+  name: z.string(),
+  version: z.string(),
+  debug: z.boolean().optional(),
+});
+
+// Emits to ./schemas/config.schema.json
+await emitSchema(ConfigSchema, 'config');
+
+// Custom output directory
+await emitSchema(ConfigSchema, 'config', './dist/schemas');
+```
+
+---
+
+## Module Utilities
+
+### importModule
+
+Dynamically import a module from a DFS with support for compiled mode.
+
+```typescript
+import { importModule } from '@fathym/cli';
+```
+
+#### Signature
+
+```typescript
+async function importModule<T = unknown>(
+  log: CommandLog,
+  filePath: string,
+  rootDFS: DFSFileHandler,
+  buildDFS: DFSFileHandler
+): Promise<T>
+```
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `log` | `CommandLog` | Logger for output |
+| `filePath` | `string` | Path to module file |
+| `rootDFS` | `DFSFileHandler` | Root DFS for source resolution |
+| `buildDFS` | `DFSFileHandler` | Build DFS for compiled output |
+
+**Returns:** Imported module
+
+#### Usage
+
+```typescript
+import { importModule, CLIDFSContextManager } from '@fathym/cli';
+
+const dfsCtx = await ioc.Resolve(CLIDFSContextManager);
+const rootDfs = await dfsCtx.GetProjectDFS();
+const buildDfs = await dfsCtx.GetDFS('build');
+
+// Import TypeScript module (bundles if compiled)
+const config = await importModule<{ default: Config }>(
+  Log,
+  'config.ts',
+  rootDfs,
+  buildDfs,
+);
+```
+
+**Behavior:**
+- In development: Directly imports TypeScript files
+- In compiled mode: Bundles `.ts` to `.js` via `deno bundle`, then imports via Blob URL
+
+---
+
 ## Configuration Helpers
 
 ### normalizeCommandSources

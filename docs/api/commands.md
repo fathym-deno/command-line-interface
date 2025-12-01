@@ -534,17 +534,23 @@ interface CLIConfig {
   /** CLI version */
   Version: string;
 
-  /** Commands directory path or source array */
-  Commands: string | CLICommandSource[];
+  /** Optional description shown in help intro */
+  Description?: string;
 
-  /** Init file path (optional, default: .cli.init.ts) */
-  Init?: string;
+  /** Commands directory path(s) or source array (default: "./commands") */
+  Commands?: string | string[] | CLICommandSource[];
 
-  /** Template directory (optional) */
+  /** Template directory (optional, default: "./template") */
   Templates?: string;
 
-  /** Custom properties */
-  [key: string]: unknown;
+  /** Folder name for config directory (e.g., ".ftm") - enables ConfigDFS */
+  ConfigDFSName?: string;
+
+  /** Explicit root directory for ConfigDFS */
+  ConfigDFSRoot?: string;
+
+  /** Custom env var for root override, or "" to disable env var checking */
+  ConfigDFSRootEnvVar?: string;
 }
 ```
 

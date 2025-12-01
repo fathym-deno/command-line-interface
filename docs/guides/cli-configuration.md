@@ -41,6 +41,9 @@ interface CLIConfig {
   Description?: string;      // Help text description
   Commands?: string | CLICommandSource[];  // Command sources
   Templates?: string;        // Templates directory
+  ConfigDFSName?: string;    // Config directory name (e.g., ".mycli")
+  ConfigDFSRoot?: string;    // Explicit config root override
+  ConfigDFSRootEnvVar?: string;  // Custom env var for root override
 }
 
 interface CLICommandSource {
@@ -71,7 +74,8 @@ interface CLICommandSource {
     { "Path": "./commands" },
     { "Path": "./plugins/commands", "Root": "plugin" }
   ],
-  "Templates": "./templates"
+  "Templates": "./templates",
+  "ConfigDFSName": ".openindustrial"
 }
 ```
 
@@ -161,6 +165,111 @@ Directory containing template files. Defaults to `./templates`.
   "Templates": "./assets/templates"
 }
 ```
+
+---
+
+## ConfigDFS (User Configuration Storage)
+
+ConfigDFS provides a standardized way to store user configuration files outside the project directory. When `ConfigDFSName` is set, the CLI automatically creates and manages a configuration directory.
+
+### ConfigDFSName (optional)
+
+The folder name for the config directory. When set, enables ConfigDFS.
+
+```json
+{
+  "ConfigDFSName": ".mycli"
+}
+```
+
+This creates `~/.mycli/` (or custom location - see precedence below).
+
+### ConfigDFSRoot (optional)
+
+Explicit root directory override. Useful for testing or custom deployments.
+
+```json
+{
+  "ConfigDFSName": ".mycli",
+  "ConfigDFSRoot": "/data/mycli-config"
+}
+```
+
+Result: `/data/mycli-config/.mycli/`
+
+### ConfigDFSRootEnvVar (optional)
+
+Custom environment variable name for root override.
+
+```json
+{
+  "ConfigDFSName": ".mycli",
+  "ConfigDFSRootEnvVar": "MYCLI_DATA_DIR"
+}
+```
+
+If `MYCLI_DATA_DIR=/custom/path`, config is at `/custom/path/.mycli/`.
+
+**Special values:**
+- `undefined` (default): Checks `{TOKEN}_CONFIG_ROOT` env var
+- Empty string `""`: Disables all env var checking
+
+### Root Resolution Precedence
+
+ConfigDFS resolves the root directory in this order:
+
+| Priority | Source | Example |
+|----------|--------|---------|
+| 1 | Custom env var (if `ConfigDFSRootEnvVar` set and has value) | `MYCLI_DATA_DIR=/custom` |
+| 2 | Explicit root (if `ConfigDFSRoot` set) | `"ConfigDFSRoot": "/data"` |
+| 3 | Default env var (if `ConfigDFSRootEnvVar` undefined) | `MYCLI_CONFIG_ROOT=/alt` |
+| 4 | User home directory (fallback) | `~/.mycli/` |
+
+### Accessing ConfigDFS in Commands
+
+```typescript
+import { Command, CommandParams, CLIDFSContextManager } from '@fathym/cli';
+
+export default Command('settings', 'Manage user settings')
+  .Args(ArgsSchema)
+  .Flags(FlagsSchema)
+  .Params(SettingsParams)
+  .Services(async (_, ioc) => ({
+    DfsCtx: await ioc.Resolve(CLIDFSContextManager),
+  }))
+  .Run(async ({ Services, Log }) => {
+    const dfsCtx = await Services.DfsCtx;
+    const configDfs = await dfsCtx.GetConfigDFS();
+
+    // Read a config file
+    const fileInfo = await configDfs.GetFileInfo('settings.json');
+    if (fileInfo) {
+      const content = await new Response(fileInfo.Contents).text();
+      const settings = JSON.parse(content);
+    }
+
+    // Write a config file
+    const path = await configDfs.ResolvePath('settings.json');
+    await Deno.writeTextFile(path, JSON.stringify(settings, null, 2));
+  });
+```
+
+### Full ConfigDFS Example
+
+```json
+{
+  "Name": "Enterprise CLI",
+  "Tokens": ["entcli"],
+  "Version": "1.0.0",
+  "ConfigDFSName": ".entcli",
+  "ConfigDFSRoot": "/opt/entcli/config",
+  "ConfigDFSRootEnvVar": "ENTCLI_CONFIG_DIR"
+}
+```
+
+Resolution:
+1. If `ENTCLI_CONFIG_DIR=/custom` → `/custom/.entcli/`
+2. Else → `/opt/entcli/config/.entcli/`
 
 ---
 
