@@ -1,5 +1,5 @@
-import { resolve, z } from "../.deps.ts";
-import type { DFSFileHandler } from "../.deps.ts";
+import { resolve, z } from '../.deps.ts';
+import type { DFSFileHandler } from '../.deps.ts';
 
 /**
  * Represents a single command source configuration.
@@ -99,7 +99,7 @@ export const CLICommandSourceSchema: z.ZodObject<
   { Path: z.ZodString; Root: z.ZodOptional<z.ZodString> },
   z.core.$strip
 > = z.object({
-  Path: z.string().min(1, "Command source path is required."),
+  Path: z.string().min(1, 'Command source path is required.'),
   Root: z.string().optional(),
 });
 
@@ -111,23 +111,23 @@ export const CLICommandSourceSchema: z.ZodObject<
 export const CLIConfigSchema: z.ZodType<CLIConfig> = z.object({
   Name: z
     .string()
-    .min(1, "CLI name is required.")
-    .describe("A user-facing, friendly name for the CLI."),
+    .min(1, 'CLI name is required.')
+    .describe('A user-facing, friendly name for the CLI.'),
 
   Tokens: z
     .array(z.string())
-    .min(1, "At least one CLI token is required.")
+    .min(1, 'At least one CLI token is required.')
     .describe('CLI aliases, e.g. ["openindustrial", "oi"]'),
 
   Version: z
     .string()
-    .min(1, "CLI version is required.")
-    .describe("Version shown in help output and CLI logs."),
+    .min(1, 'CLI version is required.')
+    .describe('Version shown in help output and CLI logs.'),
 
   Description: z
     .string()
     .optional()
-    .describe("Optional description of what this CLI is for."),
+    .describe('Optional description of what this CLI is for.'),
 
   Commands: z
     .union([z.string(), z.array(z.string()), z.array(CLICommandSourceSchema)])
@@ -144,7 +144,7 @@ export const CLIConfigSchema: z.ZodType<CLIConfig> = z.object({
   ConfigDFSRoot: z
     .string()
     .optional()
-    .describe("Explicit root directory for ConfigDFS"),
+    .describe('Explicit root directory for ConfigDFS'),
 
   ConfigDFSRootEnvVar: z
     .string()
@@ -232,7 +232,7 @@ export async function loadCLIConfig<T extends CLIConfig = CLIConfig>(
   // Validate required base fields using the schema
   const validation = CLIConfigSchema.safeParse(config);
   if (!validation.success) {
-    const issues = validation.error.issues.map((i) => i.message).join(", ");
+    const issues = validation.error.issues.map((i) => i.message).join(', ');
     throw new Error(`Invalid CLI config at ${configPath}: ${issues}`);
   }
 

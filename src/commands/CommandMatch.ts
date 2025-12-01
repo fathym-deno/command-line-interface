@@ -1,7 +1,7 @@
-import type { ZodSchema } from "../.deps.ts";
-import type { CommandParamConstructor } from "./CommandParams.ts";
-import type { CommandRuntime } from "./CommandRuntime.ts";
-import type { ValidateCallback } from "../validation/types.ts";
+import type { ZodSchema } from '../.deps.ts';
+import type { CommandParamConstructor } from './CommandParams.ts';
+import type { CommandRuntime } from './CommandRuntime.ts';
+import type { ValidateCallback } from '../validation/types.ts';
 
 export type CommandMatch = {
   Command: CommandRuntime | undefined;

@@ -1,32 +1,32 @@
-import { assert, assertEquals } from "../../test.deps.ts";
-import { CLICommandMatcher } from "../../../src//matcher/CLICommandMatcher.ts";
-import { CLICommandResolver } from "../../../src/CLICommandResolver.ts";
-import { LocalDevCLIFileSystemHooks } from "../../../src/hooks/LocalDevCLIFileSystemHooks.ts";
-import { CLIDFSContextManager } from "../../../src/CLIDFSContextManager.ts";
-import { IoCContainer } from "../../../src/.deps.ts";
+import { assert, assertEquals } from '../../test.deps.ts';
+import { CLICommandMatcher } from '../../../src//matcher/CLICommandMatcher.ts';
+import { CLICommandResolver } from '../../../src/CLICommandResolver.ts';
+import { LocalDevCLIFileSystemHooks } from '../../../src/hooks/LocalDevCLIFileSystemHooks.ts';
+import { CLIDFSContextManager } from '../../../src/CLIDFSContextManager.ts';
+import { IoCContainer } from '../../../src/.deps.ts';
 
 const config = {
-  Name: "Test CLI",
-  Tokens: ["test"],
-  Version: "0.0.0",
+  Name: 'Test CLI',
+  Tokens: ['test'],
+  Version: '0.0.0',
 };
 
-const cwd = Deno.cwd().replace(/\\/g, "/");
+const cwd = Deno.cwd().replace(/\\/g, '/');
 const commandMap = new Map<
   string,
   { CommandPath?: string; GroupPath?: string }
 >([
-  ["hello", { CommandPath: `${cwd}/test-cli/commands/hello.ts` }],
-  ["scaffold", { GroupPath: `${cwd}/test-cli/commands/scaffold/.metadata.ts` }],
-  ["scaffold/cloud", {
+  ['hello', { CommandPath: `${cwd}/test-cli/commands/hello.ts` }],
+  ['scaffold', { GroupPath: `${cwd}/test-cli/commands/scaffold/.metadata.ts` }],
+  ['scaffold/cloud', {
     GroupPath: `${cwd}/test-cli/commands/scaffold/cloud/.metadata.ts`,
   }],
-  ["scaffold/cloud/aws", {
+  ['scaffold/cloud/aws', {
     CommandPath: `${cwd}/test-cli/commands/scaffold/cloud/aws.ts`,
   }],
 ]);
 
-Deno.test("CLICommandMatcher – resolves command vs help", async (t) => {
+Deno.test('CLICommandMatcher – resolves command vs help', async (t) => {
   const ioc = new IoCContainer();
   const dfs = new CLIDFSContextManager(ioc);
   const matcher = new CLICommandMatcher(
@@ -34,55 +34,55 @@ Deno.test("CLICommandMatcher – resolves command vs help", async (t) => {
   );
 
   await dfs.RegisterExecutionDFS();
-  dfs.RegisterProjectDFS("./test-cli/.cli.json");
+  dfs.RegisterProjectDFS('./test-cli/.cli.json');
 
-  await t.step("resolves leaf command and remaining args", async () => {
+  await t.step('resolves leaf command and remaining args', async () => {
     const result = await matcher.Resolve(
       config,
       commandMap,
-      "hello",
+      'hello',
       {},
-      ["hello", "extra"],
-      "/templates",
+      ['hello', 'extra'],
+      '/templates',
     );
     assert(result.Command);
-    assertEquals(result.Args, ["extra"]);
-    assertEquals(result.Flags.baseTemplatesDir, "/templates");
+    assertEquals(result.Args, ['extra']);
+    assertEquals(result.Flags.baseTemplatesDir, '/templates');
   });
 
-  await t.step("falls back to help when unknown key", async () => {
+  await t.step('falls back to help when unknown key', async () => {
     const result = await matcher.Resolve(
       config,
       commandMap,
-      "unknown",
+      'unknown',
       {},
-      ["unknown"],
-      "/templates",
+      ['unknown'],
+      '/templates',
     );
-    assertEquals(result.Command?.constructor.name, "HelpCommand");
+    assertEquals(result.Command?.constructor.name, 'HelpCommand');
   });
 
-  await t.step("shows group help when only group exists", async () => {
+  await t.step('shows group help when only group exists', async () => {
     const result = await matcher.Resolve(
       config,
       commandMap,
-      "scaffold",
+      'scaffold',
       {},
-      ["scaffold"],
-      "/templates",
+      ['scaffold'],
+      '/templates',
     );
-    assertEquals(result.Command?.constructor.name, "HelpCommand");
+    assertEquals(result.Command?.constructor.name, 'HelpCommand');
   });
 
-  await t.step("respects --help flag", async () => {
+  await t.step('respects --help flag', async () => {
     const result = await matcher.Resolve(
       config,
       commandMap,
-      "hello",
+      'hello',
       { help: true },
-      ["hello"],
-      "/templates",
+      ['hello'],
+      '/templates',
     );
-    assertEquals(result.Command?.constructor.name, "HelpCommand");
+    assertEquals(result.Command?.constructor.name, 'HelpCommand');
   });
 });

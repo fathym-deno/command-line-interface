@@ -1,6 +1,6 @@
-import { Colors, type WriterSync } from "../.deps.ts";
+import { Colors, type WriterSync } from '../.deps.ts';
 
-type Level = "debug" | "info" | "warn" | "error" | "fatal" | "success";
+type Level = 'debug' | 'info' | 'warn' | 'error' | 'fatal' | 'success';
 
 export class CLITelemetryRenderer {
   protected readonly encoder = new TextEncoder();
@@ -15,27 +15,27 @@ export class CLITelemetryRenderer {
     const prefix = this.prefixFor(level);
     const formattedAttrs = this.formatAttributes(attributes);
 
-    const line = [prefix, message, formattedAttrs].filter(Boolean).join(" ");
+    const line = [prefix, message, formattedAttrs].filter(Boolean).join(' ');
 
     this.writer.writeSync(this.encoder.encode(`${line}\n`));
   }
 
   protected prefixFor(level: Level): string {
     switch (level) {
-      case "debug":
-        return Colors.cyan("…");
-      case "info":
-        return Colors.blue("ℹ");
-      case "warn":
-        return Colors.yellow("⚠");
-      case "error":
-        return Colors.red("✖");
-      case "fatal":
-        return Colors.red("💥");
-      case "success":
-        return Colors.green("✅");
+      case 'debug':
+        return Colors.cyan('…');
+      case 'info':
+        return Colors.blue('ℹ');
+      case 'warn':
+        return Colors.yellow('⚠');
+      case 'error':
+        return Colors.red('✖');
+      case 'fatal':
+        return Colors.red('💥');
+      case 'success':
+        return Colors.green('✅');
       default:
-        return "";
+        return '';
     }
   }
 

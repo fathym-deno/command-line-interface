@@ -1,7 +1,7 @@
-import type { TelemetryLogger, WriterSync } from "../.deps.ts";
-import { CLITelemetryRenderer } from "./CLITelemetryRenderer.ts";
+import type { TelemetryLogger, WriterSync } from '../.deps.ts';
+import { CLITelemetryRenderer } from './CLITelemetryRenderer.ts';
 
-type Level = "debug" | "info" | "warn" | "error" | "fatal" | "success";
+type Level = 'debug' | 'info' | 'warn' | 'error' | 'fatal' | 'success';
 
 type CliTelemetryLoggerOptions = {
   baseAttributes?: Record<string, unknown>;
@@ -32,11 +32,11 @@ export function createCliTelemetryLogger(
   };
 
   return {
-    debug: (msg, attrs) => log("debug", msg, attrs),
-    info: (msg, attrs) => log("info", msg, attrs),
-    warn: (msg, attrs) => log("warn", msg, attrs),
-    error: (msg, attrs) => log("error", msg, attrs),
-    fatal: (msg, attrs) => log("fatal", msg, attrs),
+    debug: (msg, attrs) => log('debug', msg, attrs),
+    info: (msg, attrs) => log('info', msg, attrs),
+    warn: (msg, attrs) => log('warn', msg, attrs),
+    error: (msg, attrs) => log('error', msg, attrs),
+    fatal: (msg, attrs) => log('fatal', msg, attrs),
     withContext,
   };
 }

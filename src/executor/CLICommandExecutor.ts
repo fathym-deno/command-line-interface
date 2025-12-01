@@ -1,29 +1,18 @@
 // deno-lint-ignore-file no-explicit-any
-import type { CLIConfig } from "../types/CLIConfig.ts";
-import type {
-  IoCContainer,
-  TelemetryLogger,
-  WriterSync,
-  ZodSchema,
-} from "../.deps.ts";
+import type { CLIConfig } from '../types/CLIConfig.ts';
+import type { IoCContainer, TelemetryLogger, WriterSync, ZodSchema } from '../.deps.ts';
 
-import type { CommandRuntime } from "../commands/CommandRuntime.ts";
-import type {
-  CommandContext,
-  CommandInvokerMap,
-} from "../commands/CommandContext.ts";
-import {
-  type CommandParamConstructor,
-  CommandParams,
-} from "../commands/CommandParams.ts";
+import type { CommandRuntime } from '../commands/CommandRuntime.ts';
+import type { CommandContext, CommandInvokerMap } from '../commands/CommandContext.ts';
+import { type CommandParamConstructor, CommandParams } from '../commands/CommandParams.ts';
 
-import { HelpCommand } from "../help/HelpCommand.ts";
-import type { CLICommandResolver } from "../CLICommandResolver.ts";
-import { CLIDFSContextManager } from "../CLIDFSContextManager.ts";
-import { TelemetryLogAdapter } from "../logging/TelemetryLogAdapter.ts";
-import { createCliTelemetryLogger } from "../logging/createCliTelemetryLogger.ts";
-import { ValidationPipeline } from "../validation/ValidationPipeline.ts";
-import type { ValidateCallback } from "../validation/types.ts";
+import { HelpCommand } from '../help/HelpCommand.ts';
+import type { CLICommandResolver } from '../CLICommandResolver.ts';
+import { CLIDFSContextManager } from '../CLIDFSContextManager.ts';
+import { TelemetryLogAdapter } from '../logging/TelemetryLogAdapter.ts';
+import { createCliTelemetryLogger } from '../logging/createCliTelemetryLogger.ts';
+import { ValidationPipeline } from '../validation/ValidationPipeline.ts';
+import type { ValidateCallback } from '../validation/types.ts';
 
 type TelemetryWriterGlobal = { __telemetryWriter?: WriterSync };
 
@@ -95,7 +84,7 @@ export class CLICommandExecutor {
 
       const result = await this.runLifecycle(command, context);
 
-      if (typeof result === "number") {
+      if (typeof result === 'number') {
         Deno.exit(result);
       }
 
@@ -119,8 +108,7 @@ export class CLICommandExecutor {
     command: CommandRuntime,
     opts: CLICommandExecutorOptions,
   ): Promise<CommandContext> {
-    const { flags, positional, paramsCtor, argsSchema, flagsSchema, validate } =
-      opts;
+    const { flags, positional, paramsCtor, argsSchema, flagsSchema, validate } = opts;
 
     // Create telemetry/log early so validation can use it
     const telemetry = await this.ensureTelemetryLogger(config);
@@ -186,7 +174,7 @@ export class CLICommandExecutor {
 
     if (tempLocator) {
       this.ioc.Register(() => tempLocator, {
-        Type: this.ioc.Symbol("TemplateLocator"),
+        Type: this.ioc.Symbol('TemplateLocator'),
       });
     }
 
@@ -214,7 +202,7 @@ export class CLICommandExecutor {
   protected async ensureTelemetryLogger(
     config: CLIConfig,
   ): Promise<TelemetryLogger> {
-    const telemetrySymbol = this.ioc.Symbol("TelemetryLogger");
+    const telemetrySymbol = this.ioc.Symbol('TelemetryLogger');
 
     try {
       return await this.ioc.Resolve<TelemetryLogger>(telemetrySymbol);
@@ -224,7 +212,7 @@ export class CLICommandExecutor {
 
     let writer: WriterSync | undefined;
     try {
-      writer = await this.ioc.Resolve(this.ioc.Symbol("TelemetryWriter"));
+      writer = await this.ioc.Resolve(this.ioc.Symbol('TelemetryWriter'));
     } catch {
       writer = (globalThis as TelemetryWriterGlobal).__telemetryWriter;
     }
@@ -254,15 +242,15 @@ export class CLICommandExecutor {
     cmd: CommandRuntime,
     ctx: CommandContext,
   ): Promise<number | void> {
-    if (typeof cmd.Init === "function") {
+    if (typeof cmd.Init === 'function') {
       await cmd.Init(ctx, this.ioc);
     }
 
-    const result = typeof cmd.DryRun === "function" && ctx.Params.DryRun
+    const result = typeof cmd.DryRun === 'function' && ctx.Params.DryRun
       ? await cmd.DryRun(ctx, this.ioc)
       : await cmd.Run(ctx, this.ioc);
 
-    if (typeof cmd.Cleanup === "function") {
+    if (typeof cmd.Cleanup === 'function') {
       await cmd.Cleanup(ctx, this.ioc);
     }
 

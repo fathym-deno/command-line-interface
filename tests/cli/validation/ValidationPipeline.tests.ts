@@ -1,9 +1,9 @@
-import { assertEquals } from "jsr:@std/assert@^1.0.0";
-import { describe, it } from "jsr:@std/testing@^1.0.0/bdd";
-import { z } from "../../../src/.deps.ts";
-import { ValidationPipeline } from "../../../src/validation/ValidationPipeline.ts";
-import { CommandParams } from "../../../src/commands/CommandParams.ts";
-import type { CommandLog } from "../../../src/commands/CommandLog.ts";
+import { assertEquals } from 'jsr:@std/assert@^1.0.0';
+import { describe, it } from 'jsr:@std/testing@^1.0.0/bdd';
+import { z } from '../../../src/.deps.ts';
+import { ValidationPipeline } from '../../../src/validation/ValidationPipeline.ts';
+import { CommandParams } from '../../../src/commands/CommandParams.ts';
+import type { CommandLog } from '../../../src/commands/CommandLog.ts';
 
 // Stub logger for tests
 const stubLog: CommandLog = {
@@ -16,33 +16,33 @@ const stubLog: CommandLog = {
 // Minimal params class for tests
 class TestParams extends CommandParams<unknown[], Record<string, unknown>> {}
 
-describe("ValidationPipeline", () => {
+describe('ValidationPipeline', () => {
   const pipeline = new ValidationPipeline();
 
-  describe("execute without custom validator", () => {
-    it("validates args and flags successfully", async () => {
+  describe('execute without custom validator', () => {
+    it('validates args and flags successfully', async () => {
       const argsSchema = z.tuple([z.string()]);
       const flagsSchema = z.object({ verbose: z.boolean() });
-      const params = new TestParams(["deploy"], { verbose: true });
+      const params = new TestParams(['deploy'], { verbose: true });
 
       const result = await pipeline.execute(
-        ["deploy"],
+        ['deploy'],
         { verbose: true },
         params,
         { argsSchema, flagsSchema, log: stubLog },
       );
 
       assertEquals(result.success, true);
-      assertEquals(result.data?.args, ["deploy"]);
+      assertEquals(result.data?.args, ['deploy']);
       assertEquals(result.data?.flags, { verbose: true });
     });
 
-    it("returns errors for invalid args", async () => {
+    it('returns errors for invalid args', async () => {
       const argsSchema = z.tuple([z.number()]);
-      const params = new TestParams(["not-a-number"], {});
+      const params = new TestParams(['not-a-number'], {});
 
       const result = await pipeline.execute(
-        ["not-a-number"],
+        ['not-a-number'],
         {},
         params,
         { argsSchema, log: stubLog },
@@ -52,13 +52,13 @@ describe("ValidationPipeline", () => {
       assertEquals(result.errors?.length, 1);
     });
 
-    it("returns errors for invalid flags", async () => {
+    it('returns errors for invalid flags', async () => {
       const flagsSchema = z.object({ port: z.number() });
-      const params = new TestParams([], { port: "invalid" });
+      const params = new TestParams([], { port: 'invalid' });
 
       const result = await pipeline.execute(
         [],
-        { port: "invalid" },
+        { port: 'invalid' },
         params,
         { flagsSchema, log: stubLog },
       );
@@ -66,7 +66,7 @@ describe("ValidationPipeline", () => {
       assertEquals(result.success, false);
     });
 
-    it("resolves complex types from inline JSON", async () => {
+    it('resolves complex types from inline JSON', async () => {
       const flagsSchema = z.object({
         config: z.object({ host: z.string() }),
       });
@@ -80,10 +80,10 @@ describe("ValidationPipeline", () => {
       );
 
       assertEquals(result.success, true);
-      assertEquals(result.data?.flags.config, { host: "localhost" });
+      assertEquals(result.data?.flags.config, { host: 'localhost' });
     });
 
-    it("resolves array types from inline JSON", async () => {
+    it('resolves array types from inline JSON', async () => {
       const flagsSchema = z.object({
         targets: z.array(z.string()),
       });
@@ -97,34 +97,34 @@ describe("ValidationPipeline", () => {
       );
 
       assertEquals(result.success, true);
-      assertEquals(result.data?.flags.targets, ["a", "b", "c"]);
+      assertEquals(result.data?.flags.targets, ['a', 'b', 'c']);
     });
 
-    it("passes through primitive flags unchanged", async () => {
+    it('passes through primitive flags unchanged', async () => {
       const flagsSchema = z.object({
         name: z.string(),
         count: z.number(),
       });
-      const params = new TestParams([], { name: "test", count: 5 });
+      const params = new TestParams([], { name: 'test', count: 5 });
 
       const result = await pipeline.execute(
         [],
-        { name: "test", count: 5 },
+        { name: 'test', count: 5 },
         params,
         { flagsSchema, log: stubLog },
       );
 
       assertEquals(result.success, true);
-      assertEquals(result.data?.flags.name, "test");
+      assertEquals(result.data?.flags.name, 'test');
       assertEquals(result.data?.flags.count, 5);
     });
   });
 
-  describe("execute with custom validator", () => {
-    it("calls custom validator with correct context", async () => {
+  describe('execute with custom validator', () => {
+    it('calls custom validator with correct context', async () => {
       const argsSchema = z.tuple([z.string()]);
       const flagsSchema = z.object({ name: z.string() });
-      const params = new TestParams(["deploy"], { name: "test" });
+      const params = new TestParams(['deploy'], { name: 'test' });
 
       let receivedCtx: {
         Args?: unknown[];
@@ -135,8 +135,8 @@ describe("ValidationPipeline", () => {
       } = {};
 
       const result = await pipeline.execute(
-        ["deploy"],
-        { name: "test" },
+        ['deploy'],
+        { name: 'test' },
         params,
         {
           argsSchema,
@@ -148,7 +148,7 @@ describe("ValidationPipeline", () => {
               Flags: ctx.Flags,
               hasParams: !!ctx.Params,
               hasLog: !!ctx.Log,
-              hasRootValidate: typeof ctx.RootValidate === "function",
+              hasRootValidate: typeof ctx.RootValidate === 'function',
             };
             return { success: true };
           },
@@ -156,14 +156,14 @@ describe("ValidationPipeline", () => {
       );
 
       assertEquals(result.success, true);
-      assertEquals(receivedCtx.Args, ["deploy"]);
-      assertEquals(receivedCtx.Flags, { name: "test" });
+      assertEquals(receivedCtx.Args, ['deploy']);
+      assertEquals(receivedCtx.Flags, { name: 'test' });
       assertEquals(receivedCtx.hasParams, true);
       assertEquals(receivedCtx.hasLog, true);
       assertEquals(receivedCtx.hasRootValidate, true);
     });
 
-    it("allows custom validator to call RootValidate", async () => {
+    it('allows custom validator to call RootValidate', async () => {
       const flagsSchema = z.object({
         config: z.object({ host: z.string() }),
       });
@@ -184,10 +184,10 @@ describe("ValidationPipeline", () => {
       );
 
       assertEquals(result.success, true);
-      assertEquals(result.data?.flags.config, { host: "localhost" });
+      assertEquals(result.data?.flags.config, { host: 'localhost' });
     });
 
-    it("allows custom validator to add validation after RootValidate", async () => {
+    it('allows custom validator to add validation after RootValidate', async () => {
       const flagsSchema = z.object({ port: z.number() });
       const params = new TestParams([], { port: 80 });
 
@@ -207,8 +207,8 @@ describe("ValidationPipeline", () => {
               return {
                 success: false,
                 errors: [{
-                  path: ["flags", "port"],
-                  message: "Privileged port",
+                  path: ['flags', 'port'],
+                  message: 'Privileged port',
                 }],
               };
             }
@@ -218,16 +218,16 @@ describe("ValidationPipeline", () => {
       );
 
       assertEquals(result.success, false);
-      assertEquals(result.errors?.[0].message, "Privileged port");
+      assertEquals(result.errors?.[0].message, 'Privileged port');
     });
 
-    it("allows custom validator to skip RootValidate", async () => {
+    it('allows custom validator to skip RootValidate', async () => {
       const flagsSchema = z.object({ name: z.string() });
-      const params = new TestParams([], { name: "test" });
+      const params = new TestParams([], { name: 'test' });
 
       const result = await pipeline.execute(
         [],
-        { name: "test" },
+        { name: 'test' },
         params,
         {
           flagsSchema,
@@ -243,7 +243,7 @@ describe("ValidationPipeline", () => {
       // Note: data won't have resolved values since RootValidate wasn't called
     });
 
-    it("allows custom validator to reject before RootValidate", async () => {
+    it('allows custom validator to reject before RootValidate', async () => {
       const flagsSchema = z.object({
         a: z.boolean().optional(),
         b: z.boolean().optional(),
@@ -262,7 +262,7 @@ describe("ValidationPipeline", () => {
             if (ctx.Flags.a && ctx.Flags.b) {
               return {
                 success: false,
-                errors: [{ message: "Cannot use both --a and --b" }],
+                errors: [{ message: 'Cannot use both --a and --b' }],
               };
             }
             return await ctx.RootValidate();
@@ -271,12 +271,12 @@ describe("ValidationPipeline", () => {
       );
 
       assertEquals(result.success, false);
-      assertEquals(result.errors?.[0].message, "Cannot use both --a and --b");
+      assertEquals(result.errors?.[0].message, 'Cannot use both --a and --b');
     });
   });
 
-  describe("RootValidate call tracking", () => {
-    it("auto-runs RootValidate when no custom validator provided", async () => {
+  describe('RootValidate call tracking', () => {
+    it('auto-runs RootValidate when no custom validator provided', async () => {
       // This is implicitly tested by "execute without custom validator" suite
       // but we verify resolution happens (which only RootValidate does)
       const flagsSchema = z.object({
@@ -293,10 +293,10 @@ describe("ValidationPipeline", () => {
 
       // Resolution only happens in RootValidate - so this proves it ran
       assertEquals(result.success, true);
-      assertEquals(result.data?.flags.config, { host: "test" });
+      assertEquals(result.data?.flags.config, { host: 'test' });
     });
 
-    it("does not auto-run RootValidate when custom validator is provided", async () => {
+    it('does not auto-run RootValidate when custom validator is provided', async () => {
       const flagsSchema = z.object({
         config: z.object({ host: z.string() }),
       });
@@ -321,7 +321,7 @@ describe("ValidationPipeline", () => {
       assertEquals(result.data, undefined);
     });
 
-    it("returns resolved data when custom validator calls RootValidate", async () => {
+    it('returns resolved data when custom validator calls RootValidate', async () => {
       const flagsSchema = z.object({
         config: z.object({ host: z.string() }),
       });
@@ -343,18 +343,18 @@ describe("ValidationPipeline", () => {
 
       // RootValidate was called, so resolution happened
       assertEquals(result.success, true);
-      assertEquals(result.data?.flags.config, { host: "resolved" });
+      assertEquals(result.data?.flags.config, { host: 'resolved' });
     });
 
-    it("allows validator to transform data after RootValidate", async () => {
+    it('allows validator to transform data after RootValidate', async () => {
       const flagsSchema = z.object({
         name: z.string(),
       });
-      const params = new TestParams([], { name: "original" });
+      const params = new TestParams([], { name: 'original' });
 
       const result = await pipeline.execute(
         [],
-        { name: "original" },
+        { name: 'original' },
         params,
         {
           flagsSchema,
@@ -370,7 +370,7 @@ describe("ValidationPipeline", () => {
                 args: rootResult.data?.args ?? [],
                 flags: {
                   ...rootResult.data?.flags,
-                  name: "transformed",
+                  name: 'transformed',
                 },
               },
             };
@@ -379,18 +379,18 @@ describe("ValidationPipeline", () => {
       );
 
       assertEquals(result.success, true);
-      assertEquals(result.data?.flags.name, "transformed");
+      assertEquals(result.data?.flags.name, 'transformed');
     });
 
-    it("handles RootValidate errors propagated through custom validator", async () => {
+    it('handles RootValidate errors propagated through custom validator', async () => {
       const flagsSchema = z.object({
         port: z.number(),
       });
-      const params = new TestParams([], { port: "not-a-number" });
+      const params = new TestParams([], { port: 'not-a-number' });
 
       const result = await pipeline.execute(
         [],
-        { port: "not-a-number" },
+        { port: 'not-a-number' },
         params,
         {
           flagsSchema,
@@ -406,16 +406,16 @@ describe("ValidationPipeline", () => {
       assertEquals(result.errors?.length, 1);
     });
 
-    it("custom validator can call RootValidate multiple times safely", async () => {
+    it('custom validator can call RootValidate multiple times safely', async () => {
       const flagsSchema = z.object({
         name: z.string(),
       });
-      const params = new TestParams([], { name: "test" });
+      const params = new TestParams([], { name: 'test' });
       let callCount = 0;
 
       const result = await pipeline.execute(
         [],
-        { name: "test" },
+        { name: 'test' },
         params,
         {
           flagsSchema,
@@ -440,40 +440,40 @@ describe("ValidationPipeline", () => {
     });
   });
 
-  describe("formatErrors", () => {
-    it("formats validation result errors", () => {
+  describe('formatErrors', () => {
+    it('formats validation result errors', () => {
       const formatted = pipeline.formatErrors({
         success: false,
         errors: [
-          { path: ["flags", "name"], message: "Required" },
+          { path: ['flags', 'name'], message: 'Required' },
         ],
       });
 
-      assertEquals(formatted.includes("flags.name"), true);
-      assertEquals(formatted.includes("Required"), true);
+      assertEquals(formatted.includes('flags.name'), true);
+      assertEquals(formatted.includes('Required'), true);
     });
 
-    it("returns empty string for success", () => {
+    it('returns empty string for success', () => {
       const formatted = pipeline.formatErrors({ success: true });
 
-      assertEquals(formatted, "");
+      assertEquals(formatted, '');
     });
   });
 
-  describe("getters", () => {
-    it("returns introspector instance", () => {
+  describe('getters', () => {
+    it('returns introspector instance', () => {
       const introspector = pipeline.getIntrospector();
-      assertEquals(typeof introspector.isComplexType, "function");
+      assertEquals(typeof introspector.isComplexType, 'function');
     });
 
-    it("returns resolver instance", () => {
+    it('returns resolver instance', () => {
       const resolver = pipeline.getResolver();
-      assertEquals(typeof resolver.resolve, "function");
+      assertEquals(typeof resolver.resolve, 'function');
     });
 
-    it("returns validator instance", () => {
+    it('returns validator instance', () => {
       const validator = pipeline.getValidator();
-      assertEquals(typeof validator.validateFlags, "function");
+      assertEquals(typeof validator.validateFlags, 'function');
     });
   });
 });

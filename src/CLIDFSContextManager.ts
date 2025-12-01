@@ -8,7 +8,7 @@ import {
   join,
   LocalDFSFileHandler,
   type LocalDFSFileHandlerDetails,
-} from "./.deps.ts";
+} from './.deps.ts';
 
 /**
  * Options for registering a ConfigDFS handler.
@@ -123,7 +123,7 @@ export class CLIDFSContextManager {
    * ```
    */
   public RegisterExecutionDFS(cwd: string = Deno.cwd()): string {
-    return this.RegisterCustomDFS("execution", { FileRoot: cwd });
+    return this.RegisterCustomDFS('execution', { FileRoot: cwd });
   }
 
   /**
@@ -149,10 +149,10 @@ export class CLIDFSContextManager {
    */
   public RegisterProjectDFS(
     fileUrlInProject: string,
-    name: string = "project",
-    rootFile: string = ".cli.json",
+    name: string = 'project',
+    rootFile: string = '.cli.json',
   ): string {
-    if (fileUrlInProject.startsWith("file:///")) {
+    if (fileUrlInProject.startsWith('file:///')) {
       fileUrlInProject = fromFileUrl(fileUrlInProject);
     }
 
@@ -177,7 +177,7 @@ export class CLIDFSContextManager {
    */
   public RegisterUserHomeDFS(): string {
     const homeDir = this.getUserHomeDir();
-    return this.RegisterCustomDFS("user-home", { FileRoot: homeDir });
+    return this.RegisterCustomDFS('user-home', { FileRoot: homeDir });
   }
 
   // ─── DFS Access Utilities ─────────────────────────────────────────────
@@ -197,10 +197,10 @@ export class CLIDFSContextManager {
    */
   public async GetUserHomeDFS(): Promise<DFSFileHandler> {
     try {
-      return await this.GetDFS("user-home");
+      return await this.GetDFS('user-home');
     } catch {
       this.RegisterUserHomeDFS();
-      return await this.GetDFS("user-home");
+      return await this.GetDFS('user-home');
     }
   }
 
@@ -243,7 +243,7 @@ export class CLIDFSContextManager {
     // Ensure config directory exists (cross-platform)
     await ensureDir(configPath);
 
-    return this.RegisterCustomDFS("config", { FileRoot: configPath });
+    return this.RegisterCustomDFS('config', { FileRoot: configPath });
   }
 
   /**
@@ -256,7 +256,7 @@ export class CLIDFSContextManager {
     const { token, root, rootEnvVar } = options;
 
     // 1. Custom env var (if explicitly set and non-empty)
-    if (rootEnvVar !== undefined && rootEnvVar !== "") {
+    if (rootEnvVar !== undefined && rootEnvVar !== '') {
       const envValue = Deno.env.get(rootEnvVar);
       if (envValue) return envValue;
     }
@@ -288,7 +288,7 @@ export class CLIDFSContextManager {
    * ```
    */
   public async GetConfigDFS(): Promise<DFSFileHandler> {
-    return await this.GetDFS("config");
+    return await this.GetDFS('config');
   }
 
   /**
@@ -326,7 +326,7 @@ export class CLIDFSContextManager {
    * ```
    */
   public async GetExecutionDFS(): Promise<DFSFileHandler> {
-    return await this.GetDFS("execution");
+    return await this.GetDFS('execution');
   }
 
   /**
@@ -341,7 +341,7 @@ export class CLIDFSContextManager {
    * ```
    */
   public async GetProjectDFS(): Promise<DFSFileHandler> {
-    return await this.GetDFS("project");
+    return await this.GetDFS('project');
   }
 
   /**
@@ -381,9 +381,9 @@ export class CLIDFSContextManager {
 
   protected getUserHomeDir(): string {
     const env = Deno.env.get(
-      Deno.build.os === "windows" ? "USERPROFILE" : "HOME",
+      Deno.build.os === 'windows' ? 'USERPROFILE' : 'HOME',
     );
-    if (!env) throw new Error("❌ Unable to determine user home directory.");
+    if (!env) throw new Error('❌ Unable to determine user home directory.');
     return env;
   }
 }

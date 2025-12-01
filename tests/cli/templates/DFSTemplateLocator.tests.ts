@@ -1,26 +1,26 @@
-import { assertEquals, assertRejects } from "../../test.deps.ts";
-import { DFSTemplateLocator } from "../../../src/templates/DFSTemplateLocator.ts";
-import type { DFSFileHandler } from "../../../src/.deps.ts";
+import { assertEquals, assertRejects } from '../../test.deps.ts';
+import { DFSTemplateLocator } from '../../../src/templates/DFSTemplateLocator.ts';
+import type { DFSFileHandler } from '../../../src/.deps.ts';
 
 const contents = {
-  "templates/base/file.txt": "hello",
-  "templates/base/other.hbs": "world",
+  'templates/base/file.txt': 'hello',
+  'templates/base/other.hbs': 'world',
 };
 const samplePaths = [
-  "./templates/base/file.txt",
-  "./templates/base/other.hbs",
-  "./templates/extra/skip.txt",
+  './templates/base/file.txt',
+  './templates/base/other.hbs',
+  './templates/extra/skip.txt',
 ];
 
 function createStubDFS(): DFSFileHandler {
   const value = contents as Record<string, string>;
   const dfs = {
-    Root: ".",
+    Root: '.',
     LoadAllPaths() {
       return samplePaths;
     },
     GetFileInfo(path: string) {
-      const clean = path.replace(/^\.\/?/, "");
+      const clean = path.replace(/^\.\/?/, '');
       if (!(clean in contents)) return undefined;
       return {
         Path: clean,
@@ -33,7 +33,7 @@ function createStubDFS(): DFSFileHandler {
       };
     },
     ResolvePath(..._parts: string[]) {
-      return "";
+      return '';
     },
     async WriteFile() {},
     async RemoveFile() {},
@@ -42,23 +42,23 @@ function createStubDFS(): DFSFileHandler {
   return dfs as unknown as DFSFileHandler;
 }
 
-Deno.test("DFSTemplateLocator – lists files under template prefix and reads content", async () => {
+Deno.test('DFSTemplateLocator – lists files under template prefix and reads content', async () => {
   const locator = new DFSTemplateLocator(createStubDFS());
 
-  const files = await locator.ListFiles("./templates/base");
+  const files = await locator.ListFiles('./templates/base');
   assertEquals(files.sort(), [
-    "./templates/base/file.txt",
-    "./templates/base/other.hbs",
+    './templates/base/file.txt',
+    './templates/base/other.hbs',
   ]);
 
-  const text = await locator.ReadTemplateFile("./templates/base/file.txt");
-  assertEquals(text, "hello");
+  const text = await locator.ReadTemplateFile('./templates/base/file.txt');
+  assertEquals(text, 'hello');
 });
 
-Deno.test("DFSTemplateLocator – throws when template missing", async () => {
+Deno.test('DFSTemplateLocator – throws when template missing', async () => {
   const locator = new DFSTemplateLocator(createStubDFS());
   await assertRejects(
-    () => locator.ReadTemplateFile("templates/missing"),
+    () => locator.ReadTemplateFile('templates/missing'),
     Error,
   );
 });

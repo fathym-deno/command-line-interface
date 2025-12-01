@@ -1,18 +1,14 @@
-import {
-  IoCContainer,
-  type TelemetryLogger,
-  type WriterSync,
-} from "./.deps.ts";
-import { CLICommandExecutor } from "./executor/CLICommandExecutor.ts";
-import type { CLICommandSource, CLIConfig } from "./types/CLIConfig.ts";
-import type { CLIOptions } from "./types/CLIOptions.ts";
-import { LocalDevCLIFileSystemHooks } from "./hooks/LocalDevCLIFileSystemHooks.ts";
-import { CLICommandInvocationParser } from "./parser/CLICommandInvocationParser.ts";
-import { CLICommandResolver } from "./CLICommandResolver.ts";
-import type { CLICommandEntry } from "./types/CLICommandEntry.ts";
-import { CLICommandMatcher } from "./matcher/CLICommandMatcher.ts";
-import { CLIDFSContextManager } from "./CLIDFSContextManager.ts";
-import { CLICommandRegistry } from "./CLICommandRegistry.ts";
+import { IoCContainer, type TelemetryLogger, type WriterSync } from './.deps.ts';
+import { CLICommandExecutor } from './executor/CLICommandExecutor.ts';
+import type { CLICommandSource, CLIConfig } from './types/CLIConfig.ts';
+import type { CLIOptions } from './types/CLIOptions.ts';
+import { LocalDevCLIFileSystemHooks } from './hooks/LocalDevCLIFileSystemHooks.ts';
+import { CLICommandInvocationParser } from './parser/CLICommandInvocationParser.ts';
+import { CLICommandResolver } from './CLICommandResolver.ts';
+import type { CLICommandEntry } from './types/CLICommandEntry.ts';
+import { CLICommandMatcher } from './matcher/CLICommandMatcher.ts';
+import { CLIDFSContextManager } from './CLIDFSContextManager.ts';
+import { CLICommandRegistry } from './CLICommandRegistry.ts';
 
 type TelemetryWriterGlobal = { __telemetryWriter?: WriterSync };
 
@@ -157,20 +153,19 @@ export class CLI {
     const mergedCommandMap = this.mergeCommandMaps(commandMap);
 
     const matcher = new CLICommandMatcher(this.resolver);
-    const { Command, Flags, Args, Params, ArgsSchema, FlagsSchema, Validate } =
-      await matcher
-        .Resolve(
-          parsed.config,
-          mergedCommandMap,
-          parsed.key,
-          parsed.flags,
-          parsed.positional,
-        );
+    const { Command, Flags, Args, Params, ArgsSchema, FlagsSchema, Validate } = await matcher
+      .Resolve(
+        parsed.config,
+        mergedCommandMap,
+        parsed.key,
+        parsed.flags,
+        parsed.positional,
+      );
 
     const executor = new CLICommandExecutor(this.ioc, this.resolver);
 
     await executor.Execute(parsed.config, Command, {
-      key: parsed.key || "",
+      key: parsed.key || '',
       flags: Flags,
       positional: Args,
       paramsCtor: Params,
@@ -201,7 +196,7 @@ export class CLI {
             `Duplicate command key '${key}' detected.\n` +
               `  - First defined in: ${existingSource}\n` +
               `  - Also defined in: ${source.Path}${
-                source.Root ? ` (root: ${source.Root})` : ""
+                source.Root ? ` (root: ${source.Root})` : ''
               }\n` +
               `\nPlease ensure each command key is unique across all command sources.`,
           );
@@ -210,7 +205,7 @@ export class CLI {
         mergedMap.set(key, entry);
         sourceMap.set(
           key,
-          `${source.Path}${source.Root ? ` (root: ${source.Root})` : ""}`,
+          `${source.Path}${source.Root ? ` (root: ${source.Root})` : ''}`,
         );
       }
     }
@@ -245,12 +240,12 @@ export class CLI {
   protected async registerTelemetry(config: CLIConfig) {
     // Install a CLI-local telemetry logger that renders to stderr with styling.
     const { createCliTelemetryLogger } = await import(
-      "./logging/createCliTelemetryLogger.ts"
+      './logging/createCliTelemetryLogger.ts'
     );
 
     let writer: WriterSync | undefined = undefined;
     try {
-      writer = await this.ioc.Resolve(this.ioc.Symbol("TelemetryWriter"));
+      writer = await this.ioc.Resolve(this.ioc.Symbol('TelemetryWriter'));
     } catch {
       // optional writer not provided; fall back to global test writer or stderr
       const globalWriter = (globalThis as TelemetryWriterGlobal)
@@ -267,7 +262,7 @@ export class CLI {
     });
 
     this.ioc.Register(() => logger, {
-      Type: this.ioc.Symbol("TelemetryLogger"),
+      Type: this.ioc.Symbol('TelemetryLogger'),
     });
   }
 

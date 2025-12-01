@@ -1,4 +1,4 @@
-import type { CLICommandEntry } from "./types/CLICommandEntry.ts";
+import type { CLICommandEntry } from './types/CLICommandEntry.ts';
 
 /**
  * In-memory registry for programmatically defined CLI commands.

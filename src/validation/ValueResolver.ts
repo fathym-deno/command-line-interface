@@ -1,6 +1,6 @@
-import { exists } from "../.deps.ts";
-import { SchemaIntrospector } from "./SchemaIntrospector.ts";
-import type { ZodSchema } from "../.deps.ts";
+import { exists } from '../.deps.ts';
+import { SchemaIntrospector } from './SchemaIntrospector.ts';
+import type { ZodSchema } from '../.deps.ts';
 
 /**
  * Result of resolving a value from file path or JSON string.
@@ -66,7 +66,7 @@ export class ValueResolver {
    */
   async resolve(value: unknown, schema: ZodSchema): Promise<ResolveResult> {
     // Non-string values pass through unchanged
-    if (typeof value !== "string") {
+    if (typeof value !== 'string') {
       return { success: true, value, fromFile: false };
     }
 
@@ -174,12 +174,12 @@ export class ValueResolver {
    */
   looksLikeFilePath(value: string): boolean {
     // Relative paths
-    if (value.startsWith("./") || value.startsWith("../")) {
+    if (value.startsWith('./') || value.startsWith('../')) {
       return true;
     }
 
     // Absolute Unix paths
-    if (value.startsWith("/")) {
+    if (value.startsWith('/')) {
       return true;
     }
 
@@ -221,9 +221,9 @@ export class ValueResolver {
       const content = await Deno.readTextFile(filePath);
 
       // Parse based on extension
-      const ext = filePath.toLowerCase().split(".").pop();
+      const ext = filePath.toLowerCase().split('.').pop();
 
-      if (ext === "json") {
+      if (ext === 'json') {
         try {
           const parsed = JSON.parse(content);
           return { success: true, value: parsed, fromFile: true };
@@ -235,7 +235,7 @@ export class ValueResolver {
         }
       }
 
-      if (ext === "yaml" || ext === "yml") {
+      if (ext === 'yaml' || ext === 'yml') {
         // Basic YAML support - for complex YAML, users should use a YAML library
         // This handles simple key: value and arrays
         try {
@@ -247,8 +247,7 @@ export class ValueResolver {
           // Full YAML support would require a YAML parser dependency
           return {
             success: false,
-            error:
-              `YAML parsing not fully supported. Use JSON format or pre-convert YAML to JSON.`,
+            error: `YAML parsing not fully supported. Use JSON format or pre-convert YAML to JSON.`,
           };
         }
       }
@@ -278,15 +277,15 @@ export class ValueResolver {
   protected parseAsJson(value: string): ResolveResult {
     // Quick check - JSON objects/arrays start with { or [
     const trimmed = value.trim();
-    if (!trimmed.startsWith("{") && !trimmed.startsWith("[")) {
-      return { success: false, error: "Not a JSON structure" };
+    if (!trimmed.startsWith('{') && !trimmed.startsWith('[')) {
+      return { success: false, error: 'Not a JSON structure' };
     }
 
     try {
       const parsed = JSON.parse(trimmed);
       return { success: true, value: parsed, fromFile: false };
     } catch {
-      return { success: false, error: "Invalid JSON syntax" };
+      return { success: false, error: 'Invalid JSON syntax' };
     }
   }
 }

@@ -1,1 +1,1 @@
-import "./CommandModuleBuilder.tests.ts";
+import './CommandModuleBuilder.tests.ts';

@@ -1,4 +1,4 @@
-import type { CLICommandSource, CLIConfig } from "./CLIConfig.ts";
+import type { CLICommandSource, CLIConfig } from './CLIConfig.ts';
 
 export type CLIParsedResult = {
   parsed: Record<string, unknown>;

@@ -1,112 +1,112 @@
-import { assert, assertEquals, assertRejects } from "../../test.deps.ts";
+import { assert, assertEquals, assertRejects } from '../../test.deps.ts';
 import {
   type CLIConfig,
   CLIConfigSchema,
   type ExtendedCLIConfig,
   isCLIConfig,
   loadCLIConfig,
-} from "../../../src/types/CLIConfig.ts";
+} from '../../../src/types/CLIConfig.ts';
 
 const baseConfig = {
-  Name: "Test CLI",
-  Tokens: ["test"],
-  Version: "0.0.0",
+  Name: 'Test CLI',
+  Tokens: ['test'],
+  Version: '0.0.0',
 };
 
-Deno.test("CLIConfig schema and guard", async (t) => {
-  await t.step("accepts minimal valid config", () => {
+Deno.test('CLIConfig schema and guard', async (t) => {
+  await t.step('accepts minimal valid config', () => {
     const parsed = CLIConfigSchema.safeParse(baseConfig);
     assert(parsed.success);
-    assertEquals(parsed.data.Name, "Test CLI");
+    assertEquals(parsed.data.Name, 'Test CLI');
   });
 
-  await t.step("rejects missing required fields", () => {
-    const parsed = CLIConfigSchema.safeParse({ Tokens: [], Version: "" });
+  await t.step('rejects missing required fields', () => {
+    const parsed = CLIConfigSchema.safeParse({ Tokens: [], Version: '' });
     assert(!parsed.success);
   });
 
-  await t.step("guard accepts valid and rejects invalid shapes", () => {
+  await t.step('guard accepts valid and rejects invalid shapes', () => {
     assertEquals(isCLIConfig(baseConfig), true);
-    assertEquals(isCLIConfig({ Name: "", Tokens: [], Version: "" }), false);
+    assertEquals(isCLIConfig({ Name: '', Tokens: [], Version: '' }), false);
   });
 
-  await t.step("accepts Commands as single string", () => {
+  await t.step('accepts Commands as single string', () => {
     const config = {
       ...baseConfig,
-      Commands: "./commands",
+      Commands: './commands',
     };
     const parsed = CLIConfigSchema.safeParse(config);
     assert(parsed.success);
   });
 
-  await t.step("accepts Commands as array of strings", () => {
+  await t.step('accepts Commands as array of strings', () => {
     const config = {
       ...baseConfig,
-      Commands: ["./commands", "./plugins"],
+      Commands: ['./commands', './plugins'],
     };
     const parsed = CLIConfigSchema.safeParse(config);
     assert(parsed.success);
   });
 
-  await t.step("accepts Commands as array of CLICommandSource", () => {
+  await t.step('accepts Commands as array of CLICommandSource', () => {
     const config = {
       ...baseConfig,
       Commands: [
-        { Path: "./commands" },
-        { Path: "./plugins", Root: "plugins" },
+        { Path: './commands' },
+        { Path: './plugins', Root: 'plugins' },
       ],
     };
     const parsed = CLIConfigSchema.safeParse(config);
     assert(parsed.success);
   });
 
-  await t.step("accepts ConfigDFSName as optional string", () => {
+  await t.step('accepts ConfigDFSName as optional string', () => {
     const config = {
       ...baseConfig,
-      ConfigDFSName: ".ftm",
+      ConfigDFSName: '.ftm',
     };
     const parsed = CLIConfigSchema.safeParse(config);
     assert(parsed.success);
-    assertEquals(parsed.data.ConfigDFSName, ".ftm");
+    assertEquals(parsed.data.ConfigDFSName, '.ftm');
   });
 
-  await t.step("accepts ConfigDFSRoot as optional string", () => {
+  await t.step('accepts ConfigDFSRoot as optional string', () => {
     const config = {
       ...baseConfig,
-      ConfigDFSName: ".ftm",
-      ConfigDFSRoot: "/data",
+      ConfigDFSName: '.ftm',
+      ConfigDFSRoot: '/data',
     };
     const parsed = CLIConfigSchema.safeParse(config);
     assert(parsed.success);
-    assertEquals(parsed.data.ConfigDFSRoot, "/data");
+    assertEquals(parsed.data.ConfigDFSRoot, '/data');
   });
 
-  await t.step("accepts ConfigDFSRootEnvVar as optional string", () => {
+  await t.step('accepts ConfigDFSRootEnvVar as optional string', () => {
     const config = {
       ...baseConfig,
-      ConfigDFSName: ".ftm",
-      ConfigDFSRootEnvVar: "CUSTOM_CONFIG_ROOT",
+      ConfigDFSName: '.ftm',
+      ConfigDFSRootEnvVar: 'CUSTOM_CONFIG_ROOT',
     };
     const parsed = CLIConfigSchema.safeParse(config);
     assert(parsed.success);
-    assertEquals(parsed.data.ConfigDFSRootEnvVar, "CUSTOM_CONFIG_ROOT");
+    assertEquals(parsed.data.ConfigDFSRootEnvVar, 'CUSTOM_CONFIG_ROOT');
   });
 
   await t.step(
-    "accepts ConfigDFSRootEnvVar as empty string (disables env checking)",
+    'accepts ConfigDFSRootEnvVar as empty string (disables env checking)',
     () => {
       const config = {
         ...baseConfig,
-        ConfigDFSName: ".ftm",
-        ConfigDFSRootEnvVar: "",
+        ConfigDFSName: '.ftm',
+        ConfigDFSRootEnvVar: '',
       };
       const parsed = CLIConfigSchema.safeParse(config);
       assert(parsed.success);
-      assertEquals(parsed.data.ConfigDFSRootEnvVar, "");
+      assertEquals(parsed.data.ConfigDFSRootEnvVar, '');
     },
   );
 
-  await t.step("accepts config without ConfigDFS properties", () => {
+  await t.step('accepts config without ConfigDFS properties', () => {
     const parsed = CLIConfigSchema.safeParse(baseConfig);
     assert(parsed.success);
     assertEquals(parsed.data.ConfigDFSName, undefined);
@@ -114,22 +114,22 @@ Deno.test("CLIConfig schema and guard", async (t) => {
     assertEquals(parsed.data.ConfigDFSRootEnvVar, undefined);
   });
 
-  await t.step("accepts full ConfigDFS configuration", () => {
+  await t.step('accepts full ConfigDFS configuration', () => {
     const config = {
       ...baseConfig,
-      ConfigDFSName: ".spire",
-      ConfigDFSRoot: "/app/data",
-      ConfigDFSRootEnvVar: "SPIRE_DATA_DIR",
+      ConfigDFSName: '.spire',
+      ConfigDFSRoot: '/app/data',
+      ConfigDFSRootEnvVar: 'SPIRE_DATA_DIR',
     };
     const parsed = CLIConfigSchema.safeParse(config);
     assert(parsed.success);
-    assertEquals(parsed.data.ConfigDFSName, ".spire");
-    assertEquals(parsed.data.ConfigDFSRoot, "/app/data");
-    assertEquals(parsed.data.ConfigDFSRootEnvVar, "SPIRE_DATA_DIR");
+    assertEquals(parsed.data.ConfigDFSName, '.spire');
+    assertEquals(parsed.data.ConfigDFSRoot, '/app/data');
+    assertEquals(parsed.data.ConfigDFSRootEnvVar, 'SPIRE_DATA_DIR');
   });
 });
 
-Deno.test("loadCLIConfig – loads base config", async () => {
+Deno.test('loadCLIConfig – loads base config', async () => {
   const tempDir = await Deno.makeTempDir();
   const configPath = `${tempDir}/.cli.json`;
 
@@ -137,25 +137,25 @@ Deno.test("loadCLIConfig – loads base config", async () => {
     await Deno.writeTextFile(
       configPath,
       JSON.stringify({
-        Name: "Test CLI",
-        Tokens: ["test"],
-        Version: "1.0.0",
-        Description: "A test CLI",
+        Name: 'Test CLI',
+        Tokens: ['test'],
+        Version: '1.0.0',
+        Description: 'A test CLI',
       }),
     );
 
     const config = await loadCLIConfig(configPath);
 
-    assertEquals(config.Name, "Test CLI");
-    assertEquals(config.Tokens, ["test"]);
-    assertEquals(config.Version, "1.0.0");
-    assertEquals(config.Description, "A test CLI");
+    assertEquals(config.Name, 'Test CLI');
+    assertEquals(config.Tokens, ['test']);
+    assertEquals(config.Version, '1.0.0');
+    assertEquals(config.Description, 'A test CLI');
   } finally {
     await Deno.remove(tempDir, { recursive: true });
   }
 });
 
-Deno.test("loadCLIConfig – loads extended config with generic type", async () => {
+Deno.test('loadCLIConfig – loads extended config with generic type', async () => {
   interface MyExtendedConfig extends CLIConfig {
     CustomField: string;
     NestedConfig: {
@@ -171,13 +171,13 @@ Deno.test("loadCLIConfig – loads extended config with generic type", async () 
     await Deno.writeTextFile(
       configPath,
       JSON.stringify({
-        Name: "Extended CLI",
-        Tokens: ["ext"],
-        Version: "2.0.0",
-        CustomField: "custom value",
+        Name: 'Extended CLI',
+        Tokens: ['ext'],
+        Version: '2.0.0',
+        CustomField: 'custom value',
         NestedConfig: {
           Option1: true,
-          Option2: ["a", "b", "c"],
+          Option2: ['a', 'b', 'c'],
         },
       }),
     );
@@ -185,19 +185,19 @@ Deno.test("loadCLIConfig – loads extended config with generic type", async () 
     const config = await loadCLIConfig<MyExtendedConfig>(configPath);
 
     // Base fields work
-    assertEquals(config.Name, "Extended CLI");
-    assertEquals(config.Tokens, ["ext"]);
+    assertEquals(config.Name, 'Extended CLI');
+    assertEquals(config.Tokens, ['ext']);
 
     // Extended fields are typed correctly
-    assertEquals(config.CustomField, "custom value");
+    assertEquals(config.CustomField, 'custom value');
     assertEquals(config.NestedConfig.Option1, true);
-    assertEquals(config.NestedConfig.Option2, ["a", "b", "c"]);
+    assertEquals(config.NestedConfig.Option2, ['a', 'b', 'c']);
   } finally {
     await Deno.remove(tempDir, { recursive: true });
   }
 });
 
-Deno.test("loadCLIConfig – throws on missing required fields", async () => {
+Deno.test('loadCLIConfig – throws on missing required fields', async () => {
   const tempDir = await Deno.makeTempDir();
   const configPath = `${tempDir}/.cli.json`;
 
@@ -206,22 +206,22 @@ Deno.test("loadCLIConfig – throws on missing required fields", async () => {
     await Deno.writeTextFile(
       configPath,
       JSON.stringify({
-        Name: "Incomplete CLI",
-        Tokens: ["inc"],
+        Name: 'Incomplete CLI',
+        Tokens: ['inc'],
       }),
     );
 
     await assertRejects(
       () => loadCLIConfig(configPath),
       Error,
-      "Invalid CLI config",
+      'Invalid CLI config',
     );
   } finally {
     await Deno.remove(tempDir, { recursive: true });
   }
 });
 
-Deno.test("loadCLIConfig – preserves unknown fields", async () => {
+Deno.test('loadCLIConfig – preserves unknown fields', async () => {
   const tempDir = await Deno.makeTempDir();
   const configPath = `${tempDir}/.cli.json`;
 
@@ -229,10 +229,10 @@ Deno.test("loadCLIConfig – preserves unknown fields", async () => {
     await Deno.writeTextFile(
       configPath,
       JSON.stringify({
-        Name: "Test CLI",
-        Tokens: ["test"],
-        Version: "1.0.0",
-        UnknownField: "should be preserved",
+        Name: 'Test CLI',
+        Tokens: ['test'],
+        Version: '1.0.0',
+        UnknownField: 'should be preserved',
         AnotherField: { nested: true },
       }),
     );
@@ -240,7 +240,7 @@ Deno.test("loadCLIConfig – preserves unknown fields", async () => {
     const config = await loadCLIConfig(configPath);
 
     // deno-lint-ignore no-explicit-any
-    assertEquals((config as any).UnknownField, "should be preserved");
+    assertEquals((config as any).UnknownField, 'should be preserved');
     // deno-lint-ignore no-explicit-any
     assertEquals((config as any).AnotherField.nested, true);
   } finally {
@@ -248,7 +248,7 @@ Deno.test("loadCLIConfig – preserves unknown fields", async () => {
   }
 });
 
-Deno.test("loadCLIConfig – type inference works correctly", async () => {
+Deno.test('loadCLIConfig – type inference works correctly', async () => {
   interface ReleaseConfig {
     Targets?: string[];
     DefaultInstallDir?: {
@@ -268,14 +268,14 @@ Deno.test("loadCLIConfig – type inference works correctly", async () => {
     await Deno.writeTextFile(
       configPath,
       JSON.stringify({
-        Name: "Fathym CLI",
-        Tokens: ["ftm"],
-        Version: "1.0.0",
+        Name: 'Fathym CLI',
+        Tokens: ['ftm'],
+        Version: '1.0.0',
         Release: {
-          Targets: ["x86_64-pc-windows-msvc", "x86_64-apple-darwin"],
+          Targets: ['x86_64-pc-windows-msvc', 'x86_64-apple-darwin'],
           DefaultInstallDir: {
-            unix: "~/.bin",
-            windows: "~/.bin",
+            unix: '~/.bin',
+            windows: '~/.bin',
           },
         },
       }),
@@ -285,13 +285,13 @@ Deno.test("loadCLIConfig – type inference works correctly", async () => {
 
     // TypeScript knows these fields exist
     assertEquals(config.Release?.Targets?.length, 2);
-    assertEquals(config.Release?.DefaultInstallDir?.unix, "~/.bin");
+    assertEquals(config.Release?.DefaultInstallDir?.unix, '~/.bin');
   } finally {
     await Deno.remove(tempDir, { recursive: true });
   }
 });
 
-Deno.test("loadCLIConfig – backward compatible with existing usage", async () => {
+Deno.test('loadCLIConfig – backward compatible with existing usage', async () => {
   const tempDir = await Deno.makeTempDir();
   const configPath = `${tempDir}/.cli.json`;
 
@@ -299,10 +299,10 @@ Deno.test("loadCLIConfig – backward compatible with existing usage", async () 
     await Deno.writeTextFile(
       configPath,
       JSON.stringify({
-        Name: "Legacy CLI",
-        Tokens: ["legacy"],
-        Version: "0.1.0",
-        Commands: "./commands",
+        Name: 'Legacy CLI',
+        Tokens: ['legacy'],
+        Version: '0.1.0',
+        Commands: './commands',
       }),
     );
 
@@ -310,14 +310,14 @@ Deno.test("loadCLIConfig – backward compatible with existing usage", async () 
     const config = await loadCLIConfig(configPath);
 
     // Should work exactly as before
-    assertEquals(config.Name, "Legacy CLI");
-    assertEquals(config.Commands, "./commands");
+    assertEquals(config.Name, 'Legacy CLI');
+    assertEquals(config.Commands, './commands');
   } finally {
     await Deno.remove(tempDir, { recursive: true });
   }
 });
 
-Deno.test("ExtendedCLIConfig type helper", () => {
+Deno.test('ExtendedCLIConfig type helper', () => {
   // This is a compile-time test - if it compiles, the types work correctly
   type MyConfig = ExtendedCLIConfig<{
     CustomField: string;
@@ -326,18 +326,18 @@ Deno.test("ExtendedCLIConfig type helper", () => {
 
   // Create a valid config object
   const config: MyConfig = {
-    Name: "Test",
-    Tokens: ["test"],
-    Version: "1.0.0",
-    CustomField: "value",
+    Name: 'Test',
+    Tokens: ['test'],
+    Version: '1.0.0',
+    CustomField: 'value',
     NestedConfig: { option: true },
   };
 
   // Verify base fields exist
-  assertEquals(config.Name, "Test");
-  assertEquals(config.Tokens, ["test"]);
+  assertEquals(config.Name, 'Test');
+  assertEquals(config.Tokens, ['test']);
 
   // Verify extended fields exist
-  assertEquals(config.CustomField, "value");
+  assertEquals(config.CustomField, 'value');
   assertEquals(config.NestedConfig.option, true);
 });

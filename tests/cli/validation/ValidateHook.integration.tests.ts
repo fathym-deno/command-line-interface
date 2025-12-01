@@ -5,13 +5,13 @@
  * from command module definition through execution.
  */
 
-import { assertEquals } from "jsr:@std/assert@^1.0.0";
-import { describe, it } from "jsr:@std/testing@^1.0.0/bdd";
-import { z } from "../../../src/.deps.ts";
-import { Command } from "../../../src/fluent/Command.ts";
-import { CommandParams } from "../../../src/commands/CommandParams.ts";
-import type { ValidationResult } from "../../../src/validation/types.ts";
-import type { CommandLog } from "../../../src/commands/CommandLog.ts";
+import { assertEquals } from 'jsr:@std/assert@^1.0.0';
+import { describe, it } from 'jsr:@std/testing@^1.0.0/bdd';
+import { z } from '../../../src/.deps.ts';
+import { Command } from '../../../src/fluent/Command.ts';
+import { CommandParams } from '../../../src/commands/CommandParams.ts';
+import type { ValidationResult } from '../../../src/validation/types.ts';
+import type { CommandLog } from '../../../src/commands/CommandLog.ts';
 
 // Concrete params class for tests (since CommandParams is abstract)
 class TestParams<
@@ -27,12 +27,12 @@ const stubLog: CommandLog = {
   Success: () => {},
 };
 
-describe(".Validate() Hook Integration", () => {
-  describe("Command builder with .Validate()", () => {
-    it("includes Validate in built module", () => {
+describe('.Validate() Hook Integration', () => {
+  describe('Command builder with .Validate()', () => {
+    it('includes Validate in built module', () => {
       class Params extends TestParams<[], { name: string }> {}
 
-      const module = Command("test", "Test command")
+      const module = Command('test', 'Test command')
         .Args(z.tuple([]))
         .Flags(z.object({ name: z.string() }))
         .Params(Params)
@@ -40,13 +40,13 @@ describe(".Validate() Hook Integration", () => {
         .Run(() => {})
         .Build();
 
-      assertEquals(typeof module.Validate, "function");
+      assertEquals(typeof module.Validate, 'function');
     });
 
-    it("does not include Validate when not defined", () => {
+    it('does not include Validate when not defined', () => {
       class Params extends TestParams<[], { name?: string }> {}
 
-      const module = Command("test", "Test command")
+      const module = Command('test', 'Test command')
         .Args(z.tuple([]))
         .Flags(z.object({ name: z.string().optional() }))
         .Params(Params)
@@ -56,7 +56,7 @@ describe(".Validate() Hook Integration", () => {
       assertEquals(module.Validate, undefined);
     });
 
-    it("Validate receives correct context shape", async () => {
+    it('Validate receives correct context shape', async () => {
       class Params extends TestParams<[string], { verbose?: boolean }> {}
 
       const receivedContext: {
@@ -67,17 +67,16 @@ describe(".Validate() Hook Integration", () => {
         hasRootValidate?: boolean;
       } = {};
 
-      const module = Command("test", "Test command")
+      const module = Command('test', 'Test command')
         .Args(z.tuple([z.string()]))
         .Flags(z.object({ verbose: z.boolean().optional() }))
         .Params(Params)
         .Validate((ctx) => {
           receivedContext.hasArgs = Array.isArray(ctx.Args);
-          receivedContext.hasFlags = typeof ctx.Flags === "object";
+          receivedContext.hasFlags = typeof ctx.Flags === 'object';
           receivedContext.hasParams = !!ctx.Params;
           receivedContext.hasLog = !!ctx.Log;
-          receivedContext.hasRootValidate =
-            typeof ctx.RootValidate === "function";
+          receivedContext.hasRootValidate = typeof ctx.RootValidate === 'function';
           return { success: true };
         })
         .Run(() => {})
@@ -86,9 +85,9 @@ describe(".Validate() Hook Integration", () => {
       // Simulate calling Validate with mock context
       if (module.Validate) {
         await module.Validate({
-          Args: ["deploy"] as [string],
+          Args: ['deploy'] as [string],
           Flags: { verbose: true },
-          Params: new Params(["deploy"], { verbose: true }),
+          Params: new Params(['deploy'], { verbose: true }),
           Log: stubLog,
           RootValidate: () => Promise.resolve({ success: true }),
         });
@@ -102,8 +101,8 @@ describe(".Validate() Hook Integration", () => {
     });
   });
 
-  describe("Validate callback patterns", () => {
-    it("post-validation pattern: RootValidate then custom", async () => {
+  describe('Validate callback patterns', () => {
+    it('post-validation pattern: RootValidate then custom', async () => {
       const validateFn = async (ctx: {
         Args: unknown[];
         Flags: { port?: number };
@@ -120,8 +119,8 @@ describe(".Validate() Hook Integration", () => {
             success: false,
             errors: [
               {
-                path: ["flags", "port"],
-                message: "Privileged port requires sudo",
+                path: ['flags', 'port'],
+                message: 'Privileged port requires sudo',
               },
             ],
           };
@@ -141,7 +140,7 @@ describe(".Validate() Hook Integration", () => {
       assertEquals(lowPortResult.success, false);
       assertEquals(
         lowPortResult.errors?.[0].message,
-        "Privileged port requires sudo",
+        'Privileged port requires sudo',
       );
 
       // Test with high port
@@ -156,7 +155,7 @@ describe(".Validate() Hook Integration", () => {
       assertEquals(highPortResult.success, true);
     });
 
-    it("pre-validation pattern: custom then RootValidate", async () => {
+    it('pre-validation pattern: custom then RootValidate', async () => {
       const validateFn = async (ctx: {
         Args: unknown[];
         Flags: { input?: string; inputFile?: string };
@@ -168,7 +167,7 @@ describe(".Validate() Hook Integration", () => {
         if (ctx.Flags.input && ctx.Flags.inputFile) {
           return {
             success: false,
-            errors: [{ message: "Cannot use both --input and --input-file" }],
+            errors: [{ message: 'Cannot use both --input and --input-file' }],
           };
         }
         return await ctx.RootValidate();
@@ -177,7 +176,7 @@ describe(".Validate() Hook Integration", () => {
       // Test with both flags
       const bothResult = await validateFn({
         Args: [],
-        Flags: { input: "data", inputFile: "./file.json" },
+        Flags: { input: 'data', inputFile: './file.json' },
         Params: {},
         Log: {},
         RootValidate: () => Promise.resolve({ success: true }),
@@ -186,13 +185,13 @@ describe(".Validate() Hook Integration", () => {
       assertEquals(bothResult.success, false);
       assertEquals(
         bothResult.errors?.[0].message,
-        "Cannot use both --input and --input-file",
+        'Cannot use both --input and --input-file',
       );
 
       // Test with just one flag
       const oneResult = await validateFn({
         Args: [],
-        Flags: { input: "data" },
+        Flags: { input: 'data' },
         Params: {},
         Log: {},
         RootValidate: () => Promise.resolve({ success: true }),
@@ -201,7 +200,7 @@ describe(".Validate() Hook Integration", () => {
       assertEquals(oneResult.success, true);
     });
 
-    it("full custom pattern: skip RootValidate", () => {
+    it('full custom pattern: skip RootValidate', () => {
       let rootValidateCalled = false;
 
       const validateFn = (ctx: {
@@ -217,8 +216,8 @@ describe(".Validate() Hook Integration", () => {
             success: false,
             errors: [
               {
-                path: ["flags", "name"],
-                message: "Name must be at least 3 characters",
+                path: ['flags', 'name'],
+                message: 'Name must be at least 3 characters',
               },
             ],
           };
@@ -228,7 +227,7 @@ describe(".Validate() Hook Integration", () => {
 
       const result = validateFn({
         Args: [],
-        Flags: { name: "ab" },
+        Flags: { name: 'ab' },
         Params: {},
         Log: {},
         RootValidate: () => {
@@ -240,12 +239,12 @@ describe(".Validate() Hook Integration", () => {
       assertEquals(result.success, false);
       assertEquals(
         result.errors?.[0].message,
-        "Name must be at least 3 characters",
+        'Name must be at least 3 characters',
       );
       assertEquals(rootValidateCalled, false); // RootValidate should not be called
     });
 
-    it("cross-field validation", async () => {
+    it('cross-field validation', async () => {
       const validateFn = async (ctx: {
         Args: unknown[];
         Flags: { min?: number; max?: number };
@@ -262,8 +261,8 @@ describe(".Validate() Hook Integration", () => {
             return {
               success: false,
               errors: [{
-                path: ["flags"],
-                message: "min cannot be greater than max",
+                path: ['flags'],
+                message: 'min cannot be greater than max',
               }],
             };
           }
@@ -283,7 +282,7 @@ describe(".Validate() Hook Integration", () => {
       assertEquals(invalidResult.success, false);
       assertEquals(
         invalidResult.errors?.[0].message,
-        "min cannot be greater than max",
+        'min cannot be greater than max',
       );
 
       // Test valid: min < max
@@ -298,7 +297,7 @@ describe(".Validate() Hook Integration", () => {
       assertEquals(validResult.success, true);
     });
 
-    it("propagates RootValidate errors", async () => {
+    it('propagates RootValidate errors', async () => {
       const validateFn = async (ctx: {
         Args: unknown[];
         Flags: Record<string, unknown>;
@@ -323,19 +322,19 @@ describe(".Validate() Hook Integration", () => {
           Promise.resolve({
             success: false,
             errors: [{
-              path: ["flags", "required"],
-              message: "Required field missing",
+              path: ['flags', 'required'],
+              message: 'Required field missing',
             }],
           }),
       });
 
       assertEquals(result.success, false);
-      assertEquals(result.errors?.[0].message, "Required field missing");
+      assertEquals(result.errors?.[0].message, 'Required field missing');
     });
   });
 
-  describe("Validate with complex types", () => {
-    it("works with resolved config objects", async () => {
+  describe('Validate with complex types', () => {
+    it('works with resolved config objects', async () => {
       const validateFn = async (ctx: {
         Args: unknown[];
         Flags: { config?: { host: string; port: number } };
@@ -352,8 +351,8 @@ describe(".Validate() Hook Integration", () => {
             return {
               success: false,
               errors: [{
-                path: ["flags", "config", "port"],
-                message: "Port must be 1-65535",
+                path: ['flags', 'config', 'port'],
+                message: 'Port must be 1-65535',
               }],
             };
           }
@@ -364,7 +363,7 @@ describe(".Validate() Hook Integration", () => {
       // Test with invalid port
       const result = await validateFn({
         Args: [],
-        Flags: { config: { host: "localhost", port: 70000 } },
+        Flags: { config: { host: 'localhost', port: 70000 } },
         Params: {},
         Log: {},
         RootValidate: () =>
@@ -372,16 +371,16 @@ describe(".Validate() Hook Integration", () => {
             success: true,
             data: {
               args: [],
-              flags: { config: { host: "localhost", port: 70000 } },
+              flags: { config: { host: 'localhost', port: 70000 } },
             },
           }),
       });
 
       assertEquals(result.success, false);
-      assertEquals(result.errors?.[0].path, ["flags", "config", "port"]);
+      assertEquals(result.errors?.[0].path, ['flags', 'config', 'port']);
     });
 
-    it("works with resolved arrays", async () => {
+    it('works with resolved arrays', async () => {
       const validateFn = async (ctx: {
         Args: unknown[];
         Flags: { targets?: string[] };
@@ -397,8 +396,8 @@ describe(".Validate() Hook Integration", () => {
           return {
             success: false,
             errors: [{
-              path: ["flags", "targets"],
-              message: "At least one target required",
+              path: ['flags', 'targets'],
+              message: 'At least one target required',
             }],
           };
         }
@@ -409,8 +408,8 @@ describe(".Validate() Hook Integration", () => {
           return {
             success: false,
             errors: [{
-              path: ["flags", "targets"],
-              message: "Duplicate targets not allowed",
+              path: ['flags', 'targets'],
+              message: 'Duplicate targets not allowed',
             }],
           };
         }
@@ -430,13 +429,13 @@ describe(".Validate() Hook Integration", () => {
       assertEquals(emptyResult.success, false);
       assertEquals(
         emptyResult.errors?.[0].message,
-        "At least one target required",
+        'At least one target required',
       );
 
       // Test duplicate targets
       const dupResult = await validateFn({
         Args: [],
-        Flags: { targets: ["a", "b", "a"] },
+        Flags: { targets: ['a', 'b', 'a'] },
         Params: {},
         Log: {},
         RootValidate: () => Promise.resolve({ success: true }),
@@ -445,13 +444,13 @@ describe(".Validate() Hook Integration", () => {
       assertEquals(dupResult.success, false);
       assertEquals(
         dupResult.errors?.[0].message,
-        "Duplicate targets not allowed",
+        'Duplicate targets not allowed',
       );
 
       // Test valid targets
       const validResult = await validateFn({
         Args: [],
-        Flags: { targets: ["a", "b", "c"] },
+        Flags: { targets: ['a', 'b', 'c'] },
         Params: {},
         Log: {},
         RootValidate: () => Promise.resolve({ success: true }),

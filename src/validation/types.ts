@@ -1,5 +1,5 @@
-import type { CommandParams } from "../commands/CommandParams.ts";
-import type { CommandLog } from "../commands/CommandLog.ts";
+import type { CommandParams } from '../commands/CommandParams.ts';
+import type { CommandLog } from '../commands/CommandLog.ts';
 
 /**
  * Represents a validation error with path, message, and optional code.

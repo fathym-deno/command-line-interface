@@ -1,10 +1,10 @@
 // deno-lint-ignore-file no-explicit-any
-import { CommandIntent, CommandIntents } from "../../test.deps.ts";
-import type { CLIInitFn } from "../../../src/types/CLIInitFn.ts";
-import initFn from "../../../test-cli/.cli.init.ts";
-import HelloModule from "../../../test-cli/commands/hello.ts";
+import { CommandIntent, CommandIntents } from '../../test.deps.ts';
+import type { CLIInitFn } from '../../../src/types/CLIInitFn.ts';
+import initFn from '../../../test-cli/.cli.init.ts';
+import HelloModule from '../../../test-cli/commands/hello.ts';
 
-const configPath = "./test-cli/.cli.json";
+const configPath = './test-cli/.cli.json';
 
 const telemetryInit: CLIInitFn = (ioc, config) => {
   const logger = {
@@ -16,33 +16,33 @@ const telemetryInit: CLIInitFn = (ioc, config) => {
     withContext: () => logger,
   };
 
-  ioc.Register(() => logger, { Type: ioc.Symbol("TelemetryLogger") });
+  ioc.Register(() => logger, { Type: ioc.Symbol('TelemetryLogger') });
 
   return (initFn as CLIInitFn)(ioc, config);
 };
 
 CommandIntent(
-  "CommandIntent – Hello default greeting",
+  'CommandIntent – Hello default greeting',
   HelloModule as any,
   configPath,
 )
   .WithInit(telemetryInit as any)
-  .ExpectLogs("👋 Hello, world!")
+  .ExpectLogs('👋 Hello, world!')
   .Run();
 
 CommandIntents(
-  "CommandIntents – Hello variants",
+  'CommandIntents – Hello variants',
   HelloModule as any,
   configPath,
 )
   .WithInit(telemetryInit as any)
   .Intent(
-    "named greet",
-    (b) => b.Args(["Azi"] as any).ExpectLogs("👋 Hello, Azi!"),
+    'named greet',
+    (b) => b.Args(['Azi'] as any).ExpectLogs('👋 Hello, Azi!'),
   )
-  .Intent("loud dry run", (b) =>
+  .Intent('loud dry run', (b) =>
     b
-      .Args(["Azi"] as any)
-      .Flags({ loud: true, "dry-run": true } as any)
+      .Args(['Azi'] as any)
+      .Flags({ loud: true, 'dry-run': true } as any)
       .ExpectLogs('🛑 Dry run: "HELLO, AZI!"'))
   .Run();

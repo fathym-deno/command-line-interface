@@ -1,5 +1,5 @@
-import type { CommandParams } from "../commands/CommandParams.ts";
-import { CommandModuleBuilder } from "./CommandModuleBuilder.ts";
+import type { CommandParams } from '../commands/CommandParams.ts';
+import { CommandModuleBuilder } from './CommandModuleBuilder.ts';
 
 /**
  * Create a new command using the fluent builder API.

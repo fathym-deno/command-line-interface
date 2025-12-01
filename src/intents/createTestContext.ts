@@ -1,7 +1,7 @@
 // deno-lint-ignore-file no-explicit-any
-import type { CommandContext } from "../commands/CommandContext.ts";
-import type { CommandModule } from "../commands/CommandModule.ts";
-import type { CommandParams } from "../commands/CommandParams.ts";
+import type { CommandContext } from '../commands/CommandContext.ts';
+import type { CommandModule } from '../commands/CommandModule.ts';
+import type { CommandParams } from '../commands/CommandParams.ts';
 
 export function createTestContext<
   A extends unknown[],
@@ -19,11 +19,11 @@ export function createTestContext<
     Info: console.log,
     Warn: console.warn,
     Error: console.error,
-    Success: (...args: unknown[]) => console.log("✅", ...args),
+    Success: (...args: unknown[]) => console.log('✅', ...args),
   };
 
   return Promise.resolve({
-    Key: "",
+    Key: '',
     ArgsSchema: cmd.ArgsSchema,
     FlagsSchema: cmd.FlagsSchema,
     Params: params,

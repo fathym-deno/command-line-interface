@@ -13,7 +13,7 @@ export abstract class CommandParams<
    * Automatically derived from the `--dry-run` flag.
    */
   public get DryRun(): boolean {
-    return !!this.Flag("dry-run");
+    return !!this.Flag('dry-run');
   }
 
   /**

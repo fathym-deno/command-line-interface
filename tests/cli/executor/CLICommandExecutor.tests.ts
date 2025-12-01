@@ -1,16 +1,12 @@
 // deno-lint-ignore-file no-explicit-any
-import { assert, assertEquals } from "../../test.deps.ts";
-import { CLICommandExecutor } from "../../../src/executor/CLICommandExecutor.ts";
-import { CommandRuntime } from "../../../src/commands/CommandRuntime.ts";
-import { CommandParams } from "../../../src/commands/CommandParams.ts";
-import {
-  DFSFileHandler,
-  IoCContainer,
-  type TelemetryLogger,
-} from "../../../src/.deps.ts";
-import { CLIDFSContextManager } from "../../../src/CLIDFSContextManager.ts";
+import { assert, assertEquals } from '../../test.deps.ts';
+import { CLICommandExecutor } from '../../../src/executor/CLICommandExecutor.ts';
+import { CommandRuntime } from '../../../src/commands/CommandRuntime.ts';
+import { CommandParams } from '../../../src/commands/CommandParams.ts';
+import { DFSFileHandler, IoCContainer, type TelemetryLogger } from '../../../src/.deps.ts';
+import { CLIDFSContextManager } from '../../../src/CLIDFSContextManager.ts';
 
-class StubParams extends CommandParams<[], { "dry-run"?: boolean }> {}
+class StubParams extends CommandParams<[], { 'dry-run'?: boolean }> {}
 
 class StubCommand extends CommandRuntime<StubParams> {
   public calls: string[] = [];
@@ -19,24 +15,24 @@ class StubCommand extends CommandRuntime<StubParams> {
   }
 
   public BuildMetadata() {
-    return this.buildMetadataFromSchemas("stub", "stub cmd");
+    return this.buildMetadataFromSchemas('stub', 'stub cmd');
   }
 
   public override Init() {
-    this.calls.push("Init");
+    this.calls.push('Init');
   }
 
   public override Run() {
-    this.calls.push("Run");
+    this.calls.push('Run');
     return this.runReturn;
   }
 
   public override DryRun() {
-    this.calls.push("DryRun");
+    this.calls.push('DryRun');
   }
 
   public override Cleanup() {
-    this.calls.push("Cleanup");
+    this.calls.push('Cleanup');
   }
 }
 
@@ -47,10 +43,10 @@ class StubResolver {
 }
 
 class MinimalDFS extends DFSFileHandler {
-  public Root = ".";
+  public Root = '.';
 
   constructor() {
-    super({ FileRoot: "." });
+    super({ FileRoot: '.' });
   }
 
   override loadAllPaths(): Promise<string[]> {
@@ -66,7 +62,7 @@ class MinimalDFS extends DFSFileHandler {
   }
 
   override ResolvePath(...parts: string[]): string {
-    return parts.join("/");
+    return parts.join('/');
   }
 
   WriteFile(): Promise<void> {
@@ -88,10 +84,10 @@ class StubDFS extends CLIDFSContextManager {
   }
 }
 
-const config = { Name: "Test CLI", Tokens: ["test"], Version: "0.0.0" };
+const config = { Name: 'Test CLI', Tokens: ['test'], Version: '0.0.0' };
 
 Deno.test(
-  "CLICommandExecutor – lifecycle runs Init->Run->Cleanup",
+  'CLICommandExecutor – lifecycle runs Init->Run->Cleanup',
   async () => {
     const ioc = new IoCContainer();
     const resolver = new StubResolver();
@@ -107,7 +103,7 @@ Deno.test(
       withContext: () => logger,
     };
 
-    ioc.Register(() => logger, { Type: ioc.Symbol("TelemetryLogger") });
+    ioc.Register(() => logger, { Type: ioc.Symbol('TelemetryLogger') });
     ioc.Register(CLIDFSContextManager, () => dfs);
 
     const cmd = new StubCommand();
@@ -121,23 +117,23 @@ Deno.test(
 
     try {
       await executor.Execute(config as any, cmd, {
-        key: "hello",
+        key: 'hello',
         flags: {},
         positional: [],
         paramsCtor: StubParams,
-        baseTemplatesDir: "/templates",
+        baseTemplatesDir: '/templates',
       });
     } finally {
       (Deno as any).exit = originalExit;
     }
 
-    assertEquals(cmd.calls, ["Init", "Run", "Cleanup"]);
+    assertEquals(cmd.calls, ['Init', 'Run', 'Cleanup']);
     assertEquals(exitCode, null);
-    assert(logs.some((l) => l.includes("completed")));
+    assert(logs.some((l) => l.includes('completed')));
   },
 );
 
-Deno.test("CLICommandExecutor – uses DryRun when flag set", async () => {
+Deno.test('CLICommandExecutor – uses DryRun when flag set', async () => {
   const ioc = new IoCContainer();
   const resolver = new StubResolver();
   const dfs = new StubDFS(ioc);
@@ -151,25 +147,25 @@ Deno.test("CLICommandExecutor – uses DryRun when flag set", async () => {
     withContext: () => logger,
   };
 
-  ioc.Register(() => logger, { Type: ioc.Symbol("TelemetryLogger") });
+  ioc.Register(() => logger, { Type: ioc.Symbol('TelemetryLogger') });
   ioc.Register(CLIDFSContextManager, () => dfs);
 
   const cmd = new StubCommand();
   const executor = new CLICommandExecutor(ioc, resolver as any);
 
   await executor.Execute(config as any, cmd, {
-    key: "hello",
-    flags: { "dry-run": true },
+    key: 'hello',
+    flags: { 'dry-run': true },
     positional: [],
     paramsCtor: StubParams,
-    baseTemplatesDir: "/templates",
+    baseTemplatesDir: '/templates',
   });
 
-  assertEquals(cmd.calls, ["Init", "DryRun", "Cleanup"]);
+  assertEquals(cmd.calls, ['Init', 'DryRun', 'Cleanup']);
 });
 
 Deno.test(
-  "CLICommandExecutor – exits with code when Run returns number",
+  'CLICommandExecutor – exits with code when Run returns number',
   async () => {
     const ioc = new IoCContainer();
     const resolver = new StubResolver();
@@ -184,7 +180,7 @@ Deno.test(
       withContext: () => logger,
     };
 
-    ioc.Register(() => logger, { Type: ioc.Symbol("TelemetryLogger") });
+    ioc.Register(() => logger, { Type: ioc.Symbol('TelemetryLogger') });
     ioc.Register(CLIDFSContextManager, () => dfs);
 
     const cmd = new StubCommand(5);
@@ -198,11 +194,11 @@ Deno.test(
 
     try {
       await executor.Execute(config as any, cmd, {
-        key: "hello",
+        key: 'hello',
         flags: {},
         positional: [],
         paramsCtor: StubParams,
-        baseTemplatesDir: "/templates",
+        baseTemplatesDir: '/templates',
       });
     } finally {
       Deno.exit = originalExit;

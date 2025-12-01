@@ -1,4 +1,4 @@
-import type { StyleOptions } from "./StyleKeys.ts";
+import type { StyleOptions } from './StyleKeys.ts';
 
 /**
  * Represents text content with optional styling.

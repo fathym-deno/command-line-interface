@@ -1,7 +1,7 @@
-import type { TelemetryLogger } from "../.deps.ts";
+import type { TelemetryLogger } from '../.deps.ts';
 
 export type TelemetryLogEntry = {
-  level: "info" | "warn" | "error" | "success";
+  level: 'info' | 'warn' | 'error' | 'success';
   message: string;
   attributes?: Record<string, unknown>;
 };
@@ -13,38 +13,38 @@ export class TelemetryLogAdapter {
   ) {}
 
   public Info(...data: unknown[]) {
-    this.write("info", data);
+    this.write('info', data);
   }
 
   public Warn(...data: unknown[]) {
-    this.write("warn", data);
+    this.write('warn', data);
   }
 
   public Error(...data: unknown[]) {
-    this.write("error", data);
+    this.write('error', data);
   }
 
   public Success(...data: unknown[]) {
-    this.write("success", data);
+    this.write('success', data);
   }
 
-  protected write(level: TelemetryLogEntry["level"], data: unknown[]) {
+  protected write(level: TelemetryLogEntry['level'], data: unknown[]) {
     const message = data.map((
       d,
-    ) => (typeof d === "string" ? d : JSON.stringify(d))).join(" ");
+    ) => (typeof d === 'string' ? d : JSON.stringify(d))).join(' ');
     const attributes = { ...this.baseAttributes, levelHint: level };
 
     switch (level) {
-      case "info":
+      case 'info':
         this.logger.info(message, attributes);
         break;
-      case "warn":
+      case 'warn':
         this.logger.warn(message, attributes);
         break;
-      case "error":
+      case 'error':
         this.logger.error(message, attributes);
         break;
-      case "success":
+      case 'success':
         this.logger.info(message, { ...attributes, success: true });
         break;
     }

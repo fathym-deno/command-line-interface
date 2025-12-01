@@ -1,6 +1,6 @@
 // deno-lint-ignore-file no-explicit-any
-import { assert, assertEquals } from "../../test.deps.ts";
-import { runCommandWithLogs } from "../../../src/utils/runCommandWithLogs.ts";
+import { assert, assertEquals } from '../../test.deps.ts';
+import { runCommandWithLogs } from '../../../src/utils/runCommandWithLogs.ts';
 
 function createLog() {
   const entries: string[] = [];
@@ -9,11 +9,11 @@ function createLog() {
     log: entries,
     logger: {
       Info: (...args: unknown[]) => {
-        entries.push(`INFO:${args.join(" ")}`);
+        entries.push(`INFO:${args.join(' ')}`);
       },
       Warn: () => {},
       Error: (...args: unknown[]) => {
-        entries.push(`ERR:${args.join(" ")}`);
+        entries.push(`ERR:${args.join(' ')}`);
       },
       Success: () => {},
     },
@@ -21,41 +21,41 @@ function createLog() {
 }
 
 Deno.test(
-  "runCommandWithLogs – captures stdout/stderr with prefix",
+  'runCommandWithLogs – captures stdout/stderr with prefix',
   async () => {
     const { log, logger } = createLog();
 
     const result = await runCommandWithLogs(
-      ["eval", "console.log('hi'); console.error('warn');"],
+      ['eval', "console.log('hi'); console.error('warn');"],
       logger,
-      { command: Deno.execPath(), prefix: "cli: ", cwd: Deno.cwd() },
+      { command: Deno.execPath(), prefix: 'cli: ', cwd: Deno.cwd() },
     );
 
     assertEquals(result, { code: 0, success: true });
-    assert(log.includes("INFO:cli: hi"));
-    assert(log.includes("ERR:cli: warn"));
+    assert(log.includes('INFO:cli: hi'));
+    assert(log.includes('ERR:cli: warn'));
   },
 );
 
 Deno.test(
-  "runCommandWithLogs – returns failure without exiting when exitOnFail=false",
+  'runCommandWithLogs – returns failure without exiting when exitOnFail=false',
   async () => {
     const { log, logger } = createLog();
 
     const result = await runCommandWithLogs(
-      ["eval", "console.error('boom'); Deno.exit(2);"],
+      ['eval', "console.error('boom'); Deno.exit(2);"],
       logger,
       { command: Deno.execPath(), exitOnFail: false, cwd: Deno.cwd() },
     );
 
     assertEquals(result.success, false);
     assertEquals(result.code, 2);
-    assert(log.some((l) => l.includes("boom")));
+    assert(log.some((l) => l.includes('boom')));
   },
 );
 
 Deno.test(
-  "runCommandWithLogs – calls Deno.exit when command fails",
+  'runCommandWithLogs – calls Deno.exit when command fails',
   async () => {
     const { log, logger } = createLog();
 
@@ -67,7 +67,7 @@ Deno.test(
 
     try {
       const result = await runCommandWithLogs(
-        ["eval", "Deno.exit(3);"],
+        ['eval', 'Deno.exit(3);'],
         logger,
         { command: Deno.execPath(), cwd: Deno.cwd() },
       );
@@ -79,6 +79,6 @@ Deno.test(
     }
 
     assert(exitCode === 3);
-    assert(log.some((l) => l.includes("failed with exit code 3")));
+    assert(log.some((l) => l.includes('failed with exit code 3')));
   },
 );

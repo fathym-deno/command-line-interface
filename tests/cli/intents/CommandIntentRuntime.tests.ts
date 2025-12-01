@@ -1,9 +1,9 @@
 // deno-lint-ignore-file no-explicit-any
-import { assertRejects } from "../../test.deps.ts";
-import { CommandIntentRuntime } from "../../../src/intents/CommandIntentRuntime.ts";
-import type { CLIInitFn } from "../../../src/types/CLIInitFn.ts";
-import HelloModule from "../../../test-cli/commands/hello.ts";
-import initFn from "../../../test-cli/.cli.init.ts";
+import { assertRejects } from '../../test.deps.ts';
+import { CommandIntentRuntime } from '../../../src/intents/CommandIntentRuntime.ts';
+import type { CLIInitFn } from '../../../src/types/CLIInitFn.ts';
+import HelloModule from '../../../test-cli/commands/hello.ts';
+import initFn from '../../../test-cli/.cli.init.ts';
 
 const telemetryInit: CLIInitFn = (ioc, config) => {
   const logger = {
@@ -15,15 +15,15 @@ const telemetryInit: CLIInitFn = (ioc, config) => {
     withContext: () => logger,
   };
 
-  ioc.Register(() => logger, { Type: ioc.Symbol("TelemetryLogger") });
+  ioc.Register(() => logger, { Type: ioc.Symbol('TelemetryLogger') });
 
   return (initFn as CLIInitFn)(ioc, config);
 };
 
-Deno.test("CommandIntentRuntime – errors when .cli.json missing", async () => {
-  const missingConfig = "/tmp/nowhere/.cli.json";
+Deno.test('CommandIntentRuntime – errors when .cli.json missing', async () => {
+  const missingConfig = '/tmp/nowhere/.cli.json';
   const runtime = new CommandIntentRuntime(
-    "missing config",
+    'missing config',
     HelloModule as any,
     [] as any,
     {} as any,
@@ -31,15 +31,15 @@ Deno.test("CommandIntentRuntime – errors when .cli.json missing", async () => 
     telemetryInit,
   );
 
-  await assertRejects(() => runtime.Run(), Error, ".cli.json");
+  await assertRejects(() => runtime.Run(), Error, '.cli.json');
 });
 
 Deno.test(
-  "CommandIntentRuntime – fails assertion when exit code expectation not met",
+  'CommandIntentRuntime – fails assertion when exit code expectation not met',
   async () => {
-    const configPath = "./test-cli/.cli.json";
+    const configPath = './test-cli/.cli.json';
     const runtime = new CommandIntentRuntime(
-      "exit mismatch",
+      'exit mismatch',
       HelloModule as any,
       [] as any,
       {} as any,
@@ -49,6 +49,6 @@ Deno.test(
 
     runtime.ExpectExit(1);
 
-    await assertRejects(() => runtime.Run(), Error, "Expected exit code 1");
+    await assertRejects(() => runtime.Run(), Error, 'Expected exit code 1');
   },
 );

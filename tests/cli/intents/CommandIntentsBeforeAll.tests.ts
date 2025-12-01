@@ -1,9 +1,9 @@
 // deno-lint-ignore-file no-explicit-any
-import { assertEquals } from "../../test.deps.ts";
-import { CommandIntents } from "../../test.deps.ts";
-import { CommandModuleBuilder } from "../../../src/fluent/CommandModuleBuilder.ts";
-import { z } from "../../test.deps.ts";
-import { CommandParams } from "../../../src/commands/CommandParams.ts";
+import { assertEquals } from '../../test.deps.ts';
+import { CommandIntents } from '../../test.deps.ts';
+import { CommandModuleBuilder } from '../../../src/fluent/CommandModuleBuilder.ts';
+import { z } from '../../test.deps.ts';
+import { CommandParams } from '../../../src/commands/CommandParams.ts';
 
 const NoopArgsSchema = z.tuple([]);
 
@@ -14,7 +14,7 @@ class NoopParams extends CommandParams<
   z.infer<typeof NoopFlagsSchema>
 > {}
 
-const builder = new CommandModuleBuilder("noop", "Noop")
+const builder = new CommandModuleBuilder('noop', 'Noop')
   .Args(NoopArgsSchema)
   .Flags(NoopFlagsSchema)
   .Params(NoopParams)
@@ -25,80 +25,80 @@ const executionOrder: string[] = [];
 
 // This registers a test that will run and populate executionOrder
 CommandIntents(
-  "CommandIntents – BeforeAll execution verification",
+  'CommandIntents – BeforeAll execution verification',
   builder as any,
-  "./test-cli/.cli.json",
+  './test-cli/.cli.json',
 )
   .BeforeAll(() => {
-    executionOrder.push("beforeAll");
+    executionOrder.push('beforeAll');
   })
   .WithInit((_ioc, _config) => {
-    executionOrder.push("init");
+    executionOrder.push('init');
   })
-  .Intent("first intent", (b) => b.ExpectExit(0))
-  .Intent("second intent", (b) => b.ExpectExit(0))
+  .Intent('first intent', (b) => b.ExpectExit(0))
+  .Intent('second intent', (b) => b.ExpectExit(0))
   .Run();
 
 // This test runs after the above to verify execution order
-Deno.test("CommandIntents – BeforeAll runs once before all intents", () => {
+Deno.test('CommandIntents – BeforeAll runs once before all intents', () => {
   // BeforeAll should have run once, Init should have run twice (once per intent)
-  assertEquals(executionOrder[0], "beforeAll");
-  assertEquals(executionOrder.filter((e) => e === "beforeAll").length, 1);
-  assertEquals(executionOrder.filter((e) => e === "init").length, 2);
+  assertEquals(executionOrder[0], 'beforeAll');
+  assertEquals(executionOrder.filter((e) => e === 'beforeAll').length, 1);
+  assertEquals(executionOrder.filter((e) => e === 'init').length, 2);
 });
 
-Deno.test("CommandIntents – BeforeAll accepts sync function", () => {
+Deno.test('CommandIntents – BeforeAll accepts sync function', () => {
   let called = false;
 
   const intents = CommandIntents(
-    "BeforeAll sync test",
+    'BeforeAll sync test',
     builder as any,
-    "./test-cli/.cli.json",
+    './test-cli/.cli.json',
   )
     .BeforeAll(() => {
       called = true;
     })
-    .Intent("test", (b) => b.ExpectExit(0));
+    .Intent('test', (b) => b.ExpectExit(0));
 
   // Verify the function is stored and returns this for chaining
-  assertEquals(typeof (intents as any).beforeAllFn, "function");
+  assertEquals(typeof (intents as any).beforeAllFn, 'function');
 
   // Call the function directly to verify it works
   (intents as any).beforeAllFn();
   assertEquals(called, true);
 });
 
-Deno.test("CommandIntents – BeforeAll accepts async function", () => {
+Deno.test('CommandIntents – BeforeAll accepts async function', () => {
   const intents = CommandIntents(
-    "BeforeAll async",
+    'BeforeAll async',
     builder as any,
-    "./test-cli/.cli.json",
+    './test-cli/.cli.json',
   )
     .BeforeAll(async () => {
       await Promise.resolve();
     })
-    .Intent("test", (b) => b.ExpectExit(0));
+    .Intent('test', (b) => b.ExpectExit(0));
 
   // Verify the function is stored
-  assertEquals(typeof (intents as any).beforeAllFn, "function");
+  assertEquals(typeof (intents as any).beforeAllFn, 'function');
 });
 
-Deno.test("CommandIntents – BeforeAll is optional", () => {
+Deno.test('CommandIntents – BeforeAll is optional', () => {
   const intents = CommandIntents(
-    "BeforeAll optional",
+    'BeforeAll optional',
     builder as any,
-    "./test-cli/.cli.json",
-  ).Intent("test", (b) => b.ExpectExit(0));
+    './test-cli/.cli.json',
+  ).Intent('test', (b) => b.ExpectExit(0));
 
   // Verify beforeAllFn is undefined when not set
   assertEquals((intents as any).beforeAllFn, undefined);
 });
 
-Deno.test("CommandIntents – BeforeAll returns this for chaining", () => {
+Deno.test('CommandIntents – BeforeAll returns this for chaining', () => {
   const intents = CommandIntents(
-    "BeforeAll chaining",
+    'BeforeAll chaining',
     builder as any,
-    "./test-cli/.cli.json",
+    './test-cli/.cli.json',
   );
 
   const result = intents.BeforeAll(() => {});

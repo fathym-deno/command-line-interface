@@ -1,1 +1,1 @@
-export * from "./TelemetryLogAdapter.ts";
+export * from './TelemetryLogAdapter.ts';

@@ -1,4 +1,4 @@
-import type { Spinner } from "./Spinner.ts";
+import type { Spinner } from './Spinner.ts';
 
 /**
  * Braille-based spinner with smooth 10-frame animation.
@@ -20,6 +20,6 @@ import type { Spinner } from "./Spinner.ts";
  * Visual: ⠋ → ⠙ → ⠹ → ⠸ → ⠼ → ⠴ → ⠦ → ⠧ → ⠇ → ⠏
  */
 export const DotsSpinner: Spinner = {
-  Frames: ["⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏"],
+  Frames: ['⠋', '⠙', '⠹', '⠸', '⠼', '⠴', '⠦', '⠧', '⠇', '⠏'],
   Interval: 80,
 };

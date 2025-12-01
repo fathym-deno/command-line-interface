@@ -1,15 +1,11 @@
 // deno-lint-ignore-file no-explicit-any
-import type { ZodSchema } from "../.deps.ts";
-import type { CommandParams } from "../commands/CommandParams.ts";
-import type { CommandLog } from "../commands/CommandLog.ts";
-import type {
-  ValidateCallback,
-  ValidateContext,
-  ValidationResult,
-} from "./types.ts";
-import { SchemaIntrospector } from "./SchemaIntrospector.ts";
-import { ValueResolver } from "./ValueResolver.ts";
-import { SchemaValidator } from "./SchemaValidator.ts";
+import type { ZodSchema } from '../.deps.ts';
+import type { CommandParams } from '../commands/CommandParams.ts';
+import type { CommandLog } from '../commands/CommandLog.ts';
+import type { ValidateCallback, ValidateContext, ValidationResult } from './types.ts';
+import { SchemaIntrospector } from './SchemaIntrospector.ts';
+import { ValueResolver } from './ValueResolver.ts';
+import { SchemaValidator } from './SchemaValidator.ts';
 
 /**
  * Options for the validation pipeline.
@@ -239,7 +235,7 @@ export class ValidationPipeline {
    */
   formatErrors(result: ValidationResult): string {
     if (result.success || !result.errors?.length) {
-      return "";
+      return '';
     }
 
     return this.validator.formatErrors(result.errors);
