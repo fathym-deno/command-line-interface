@@ -60,20 +60,69 @@ Deno.test('CLIConfig schema and guard', async (t) => {
     assert(parsed.success);
   });
 
-  await t.step('accepts ConfigDFS as optional string', () => {
+  await t.step('accepts ConfigDFSName as optional string', () => {
     const config = {
       ...baseConfig,
-      ConfigDFS: '.ftm',
+      ConfigDFSName: '.ftm',
     };
     const parsed = CLIConfigSchema.safeParse(config);
     assert(parsed.success);
-    assertEquals(parsed.data.ConfigDFS, '.ftm');
+    assertEquals(parsed.data.ConfigDFSName, '.ftm');
   });
 
-  await t.step('accepts config without ConfigDFS', () => {
+  await t.step('accepts ConfigDFSRoot as optional string', () => {
+    const config = {
+      ...baseConfig,
+      ConfigDFSName: '.ftm',
+      ConfigDFSRoot: '/data',
+    };
+    const parsed = CLIConfigSchema.safeParse(config);
+    assert(parsed.success);
+    assertEquals(parsed.data.ConfigDFSRoot, '/data');
+  });
+
+  await t.step('accepts ConfigDFSRootEnvVar as optional string', () => {
+    const config = {
+      ...baseConfig,
+      ConfigDFSName: '.ftm',
+      ConfigDFSRootEnvVar: 'CUSTOM_CONFIG_ROOT',
+    };
+    const parsed = CLIConfigSchema.safeParse(config);
+    assert(parsed.success);
+    assertEquals(parsed.data.ConfigDFSRootEnvVar, 'CUSTOM_CONFIG_ROOT');
+  });
+
+  await t.step('accepts ConfigDFSRootEnvVar as empty string (disables env checking)', () => {
+    const config = {
+      ...baseConfig,
+      ConfigDFSName: '.ftm',
+      ConfigDFSRootEnvVar: '',
+    };
+    const parsed = CLIConfigSchema.safeParse(config);
+    assert(parsed.success);
+    assertEquals(parsed.data.ConfigDFSRootEnvVar, '');
+  });
+
+  await t.step('accepts config without ConfigDFS properties', () => {
     const parsed = CLIConfigSchema.safeParse(baseConfig);
     assert(parsed.success);
-    assertEquals(parsed.data.ConfigDFS, undefined);
+    assertEquals(parsed.data.ConfigDFSName, undefined);
+    assertEquals(parsed.data.ConfigDFSRoot, undefined);
+    assertEquals(parsed.data.ConfigDFSRootEnvVar, undefined);
+  });
+
+  await t.step('accepts full ConfigDFS configuration', () => {
+    const config = {
+      ...baseConfig,
+      ConfigDFSName: '.spire',
+      ConfigDFSRoot: '/app/data',
+      ConfigDFSRootEnvVar: 'SPIRE_DATA_DIR',
+    };
+    const parsed = CLIConfigSchema.safeParse(config);
+    assert(parsed.success);
+    assertEquals(parsed.data.ConfigDFSName, '.spire');
+    assertEquals(parsed.data.ConfigDFSRoot, '/app/data');
+    assertEquals(parsed.data.ConfigDFSRootEnvVar, 'SPIRE_DATA_DIR');
   });
 });
 

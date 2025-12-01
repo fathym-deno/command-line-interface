@@ -64,12 +64,32 @@ export type CLIConfig = {
   Templates?: string;
 
   /**
-   * Optional path to a configuration directory, relative to the user's home directory.
-   * When set, this directory is registered as a DFS context named 'config' during CLI init.
+   * Folder name for the configuration directory (e.g., ".ftm", ".spire").
+   * Required for ConfigDFS to be set up. The full path is determined by
+   * combining this with the resolved root directory.
    *
-   * @example ".ftm" resolves to "~/.ftm/" on Unix or "%USERPROFILE%\.ftm\" on Windows
+   * @example ".ftm" resolves to "~/.ftm/" by default
    */
-  ConfigDFS?: string;
+  ConfigDFSName?: string;
+
+  /**
+   * Explicit root directory for ConfigDFS. When set, this path is used
+   * as the base directory (after env var check).
+   *
+   * @example "/data" with ConfigDFSName ".ftm" resolves to "/data/.ftm"
+   */
+  ConfigDFSRoot?: string;
+
+  /**
+   * Custom environment variable name to check for root override.
+   * - If set to a non-empty string: checks that env var for root
+   * - If set to empty string "": disables ALL env var checking
+   * - If not set (undefined): checks default env var {TOKEN}_CONFIG_ROOT
+   *
+   * @example "SPIRE_DATA_DIR" checks that env var for root override
+   * @example "" disables all env var checking
+   */
+  ConfigDFSRootEnvVar?: string;
 };
 
 /**
@@ -116,10 +136,20 @@ export const CLIConfigSchema: z.ZodType<CLIConfig> = z.object({
       "Path(s) to CLI command folder(s). Can be a string, array of strings, or array of CLICommandSource objects. Defaults to './commands'.",
     ),
 
-  ConfigDFS: z
+  ConfigDFSName: z
     .string()
     .optional()
-    .describe('Path to configuration directory relative to user home (e.g., ".ftm")'),
+    .describe('Folder name for config directory (e.g., ".ftm")'),
+
+  ConfigDFSRoot: z
+    .string()
+    .optional()
+    .describe('Explicit root directory for ConfigDFS'),
+
+  ConfigDFSRootEnvVar: z
+    .string()
+    .optional()
+    .describe('Custom env var name for root override, or "" to disable env var checking'),
 });
 
 /**

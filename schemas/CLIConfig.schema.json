@@ -57,8 +57,16 @@
         }
       ]
     },
-    "ConfigDFS": {
-      "description": "Path to configuration directory relative to user home (e.g., \".ftm\")",
+    "ConfigDFSName": {
+      "description": "Folder name for config directory (e.g., \".ftm\")",
+      "type": "string"
+    },
+    "ConfigDFSRoot": {
+      "description": "Explicit root directory for ConfigDFS",
+      "type": "string"
+    },
+    "ConfigDFSRootEnvVar": {
+      "description": "Custom env var name for root override, or \"\" to disable env var checking",
       "type": "string"
     }
   },

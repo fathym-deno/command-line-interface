@@ -11,6 +11,36 @@ import {
 } from './.deps.ts';
 
 /**
+ * Options for registering a ConfigDFS handler.
+ */
+export interface ConfigDFSOptions {
+  /**
+   * Folder name for the config directory (e.g., ".ftm", ".spire").
+   */
+  name: string;
+
+  /**
+   * First CLI token, used to derive the default env var name.
+   * For token "ftm", the default env var is "FTM_CONFIG_ROOT".
+   */
+  token: string;
+
+  /**
+   * Explicit root directory override from config.
+   * Takes precedence over default env var but not custom env var.
+   */
+  root?: string;
+
+  /**
+   * Custom environment variable name for root override.
+   * - Non-empty string: checks that env var for root
+   * - Empty string "": disables ALL env var checking
+   * - undefined: checks default env var {TOKEN}_CONFIG_ROOT
+   */
+  rootEnvVar?: string;
+}
+
+/**
  * Coordinates multiple DFS handlers for different filesystem scopes.
  *
  * The CLIDFSContextManager manages named DFS instances for common CLI contexts:
@@ -179,28 +209,70 @@ export class CLIDFSContextManager {
   /**
    * Register a DFS handler for the CLI configuration directory.
    *
-   * The config directory is relative to the user's home directory and will
-   * be created if it doesn't exist.
+   * Root resolution precedence:
+   * 1. Custom env var (if rootEnvVar is set and non-empty)
+   * 2. Explicit root (if root is set)
+   * 3. Default env var {TOKEN}_CONFIG_ROOT (if rootEnvVar is undefined)
+   * 4. User home directory
    *
-   * @param relativePath - Path relative to user home (e.g., ".ftm", ".spire")
+   * @param options - Configuration options for ConfigDFS
    * @returns The absolute config directory path
    * @throws Error if unable to determine home directory
    *
-   * @example
+   * @example Default behavior (checks FTM_CONFIG_ROOT, falls back to user home)
    * ```typescript
-   * await dfsCtx.RegisterConfigDFS('.ftm');
-   * // Windows: C:\Users\username\.ftm
-   * // Unix: /home/username/.ftm
+   * await dfsCtx.RegisterConfigDFS({ name: '.ftm', token: 'ftm' });
+   * ```
+   *
+   * @example With explicit root
+   * ```typescript
+   * await dfsCtx.RegisterConfigDFS({ name: '.ftm', token: 'ftm', root: '/data' });
+   * // Resolves to /data/.ftm
+   * ```
+   *
+   * @example Disable env var checking
+   * ```typescript
+   * await dfsCtx.RegisterConfigDFS({ name: '.ftm', token: 'ftm', rootEnvVar: '' });
+   * // Always uses user home, ignores FTM_CONFIG_ROOT
    * ```
    */
-  public async RegisterConfigDFS(relativePath: string): Promise<string> {
-    const homeDir = this.getUserHomeDir();
-    const configPath = join(homeDir, relativePath);
+  public async RegisterConfigDFS(options: ConfigDFSOptions): Promise<string> {
+    const root = this.resolveConfigRoot(options);
+    const configPath = join(root, options.name);
 
     // Ensure config directory exists (cross-platform)
     await ensureDir(configPath);
 
     return this.RegisterCustomDFS('config', { FileRoot: configPath });
+  }
+
+  /**
+   * Resolve the root directory for ConfigDFS based on precedence rules.
+   *
+   * @param options - Configuration options
+   * @returns The resolved root directory path
+   */
+  protected resolveConfigRoot(options: ConfigDFSOptions): string {
+    const { token, root, rootEnvVar } = options;
+
+    // 1. Custom env var (if explicitly set and non-empty)
+    if (rootEnvVar !== undefined && rootEnvVar !== '') {
+      const envValue = Deno.env.get(rootEnvVar);
+      if (envValue) return envValue;
+    }
+
+    // 2. Explicit root from config
+    if (root) return root;
+
+    // 3. Default env var (only if rootEnvVar is undefined, not empty string)
+    if (rootEnvVar === undefined) {
+      const defaultEnvVar = `${token.toUpperCase()}_CONFIG_ROOT`;
+      const envValue = Deno.env.get(defaultEnvVar);
+      if (envValue) return envValue;
+    }
+
+    // 4. Fall back to user home
+    return this.getUserHomeDir();
   }
 
   /**
