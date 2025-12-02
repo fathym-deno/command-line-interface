@@ -33,8 +33,8 @@ export { merge, mergeWithArrays } from 'jsr:@fathym/common@0.2.299/merge';
 
 export { exists, existsSync } from 'jsr:@fathym/common@0.2.299/path';
 
-export { DFSFileHandler } from 'jsr:@fathym/dfs@0.0.51';
+export { DFSFileHandler } from 'jsr:@fathym/dfs@0.0.54-integration';
 export {
   LocalDFSFileHandler,
   type LocalDFSFileHandlerDetails,
-} from 'jsr:@fathym/dfs@0.0.51/handlers';
+} from 'jsr:@fathym/dfs@0.0.54-integration/handlers';
