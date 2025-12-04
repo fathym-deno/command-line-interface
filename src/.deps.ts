@@ -15,7 +15,7 @@ export { assert } from 'jsr:@std/assert@^0.221.0/assert';
 
 export { pascalCase } from 'jsr:@luca/cases@1.0.0';
 
-export { IoCContainer, type IoCServiceConstructor } from 'jsr:@fathym/ioc@0.0.21';
+export { IoCContainer, type IoCServiceConstructor } from 'jsr:@fathym/ioc@0.0.25';
 
 export {
   telemetryFor,
@@ -33,8 +33,8 @@ export { merge, mergeWithArrays } from 'jsr:@fathym/common@0.2.299/merge';
 
 export { exists, existsSync } from 'jsr:@fathym/common@0.2.299/path';
 
-export { DFSFileHandler } from 'jsr:@fathym/dfs@0.0.57-integration';
+export { DFSFileHandler } from 'jsr:@fathym/dfs@0.0.63-integration';
 export {
   LocalDFSFileHandler,
   type LocalDFSFileHandlerDetails,
-} from 'jsr:@fathym/dfs@0.0.57-integration/handlers';
+} from 'jsr:@fathym/dfs@0.0.63-integration/handlers';
