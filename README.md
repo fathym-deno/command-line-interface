@@ -40,6 +40,18 @@ CLI for working with Fathym runtimes and micro-frameworks—covering scaffolding
 - Depends on `@fathym/common` for core utilities and `@fathym/dfs` for file system abstractions.
 - Packaging tasks and compile/run helpers defined in `deno.jsonc`; adjust for release targets as needed.
 
+### Documentation Audit (2025-12-01)
+
+- **Intent:** Productionalize the CLI docs for launch readiness across guides, concepts, and API reference with explicit gap analysis, example QA, and an executable plan.
+- **Outcome:** Added a companion [Documentation Production Plan](docs/guides/documentation-production-plan.md) that details remediation tracks, ownership, CI automation, compliance checks, and validation matrices; linked it from the readiness guide and docs index.
+- **Next Steps:** Implement `doc:lint`/`doc:verify` tasks, retrofit troubleshooting and security callouts, publish stability and compatibility matrices, and enforce doc impact summaries in `CHANGELOG.md` for releases.
+
+### Documentation Audit (2025-12-02)
+
+- **Intent:** Move beyond planning with a concrete audit of every doc/example to determine accuracy, usability, and compliance for launch.
+- **Outcome:** Published a [Documentation Audit Report](docs/guides/documentation-audit-report.md) that inventories each doc area, flags verification gaps, and lists execution-ready fixes (install matrix, compatibility policy, troubleshooting/rollback, runnable snippets, compliance callouts).
+- **Next Steps:** Assign owners per area, capture expected outputs for prioritized snippets, wire `doc:lint`/`doc:verify` into CI, and update guides/API docs with stability and compatibility matrices.
+
 ## How to Work in This Pod
 
 1. Review the root and portfolio Instruction Documents plus this project’s [`AGENTS`](./AGENTS.md) and [`GUIDE`](./GUIDE.md).
