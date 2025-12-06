@@ -50,6 +50,9 @@ A powerful, type-safe CLI framework for Deno with fluent command building, depen
 - [Logging & Output](./guides/logging-output.md) - Logging, spinners, styling
 - [Advanced Infrastructure](./guides/advanced-infrastructure.md) - Internal architecture
 - [Compiling CLIs](./guides/embedded-cli.md) - Standalone executables
+- [Documentation Readiness](./guides/documentation-readiness.md) - Launch checklist and audit log
+- [Documentation Production Plan](./guides/documentation-production-plan.md) - Detailed remediation and verification plan
+- [Documentation Audit Report](./guides/documentation-audit-report.md) - Deep analysis of current docs and prioritized fixes
 
 ### Contributors
 
@@ -71,6 +74,7 @@ A powerful, type-safe CLI framework for Deno with fluent command building, depen
 | **Help**       | Help generation               | `help/CLIHelpBuilder.ts`, `HelpCommand.ts`     |
 | **Templates**  | Scaffolding system            | `scaffolding/TemplateScaffolder.ts`            |
 | **Intents**    | Testing framework             | `intents/CommandIntent.ts`                     |
+| **Documentation** | Launch and style guardrails | `guides/documentation-readiness.md`, `AGENTS.md`, `GUIDE.md` |
 
 ---
 
@@ -117,6 +121,14 @@ export default Command("greet", "Greet someone by name")
     Log.Info(Params.IsLoud ? msg.toUpperCase() : msg);
   });
 ```
+
+---
+
+## Documentation Audit Snapshot
+
+- **Scope:** Full pass over Markdown user guides and API reference to ensure launch-ready content, navigation, and guardrails.
+- **Actions taken:** Added a documentation readiness guide with audit log, standardized cross-links from the index, and refreshed the component map to surface doc guardrails.
+- **Next steps:** Keep the readiness checklist up to date alongside code changes; treat docs as required artifacts for new commands, scaffolding flows, and configuration surface area changes.
 
 ### Dependency Injection
 
